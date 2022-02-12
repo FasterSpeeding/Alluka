@@ -1,0 +1,139 @@
+[build-system]
+requires = ["flit_core >=3.3,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "alluka"
+readme = "README.md"
+requires-python = ">=3.9.0,<3.12"
+license = {file = "LICENSE"}
+authors = [ {name = "Faster Speeding", email="lucina@lmbyrne.dev"} ]
+keywords= ["hikari"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: BSD License",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+    "Typing :: Typed"
+]
+dependencies = ["hikari~=2.0.0.dev106"]
+dynamic = ["description", "version"]
+
+[project.optional-dependencies]
+docs = ["pdoc==9.0.1"]
+flake8 = [
+    "flake8==4.0.1",
+
+    # Flake8 plugins
+    # Ref: https://github.com/DmytroLitvinov/awesome-flake8-extensions
+
+    "flake8-bandit==2.1.2",             # runs bandit
+    "flake8-black==0.2.4",              # runs black
+    "flake8-broken-line==0.4",          # forbey "\" linebreaks
+    "flake8-builtins==1.5.3",           # builtin shadowing checks
+    "flake8-coding==1.3.2",             # coding magic-comment detection
+    "flake8-comprehensions==3.8",       # comprehension checks
+    "flake8-deprecated==1.3",           # deprecated call checks
+    # "flake8-docstrings==1.6",         # pydocstyle support
+    # D401 messes with property docs too much
+    "flake8-executable==2.1.1",         # shebangs
+    "flake8-fixme==1.1.1",              # "fix me" counter
+    "flake8-functions==0.0.6",          # function linting
+    "flake8-html==0.4.1",               # html output
+    "flake8-if-statements==0.1",        # condition linting
+    "flake8-isort==4.1.1",              # runs isort
+    "flake8-mutable==1.2",              # mutable default argument detection
+    "flake8-pep3101==1.3",              # new-style format strings only
+    "flake8-print==4",                  # complain about print statements in code
+    "flake8-printf-formatting==1.1.2",  # forbey printf-style python2 string formatting
+    "flake8-pytest-style==1.6.0",       # pytest checks
+    "flake8-raise==0.0.5",              # exception raising linting
+    # This seems to lead to more false-posities then it's wroth.
+    # "flake8-use-fstring==1.1"         # format string checking
+]
+lint = ["codespell==2.1"]
+publish = ["flit==3.6.0"]
+# Remember to also update the vers in .pre-commit-config.yaml when changing reformat dependencies!!!
+reformat = ["black==22.1", "isort==5.10.1", "sort-all @ git+https://github.com/FasterSpeeding/sort-all.git@task/handle-empty"]
+tests = ["pytest==7.0.1", "pytest-asyncio==0.18.1", "pytest-cov==3", "pytest-xdist==2.5"]
+type_checking = ["pyright==0.0.13"]
+
+[project.urls]
+homepage = "https://github.com/FasterSpeeding/Alluka"
+repository = "https://github.com/FasterSpeeding/Alluka"
+documentation = "https://alluka.cursed.solutions/"
+changelog = "https://github.com/FasterSpeeding/Alluka/blob/master/CHANGELOG.md"
+
+[tool.flit.module]
+name = "alluka"
+
+[tool.black]
+line-length     = 120
+target-version  = ["py39"]
+include         = ".*pyi?$"
+
+[tool.coverage.run]
+concurrency = ["multiprocessing"]
+parallel = true
+branch = true
+timid = false
+source = ["alluka"]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "^\\s*\\.\\.\\.$",
+    "^\\s*@abc.abstractmethod$",
+    "^if typing.TYPE_CHECKING:$"
+]
+
+[tool.isort]
+profile = "black"
+force_single_line = true
+
+[tool.pyright]
+include = ["examples", "alluka", "noxfile.py", "tests"]
+
+pythonVersion = "3.9"
+typeCheckingMode = "strict"
+reportMissingModuleSource = "error"
+reportMissingTypeStubs = "error"
+
+reportIncompatibleMethodOverride = "warning"    # This relies on ordering for key-word only arguments
+                                                # which is more annoying than it's worth
+reportUnknownMemberType = "warning"             # This messes with instance checking generic objects
+reportUnknownArgumentType = "warning"           # Pretty much the same as reportUnknownMemberType
+reportUnknownLambdaType = "warning"
+reportImportCycles = "warning"                  # This isn't necessarily an issue if it's type checking only.
+reportUnknownVariableType = "warning"           # Lotta false-positives, might fix/change later.
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+testpaths = ["tests"]
+required_plugins = ["pytest-asyncio"]
+
+[tool.mypy]
+# some good strict settings
+strict = true
+warn_unreachable = true
+
+# more narrow type ignores
+show_error_codes = true
+
+# these are used by pyright
+warn_unused_ignores = false
+warn_redundant_casts = false
+
+# compatibility with pyright
+allow_redefinition = true
+disable_error_code = ["return"]
