@@ -43,8 +43,8 @@ import typing
 import weakref
 from collections import abc as collections
 
-from . import _errors
 from . import abc
+from . import errors
 
 _T = typing.TypeVar("_T")
 
@@ -125,7 +125,7 @@ class _InjectedType:
         if self.default is not abc.UNDEFINED:
             return self.default
 
-        raise _errors.MissingDependencyError(
+        raise errors.MissingDependencyError(
             f"Couldn't resolve injected type {self.union_fields} to actual value"
         ) from None
 
@@ -361,7 +361,7 @@ class Client(abc.Client):
         descriptors = self._build_descriptors(callback)
 
         if descriptors.is_async:
-            raise _errors.AsyncOnlyError
+            raise errors.AsyncOnlyError
 
         if descriptors:
             kwargs = {n: v.resolve(ctx) for n, (_, v) in descriptors.descriptors.items()}
@@ -373,7 +373,7 @@ class Client(abc.Client):
         if descriptors.is_async is None:
             if asyncio.iscoroutine(result):
                 descriptors.is_async = True
-                raise _errors.AsyncOnlyError
+                raise errors.AsyncOnlyError
 
             descriptors.is_async = False
 
@@ -387,7 +387,8 @@ class Client(abc.Client):
     ) -> _T:
         if descriptors := self._build_descriptors(callback):
             kwargs = {
-                n: v[1].resolve(ctx) if v[0] is _InjectedTypes.TYPE else await v[1].resolve_async(ctx)
+                # Pyright currently doesn't support `is` for narrowing tuple types like this
+                n: v[1].resolve(ctx) if v[0] == _InjectedTypes.TYPE else await v[1].resolve_async(ctx)
                 for n, v in descriptors.descriptors.items()
             }
 

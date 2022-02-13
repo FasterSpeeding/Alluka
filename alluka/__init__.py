@@ -41,20 +41,22 @@ __all__: list[str] = [
     "InjectedDescriptor",
     "MissingDependencyError",
     "abc",
+    "errors",
     "inject",
 ]
 
 import typing
 
 from . import abc
+from . import errors
 from ._client import BasicContext
 from ._client import Client
 from ._client import Injected
 from ._client import InjectedDescriptor
 from ._client import inject
-from ._errors import AllukaError
-from ._errors import AsyncOnlyError
-from ._errors import MissingDependencyError
+from .errors import AllukaError
+from .errors import AsyncOnlyError
+from .errors import MissingDependencyError
 
 __author__: typing.Final[str] = "Faster Speeding"
 __ci__: typing.Final[str] = "https://github.com/FasterSpeeding/Alluka/actions"

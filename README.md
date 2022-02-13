@@ -7,7 +7,7 @@ A type based dependency injection framework for Python 3.9+.
 You can install Alluka from PyPI using the following command in any Python 3.9 or above environment.
 
 ```
-python -m pip install -U Alluka
+python -m pip install -U alluka
 ```
 
 # Support
