@@ -49,6 +49,16 @@ from . import errors
 _T = typing.TypeVar("_T")
 
 
+class _Descriptors:
+    __slots__ = ("descriptors",)
+
+    def __init__(self, descriptors: dict[str, _InjectedTuple], /) -> None:
+        self.descriptors = descriptors
+
+    def __bool__(self) -> bool:
+        return bool(self.descriptors)
+
+
 class _InjectedTypes(int, enum.Enum):
     CALLBACK = enum.auto()
     TYPE = enum.auto()
@@ -65,16 +75,6 @@ class _InjectedCallback:
 
     def resolve_async(self, ctx: abc.Context) -> collections.Coroutine[typing.Any, typing.Any, typing.Any]:
         return ctx.injection_client.execute_with_ctx_async(ctx, self.callback)
-
-
-class _Descriptors:
-    __slots__ = ("descriptors",)
-
-    def __init__(self, descriptors: dict[str, _InjectedTuple], /) -> None:
-        self.descriptors = descriptors
-
-    def __bool__(self) -> bool:
-        return bool(self.descriptors)
 
 
 if sys.version_info >= (3, 10):
@@ -109,7 +109,6 @@ class _InjectedType:
         self.union_fields = sub_types
 
     def resolve(self, ctx: abc.Context) -> typing.Any:
-        # <<inherited docstring from AbstractDescriptor>>.
         if (result := ctx.get_type_dependency(self.base_type)) is not abc.UNDEFINED:
             return result
 
@@ -125,7 +124,7 @@ class _InjectedType:
             return self.default
 
         raise errors.MissingDependencyError(
-            f"Couldn't resolve injected type {self.union_fields} to actual value"
+            f"Couldn't resolve injected type {self.base_type} to actual value", self.base_type
         ) from None
 
 

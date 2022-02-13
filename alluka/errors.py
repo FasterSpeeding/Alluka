@@ -44,7 +44,6 @@ class AllukaError(Exception):
 
 
 _T = typing.TypeVar("_T")
-_TypeT = type[_T]
 
 
 class AsyncOnlyError(AllukaError):
@@ -64,7 +63,7 @@ class MissingDependencyError(AllukaError):
     dependency_type: type[typing.Any]
     """Type of the missing dependency."""
 
-    def __init__(self, message: str) -> None:
+    def __init__(self, message: str, dependency_type: type[typing.Any], /) -> None:
         """Initialise a missing dependency error.
 
         Parameters
@@ -72,4 +71,5 @@ class MissingDependencyError(AllukaError):
         message : str
             The error message.
         """
+        self.dependency_type = dependency_type
         self.message = message
