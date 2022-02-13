@@ -145,6 +145,10 @@ class Client:
             The override if found, else `None`.
         """
 
+    @abc.abstractmethod
+    def validate_callback(self, callback: CallbackSig[_T], /) -> None:
+        ...
+
 
 class Context(abc.ABC):
     """Abstract interface of an injection context."""

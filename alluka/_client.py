@@ -487,6 +487,9 @@ class Client(abc.Client):
         del self._callback_overrides[callback]
         return self
 
+    def validate_callback(self, callback: abc.CallbackSig[typing.Any], /) -> None:
+        self._build_descriptors(callback)
+
 
 class BasicContext(abc.Context):
     """Basic implementation of a `alluka.abc.Context`."""
