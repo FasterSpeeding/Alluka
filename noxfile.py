@@ -64,7 +64,7 @@ def cleanup(session: nox.Session) -> None:
     import shutil
 
     # Remove directories
-    for raw_path in ["./dist", "./docs", "./.nox", "./.pytest_cache", "./alluka.egg-info", "./coverage_html"]:
+    for raw_path in ["./dist", "./site", "./.nox", "./.pytest_cache", "./alluka.egg-info", "./coverage_html"]:
         path = pathlib.Path(raw_path)
         try:
             shutil.rmtree(str(path.absolute()))
@@ -90,36 +90,9 @@ def cleanup(session: nox.Session) -> None:
 
 @nox.session(name="generate-docs", reuse_venv=True)
 def generate_docs(session: nox.Session) -> None:
-    """Generate docs for this project using Pdoc."""
+    """Generate docs for this project using Mkdoc."""
     install_requirements(session, ".[docs]", "--use-feature=in-tree-build")
-    session.log("Building docs into ./docs")
-    output_directory = _try_find_option(session, "-o", "--output") or "./docs"
-    session.run("pdoc", "--docformat", "numpy", "-o", output_directory, "./alluka", "-t", "./templates")
-    session.log("Docs generated: %s", pathlib.Path("./docs/index.html").absolute())
-
-    if not _try_find_option(session, "-j", "--json", when_empty="true"):
-        return
-
-    import httpx
-
-    # Note: this can be linked to a specific hash by adding it between raw and {file.name} as another route segment.
-    code = httpx.get(
-        "https://gist.githubusercontent.com/FasterSpeeding/19a6d3f44cdd0a1f3b2437a8c5eef07a/raw/json_index_docs.py"
-    ).read()
-
-    # This is saved to a temporary file to avoid the source showing up in any of the output.
-
-    # A try, finally is used to delete the file rather than relying on delete=True behaviour
-    # as on Windows the file cannot be accessed by other processes if delete is True.
-    file = tempfile.NamedTemporaryFile(delete=False)
-    try:
-        with file:
-            file.write(code)
-
-        session.run("python", file.name, "alluka", "-o", str(pathlib.Path(output_directory) / "search.json"))
-
-    finally:
-        pathlib.Path(file.name).unlink(missing_ok=False)
+    session.run("mkdocs", "build")
 
 
 @nox.session(reuse_venv=True)

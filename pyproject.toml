@@ -28,7 +28,15 @@ dependencies = ["hikari~=2.0.0.dev106"]
 dynamic = ["description", "version"]
 
 [project.optional-dependencies]
-docs = ["pdoc==9.0.1"]
+docs = [
+    "markdown-include==0.6.0",
+    "mkdocs==1.2.3",
+    "mkdocs-material==8.1.9",
+    "mkdocstrings[python]==0.18.0",
+    # "mkdocstrings==0.18.0",
+    # "pytkdocs[numpy-style]",
+    # "mkdocstrings-python-legacy==0.2.1",
+]
 flake8 = [
     "flake8==4.0.1",
 

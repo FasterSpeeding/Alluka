@@ -129,7 +129,7 @@ _UndefinedOr = typing.Union[abc.Undefined, _T]
 
 
 class InjectedDescriptor(typing.Generic[_T]):
-    """Descriptor used to a keyword-argument as requiring an injected dependency.
+    """Descriptor used to a declare keyword-argument as requiring an injected dependency.
 
     This is the type returned by `inject`.
     """
@@ -144,7 +144,7 @@ class InjectedDescriptor(typing.Generic[_T]):
     ) -> None:  # TODO: add default/factory to this?
         """Initialise an injection default descriptor.
 
-        ... note
+        !!! note
             If neither `type` or `callback` is provided, an injected type
             will be inferred from the argument's annotation.
 
@@ -179,7 +179,7 @@ class InjectedDescriptor(typing.Generic[_T]):
 
 
 Injected = typing.Annotated[_T, _InjectedTypes.TYPE]
-"""Type alias used to declare an keyword argument as requiring an injected type."""
+"""Type alias used to declare a keyword argument as requiring an injected type."""
 
 
 @typing.overload
@@ -207,7 +207,7 @@ def inject(
     This may be assigned to an arugment's default value to declare injection
     or as a part of its Annotated metadata.
 
-    ... note
+    !!! note
         If neither `type` or `callback` is provided, an injected type
         will be inferred from the argument's annotation.
 
@@ -394,7 +394,7 @@ class Client(abc.Client):
         ----------
         type_: type[_T]
             The type of the dependency to add an implementation for.
-        value_: _T
+        value: _T
             The value of the dependency.
 
         Returns
@@ -414,7 +414,7 @@ class Client(abc.Client):
 
         Parameters
         ----------
-        type: type
+        type_: type
             The associated type.
 
         Returns
@@ -435,7 +435,7 @@ class Client(abc.Client):
     ) -> _ClientT:
         """Override a specific injected callback.
 
-        .. note::
+        !!! note
             This does not effect the callbacks set for type injectors.
 
         Parameters

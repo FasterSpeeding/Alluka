@@ -77,7 +77,7 @@ CallbackSig = typing.Union[
 ]
 """Type-hint of a injector callback.
 
-.. note::
+!!! note
     Dependency dependency injection is recursively supported, meaning that the
     keyword arguments for a dependency callback may also ask for dependencies
     themselves.
@@ -192,7 +192,7 @@ class Context(abc.ABC):
     def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
         """Get the implementation for an injected type.
 
-        .. note::
+        !!! note
             Unlike `Client.get_type_dependency`, this method may also
             return context specific implementations of a type if the type isn't
             registered with the client.

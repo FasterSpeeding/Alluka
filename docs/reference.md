@@ -1,0 +1,3 @@
+# Alluka API reference
+
+::: alluka
