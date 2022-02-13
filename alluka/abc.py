@@ -72,7 +72,9 @@ UNDEFINED: typing.Final[Undefined] = Undefined()
 _UndefinedOr = typing.Union[Undefined, _T]
 
 
-CallbackSig = typing.Union[collections.Callable[..., _T], collections.Callable[..., collections.Awaitable[_T]]]
+CallbackSig = typing.Union[
+    collections.Callable[..., _T], collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, _T]]
+]
 """Type-hint of a injector callback.
 
 .. note::
@@ -82,7 +84,7 @@ CallbackSig = typing.Union[collections.Callable[..., _T], collections.Callable[.
 
 This may either be a synchronous or asynchronous function with dependency
 injection being available for the callback's keyword arguments but dynamically
-returning either an awaitable or raw value may lead to errors.
+returning either a coroutine or raw value may lead to errors.
 
 Dependent on the context positional arguments may also be proivded.
 """
@@ -94,21 +96,24 @@ class Client:
     __slots__ = ()
 
     @abc.abstractmethod
-    def set_type_dependency(self: _T, type_: type[_OtherT], value: _OtherT, /) -> _T:
-        """Set a callback to be called to resolve a injected type.
+    def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+        ...
 
-        Parameters
-        ----------
-        type_: type[_T]
-            The type of the dependency to add an implementation for.
-        value_: _T
-            The value of the dependency.
+    @abc.abstractmethod
+    def execute_with_ctx(
+        self, ctx: Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
+    ) -> _T:
+        ...
 
-        Returns
-        -------
-        Self
-            The client instance to allow chaining.
-        """
+    @abc.abstractmethod
+    async def execute_async(self, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+        ...
+
+    @abc.abstractmethod
+    async def execute_async_with_ctx(
+        self, ctx: Context, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
+    ) -> _T:
+        ...
 
     @abc.abstractmethod
     def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
@@ -126,46 +131,6 @@ class Client:
         """
 
     @abc.abstractmethod
-    def remove_type_dependency(self: _T, type_: type[typing.Any], /) -> _T:
-        """Remove a type dependency.
-
-        Parameters
-        ----------
-        type: type
-            The associated type.
-
-        Returns
-        -------
-        Self
-            The client instance to allow chaining.
-
-        Raises
-        ------
-        KeyError
-            If `type` is not registered.
-        """
-
-    @abc.abstractmethod
-    def set_callback_override(self: _T, callback: CallbackSig[_OtherT], override: CallbackSig[_OtherT], /) -> _T:
-        """Override a specific injected callback.
-
-        .. note::
-            This does not effect the callbacks set for type injectors.
-
-        Parameters
-        ----------
-        callback: CallbackSig[_T]
-            The injected callback to override.
-        override: CallbackSig[_T]
-            The callback to use instead.
-
-        Returns
-        -------
-        Self
-            The client instance to allow chaining.
-        """
-
-    @abc.abstractmethod
     def get_callback_override(self, callback: CallbackSig[_T], /) -> typing.Optional[CallbackSig[_T]]:
         """Get the set override for a specific injected callback.
 
@@ -178,26 +143,6 @@ class Client:
         -------
         CallbackSig[_T] | None
             The override if found, else `None`.
-        """
-
-    @abc.abstractmethod
-    def remove_callback_override(self: _T, callback: CallbackSig[typing.Any], /) -> _T:
-        """Remove a callback override.
-
-        Parameters
-        ----------
-        callback: CallbackSig
-            The injected callback to remove the override for.
-
-        Returns
-        -------
-        Self
-            The client instance to allow chaining.
-
-        Raises
-        ------
-        KeyError
-            If no override is found for the callback.
         """
 
 
