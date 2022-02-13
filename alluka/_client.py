@@ -49,16 +49,6 @@ from . import errors
 _T = typing.TypeVar("_T")
 
 
-class _Descriptors:
-    __slots__ = ("descriptors",)
-
-    def __init__(self, descriptors: dict[str, _InjectedTuple], /) -> None:
-        self.descriptors = descriptors
-
-    def __bool__(self) -> bool:
-        return bool(self.descriptors)
-
-
 class _InjectedTypes(int, enum.Enum):
     CALLBACK = enum.auto()
     TYPE = enum.auto()
@@ -134,8 +124,8 @@ _InjectedTuple = typing.Union[
     tuple[typing.Literal[_InjectedTypes.CALLBACK], _InjectedCallback],
     tuple[typing.Literal[_InjectedTypes.TYPE], _InjectedType],
 ]
-_UndefinedOr = typing.Union[abc.Undefined, _T]
 _TypeT = type[_T]
+_UndefinedOr = typing.Union[abc.Undefined, _T]
 
 
 class InjectedDescriptor(typing.Generic[_T]):
@@ -337,20 +327,21 @@ class Client(abc.Client):
         """Initialise an injector client."""
         self._callback_overrides: dict[abc.CallbackSig[typing.Any], abc.CallbackSig[typing.Any]] = {}
         self._descriptors: weakref.WeakKeyDictionary[
-            abc.CallbackSig[typing.Any], _Descriptors
+            abc.CallbackSig[typing.Any], dict[str, _InjectedTuple]
         ] = weakref.WeakKeyDictionary()
         self._introspect_annotations = introspect_annotations
         self._type_dependencies: dict[type[typing.Any], typing.Any] = {Client: self}
 
-    def _build_descriptors(self, callback: abc.CallbackSig[typing.Any], /) -> _Descriptors:
+    def _build_descriptors(self, callback: abc.CallbackSig[typing.Any], /) -> dict[str, _InjectedTuple]:
         try:
             return self._descriptors[callback]
 
         except KeyError:
             pass
 
-        descriptors = _Descriptors(_parse_callback(callback, introspect_annotations=self._introspect_annotations))
-        self._descriptors[callback] = descriptors
+        descriptors = self._descriptors[callback] = _parse_callback(
+            callback, introspect_annotations=self._introspect_annotations
+        )
         return descriptors
 
     def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
@@ -361,7 +352,7 @@ class Client(abc.Client):
     ) -> _T:
         descriptors = self._build_descriptors(callback)
         if descriptors:
-            kwargs = {n: v.resolve(ctx) for n, (_, v) in descriptors.descriptors.items()}
+            kwargs = {n: v.resolve(ctx) for n, (_, v) in descriptors.items()}
 
         else:
             kwargs = _EMPTY_KWARGS
@@ -380,10 +371,10 @@ class Client(abc.Client):
         self, ctx: abc.Context, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         if descriptors := self._build_descriptors(callback):
+            # Pyright currently doesn't support `is` for narrowing tuple types like this
             kwargs = {
-                # Pyright currently doesn't support `is` for narrowing tuple types like this
                 n: v[1].resolve(ctx) if v[0] == _InjectedTypes.TYPE else await v[1].resolve_async(ctx)
-                for n, v in descriptors.descriptors.items()
+                for n, v in descriptors.items()
             }
 
         else:
