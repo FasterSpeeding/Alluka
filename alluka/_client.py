@@ -55,7 +55,7 @@ class _InjectedTypes(int, enum.Enum):
 
 
 class _InjectedCallback:
-    __slots__ = ("callback", "is_async")
+    __slots__ = ("callback",)
 
     def __init__(self, callback: abc.CallbackSig[typing.Any], /) -> None:
         self.callback = callback
@@ -68,11 +68,10 @@ class _InjectedCallback:
 
 
 class _Descriptors:
-    __slots__ = ("descriptors", "is_async")
+    __slots__ = ("descriptors",)
 
     def __init__(self, descriptors: dict[str, _InjectedTuple], /) -> None:
         self.descriptors = descriptors
-        self.is_async: typing.Optional[bool] = None
 
     def __bool__(self) -> bool:
         return bool(self.descriptors)
@@ -362,10 +361,6 @@ class Client(abc.Client):
         self, ctx: abc.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         descriptors = self._build_descriptors(callback)
-
-        if descriptors.is_async:
-            raise errors.AsyncOnlyError
-
         if descriptors:
             kwargs = {n: v.resolve(ctx) for n, (_, v) in descriptors.descriptors.items()}
 
@@ -373,13 +368,10 @@ class Client(abc.Client):
             kwargs = _EMPTY_KWARGS
 
         result = callback(ctx, *args, **kwargs)
-        if descriptors.is_async is None:
-            if asyncio.iscoroutine(result):
-                descriptors.is_async = True
-                raise errors.AsyncOnlyError
+        if asyncio.iscoroutine(result):
+            raise errors.AsyncOnlyError
 
-            descriptors.is_async = False
-
+        assert not isinstance(result, collections.Coroutine)
         return result
 
     async def execute_async(self, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
@@ -399,11 +391,7 @@ class Client(abc.Client):
             kwargs = _EMPTY_KWARGS
 
         result = callback(ctx, *args, **kwargs)
-        if descriptors.is_async is None:
-            descriptors.is_async = asyncio.iscoroutine(result)
-
-        if descriptors.is_async:
-            assert asyncio.iscoroutine(result)
+        if asyncio.iscoroutine(result):
             return typing.cast(_T, await result)
 
         assert not isinstance(result, collections.Coroutine)
