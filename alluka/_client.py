@@ -64,7 +64,7 @@ class _InjectedCallback:
         return ctx.injection_client.execute_with_ctx(ctx, self.callback)
 
     def resolve_async(self, ctx: abc.Context) -> collections.Coroutine[typing.Any, typing.Any, typing.Any]:
-        return ctx.injection_client.execute_async_with_ctx(ctx, self.callback)
+        return ctx.injection_client.execute_with_ctx_async(ctx, self.callback)
 
 
 class _Descriptors:
@@ -327,6 +327,9 @@ def _parse_callback(
     return descriptors
 
 
+_EMPTY_KWARGS: dict[str, typing.Any] = {}
+
+
 class Client(abc.Client):
     """Dependency injection client used by Tanjun's standard implementation."""
 
@@ -367,7 +370,7 @@ class Client(abc.Client):
             kwargs = {n: v.resolve(ctx) for n, (_, v) in descriptors.descriptors.items()}
 
         else:
-            kwargs = {}
+            kwargs = _EMPTY_KWARGS
 
         result = callback(ctx, *args, **kwargs)
         if descriptors.is_async is None:
@@ -380,9 +383,9 @@ class Client(abc.Client):
         return result
 
     async def execute_async(self, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        return await self.execute_async_with_ctx(BasicContext(self), callback, *args, **kwargs)
+        return await self.execute_with_ctx_async(BasicContext(self), callback, *args, **kwargs)
 
-    async def execute_async_with_ctx(
+    async def execute_with_ctx_async(
         self, ctx: abc.Context, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         if descriptors := self._build_descriptors(callback):
@@ -393,7 +396,7 @@ class Client(abc.Client):
             }
 
         else:
-            kwargs = {}
+            kwargs = _EMPTY_KWARGS
 
         result = callback(ctx, *args, **kwargs)
         if descriptors.is_async is None:

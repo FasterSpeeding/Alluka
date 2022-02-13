@@ -110,7 +110,7 @@ class Client:
         ...
 
     @abc.abstractmethod
-    async def execute_async_with_ctx(
+    async def execute_with_ctx_async(
         self, ctx: Context, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         ...
