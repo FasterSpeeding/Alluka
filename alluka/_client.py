@@ -32,7 +32,7 @@
 """Alluka's standard injection client implementation."""
 from __future__ import annotations
 
-__all__: list[str] = []
+__all__: list[str] = ["BasicContext", "Client", "Injected", "InjectedDescriptor", "inject"]
 
 import asyncio
 import enum
@@ -43,8 +43,8 @@ import typing
 import weakref
 from collections import abc as collections
 
+from . import _errors
 from . import abc
-from . import errors
 
 _T = typing.TypeVar("_T")
 
@@ -90,9 +90,9 @@ else:
 class _InjectedType:
     __slots__ = ("base_type", "default", "union_fields")
 
-    def __init__(self, base_type: type[typing.Any], /) -> None:
+    def __init__(self, base_type: type[typing.Any], /, *, default: _UndefinedOr[typing.Any] = abc.UNDEFINED) -> None:
         self.base_type = base_type
-        self.default: typing.Any = abc.UNDEFINED
+        self.default = default
         self.union_fields: typing.Optional[list[type[typing.Any]]] = None
 
         if typing.get_origin(base_type) not in _UnionTypes:
@@ -104,7 +104,8 @@ class _InjectedType:
         except ValueError:
             pass
         else:
-            self.default = None
+            if self.default is abc.UNDEFINED:
+                self.default = None
 
         self.union_fields = sub_types
 
@@ -124,7 +125,7 @@ class _InjectedType:
         if self.default is not abc.UNDEFINED:
             return self.default
 
-        raise errors.MissingDependencyError(
+        raise _errors.MissingDependencyError(
             f"Couldn't resolve injected type {self.union_fields} to actual value"
         ) from None
 
@@ -136,13 +137,11 @@ _InjectedTuple = typing.Union[
     tuple[typing.Literal[_InjectedTypes.TYPE], _InjectedType],
 ]
 _UndefinedOr = typing.Union[abc.Undefined, _T]
-
-
 _TypeT = type[_T]
 
 
-class Injected(typing.Generic[_T]):
-    """Decare a keyword-argument as requiring an injected dependency.
+class InjectedDescriptor(typing.Generic[_T]):
+    """Descriptor used to a keyword-argument as requiring an injected dependency.
 
     This is the type returned by `inject`.
     """
@@ -156,6 +155,10 @@ class Injected(typing.Generic[_T]):
         type: typing.Optional[_TypeT[_T]] = None,  # noqa: A002
     ) -> None:  # TODO: add default/factory to this?
         """Initialise an injection default descriptor.
+
+        ... note
+            If neither `type` or `callback` is provided, an injected type
+            will be inferred from the argument's annotation.
 
         Parameters
         ----------
@@ -176,11 +179,6 @@ class Injected(typing.Generic[_T]):
             If a union has `None` as one of its types (including `Optional[T]`)
             then `None` will be passed for the parameter if none of the types could
             be resolved using the linked client.
-
-        Raises
-        ------
-        ValueError
-            If both `callback` and `type` are specified or if neither is specified.
         """
         if callback is None and type is None:
             raise ValueError("Must specify one of `callback` or `type`")
@@ -190,6 +188,10 @@ class Injected(typing.Generic[_T]):
 
         self.callback = callback
         self.type = type
+
+
+Injected = typing.Annotated[_T, _InjectedTypes.TYPE]
+"""Type alias used to declare an keyword argument as requiring an injected type."""
 
 
 @typing.overload
@@ -203,7 +205,7 @@ def inject(*, type: _TypeT[_T]) -> _T:  # noqa: A002
 
 
 @typing.overload
-def inject(*, type: typing.Any) -> typing.Any:  # noqa: A002
+def inject(*, type: typing.Any = None) -> typing.Any:  # noqa: A002
     ...
 
 
@@ -214,7 +216,12 @@ def inject(
 ) -> typing.Any:
     """Decare a keyword-argument as requiring an injected dependency.
 
-    This should be assigned to an arugment's default value.
+    This may be assigned to an arugment's default value to declare injection
+    or as a part of its Annotated metadata.
+
+    ... note
+        If neither `type` or `callback` is provided, an injected type
+        will be inferred from the argument's annotation.
 
     Examples
     --------
@@ -251,36 +258,71 @@ def inject(
         If a union has `None` as one of its types (including `Optional[T]`)
         then `None` will be passed for the parameter if none of the types could
         be resolved using the linked client.
-
-    Raises
-    ------
-    ValueError
-        If both `callback` and `type` are specified or if neither is specified.
     """
-    return typing.cast(_T, Injected(callback=callback, type=type))
+    return typing.cast(_T, InjectedDescriptor(callback=callback, type=type))
 
 
-def _parse_callback(callback: abc.CallbackSig[typing.Any], /) -> dict[str, _InjectedTuple]:
+def _process_annotation(
+    annotation: typing.Any, default: _UndefinedOr[typing.Any]
+) -> typing.Union[_InjectedTuple, None]:
+    if typing.get_origin(annotation) is not typing.Annotated:
+        return None
+
+    args = typing.get_origin(annotation)
+    assert args
+    if _InjectedTypes.TYPE in args:
+        return (_InjectedTypes.TYPE, _InjectedType(args[0]))
+
+    for arg in args:
+        if not isinstance(arg, InjectedDescriptor):
+            continue
+
+        if arg.callback:
+            return (_InjectedTypes.CALLBACK, _InjectedCallback(arg.callback))
+
+        if arg.type:
+            return (_InjectedTypes.TYPE, _InjectedType(arg.type, default=default))
+
+    return (_InjectedTypes.TYPE, _InjectedType(args[0], default=default))
+
+
+def _parse_callback(
+    callback: abc.CallbackSig[typing.Any], /, *, introspect_annotations: bool
+) -> dict[str, _InjectedTuple]:
     try:
         parameters = inspect.signature(callback).parameters.items()
     except ValueError:  # If we can't inspect it then we have to assume this is a NO
         # As a note, this fails on some "signature-less" builtin functions/types like str.
         return {}
 
+    annotations = typing.get_type_hints(callback) if introspect_annotations else {}
     descriptors: dict[str, _InjectedTuple] = {}
     for name, parameter in parameters:
-        if parameter.default is parameter.empty or not isinstance(parameter.default, Injected):
+        if parameter.default is not parameter.empty and isinstance(parameter.default, InjectedDescriptor):
+            descriptor = parameter.default
+
+        else:
+            default = abc.UNDEFINED if parameter.default is parameter.empty else parameter.default
+            if result := _process_annotation(annotations.get(name), default=default):
+                descriptors[name] = result
+
             continue
 
         if parameter.kind is parameter.POSITIONAL_ONLY:
             raise ValueError("Injected positional only arguments are not supported")
 
-        if parameter.default.callback is not None:
-            descriptors[name] = (_InjectedTypes.CALLBACK, _InjectedCallback(parameter.default.callback))
+        if descriptor.callback is not None:
+            descriptors[name] = (_InjectedTypes.CALLBACK, _InjectedCallback(descriptor.callback))
+
+        elif descriptor.type is not None:
+            descriptors[name] = (_InjectedTypes.TYPE, _InjectedType(descriptor.type))
 
         else:
-            assert parameter.default.type is not None
-            descriptors[name] = (_InjectedTypes.TYPE, _InjectedType(parameter.default.type))
+            try:
+                descriptors[name] = (_InjectedTypes.TYPE, _InjectedType(annotations[name]))
+
+            except KeyError:
+                raise ValueError(f"Could not resolve type for parameter {name!r} with no annotation") from None
 
     return descriptors
 
@@ -288,18 +330,25 @@ def _parse_callback(callback: abc.CallbackSig[typing.Any], /) -> dict[str, _Inje
 class Client(abc.Client):
     """Dependency injection client used by Tanjun's standard implementation."""
 
-    __slots__ = ("_callback_overrides", "_descriptors", "_type_dependencies")
+    __slots__ = ("_callback_overrides", "_descriptors", "_introspect_annotations", "_type_dependencies")
 
-    def __init__(self) -> None:
+    def __init__(self, introspect_annotations: bool = True) -> None:
         """Initialise an injector client."""
         self._callback_overrides: dict[abc.CallbackSig[typing.Any], abc.CallbackSig[typing.Any]] = {}
         self._descriptors: weakref.WeakKeyDictionary[
             abc.CallbackSig[typing.Any], _Descriptors
         ] = weakref.WeakKeyDictionary()
+        self._introspect_annotations = introspect_annotations
         self._type_dependencies: dict[type[typing.Any], typing.Any] = {Client: self}
 
     def _build_descriptors(self, callback: abc.CallbackSig[typing.Any], /) -> _Descriptors:
-        descriptors = _Descriptors(_parse_callback(callback))
+        try:
+            return self._descriptors[callback]
+
+        except KeyError:
+            pass
+
+        descriptors = _Descriptors(_parse_callback(callback, introspect_annotations=self._introspect_annotations))
         self._descriptors[callback] = descriptors
         return descriptors
 
@@ -309,10 +358,10 @@ class Client(abc.Client):
     def execute_with_ctx(
         self, ctx: abc.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
-        descriptors = self._descriptors.get(callback) or self._build_descriptors(callback)
+        descriptors = self._build_descriptors(callback)
 
         if descriptors.is_async:
-            raise errors.AsyncOnlyError
+            raise _errors.AsyncOnlyError
 
         if descriptors:
             kwargs = {n: v.resolve(ctx) for n, (_, v) in descriptors.descriptors.items()}
@@ -324,7 +373,7 @@ class Client(abc.Client):
         if descriptors.is_async is None:
             if asyncio.iscoroutine(result):
                 descriptors.is_async = True
-                raise errors.AsyncOnlyError
+                raise _errors.AsyncOnlyError
 
             descriptors.is_async = False
 
@@ -336,7 +385,7 @@ class Client(abc.Client):
     async def execute_async_with_ctx(
         self, ctx: abc.Context, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
-        if descriptors := (self._descriptors.get(callback) or self._build_descriptors(callback)):
+        if descriptors := self._build_descriptors(callback):
             kwargs = {
                 n: v[1].resolve(ctx) if v[0] is _InjectedTypes.TYPE else await v[1].resolve_async(ctx)
                 for n, v in descriptors.descriptors.items()
