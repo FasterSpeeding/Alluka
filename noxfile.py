@@ -245,7 +245,7 @@ def _run_pyright(session: nox.Session, *args: str) -> None:
 @nox.session(name="type-check", reuse_venv=True)
 def type_check(session: nox.Session) -> None:
     """Statically analyse and veirfy this project using Pyright."""
-    install_requirements(session, ".", "--use-feature=in-tree-build", *_dev_dep("tests", "type-checking", "nox"))
+    install_requirements(session, ".", "--use-feature=in-tree-build", *_dev_dep("tests", "type-checking"))
     _run_pyright(session)
 
 
