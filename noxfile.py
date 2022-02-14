@@ -166,7 +166,7 @@ def spell_check(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def build(session: nox.Session) -> None:
     """Build this project using flit."""
-    install_requirements(session, "flit")
+    install_requirements(session, *_dev_dep("publish"))
     session.log("Starting build")
     session.run("flit", "build")
 
