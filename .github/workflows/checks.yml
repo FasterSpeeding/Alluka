@@ -32,7 +32,7 @@ jobs:
 
       - name: Build docs
         run: |
-          mkdir docs
+          mkdir site
           python -m nox -s generate-docs -- -o ./site
 
       - name: Archive docs
