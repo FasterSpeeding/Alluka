@@ -28,7 +28,7 @@ jobs:
       - name: install prerequisites
         run: |
           python -m pip install --upgrade pip wheel
-          python -m pip install -r nox-requirements.txt
+          python -m pip install -r ./dev-requirements/nox.txt
 
       - name: Build docs
         run: |
@@ -56,7 +56,7 @@ jobs:
       - name: install prerequisites
         run: |
           python -m pip install --upgrade pip wheel
-          python -m pip install -r nox-requirements.txt
+          python -m pip install -r ./dev-requirements/nox.txt
 
       - name: lint
         run: python -m nox -s lint spell-check
@@ -81,7 +81,7 @@ jobs:
       - name: install prerequisites
         run: |
           python -m pip install --upgrade pip wheel
-          python -m pip install -r nox-requirements.txt
+          python -m pip install -r ./dev-requirements/nox.txt
 
       - name: Run tests
         run: |
@@ -103,7 +103,7 @@ jobs:
       - name: install prerequisites
         run: |
           python -m pip install --upgrade pip wheel
-          python -m pip install -r nox-requirements.txt
+          python -m pip install -r ./dev-requirements/nox.txt
 
       - name: Record coverage
         run: |
@@ -137,7 +137,7 @@ jobs:
       - name: install prerequisites
         run: |
           python -m pip install --upgrade pip wheel
-          python -m pip install -r nox-requirements.txt
+          python -m pip install -r ./dev-requirements/nox.txt
 
       - name: Run type checker
         run: python -m nox -s type-check -- --force-env
@@ -156,7 +156,7 @@ jobs:
       - name: install prerequisites
         run: |
           python -m pip install --upgrade pip wheel
-          python -m pip install -r nox-requirements.txt
+          python -m pip install -r ./dev-requirements/nox.txt
 
       - name: Run verify types
         run: python -m nox -s verify-types -- --force-env
