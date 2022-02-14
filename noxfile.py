@@ -173,7 +173,7 @@ def build(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def publish(session: nox.Session, test: bool = False) -> None:
     """Publish this project to pypi."""
-    install_requirements(session, "flit")
+    install_requirements(session, *_dev_dep("publish"))
     install_requirements(session, ".", "--use-feature=in-tree-build", first_call=False)
 
     env: dict[str, str] = {}
