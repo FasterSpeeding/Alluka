@@ -4,5 +4,7 @@
 #
 #    pip-compile --output-file dev-requirements\type-checking.txt dev-requirements\type-checking.in
 #
-nodeenv==1.6.0            # via pyright
-pyright==0.0.10
+nodeenv==1.6.0
+    # via pyright
+pyright==0.0.13
+    # via -r type-checking.in
