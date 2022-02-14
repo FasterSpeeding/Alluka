@@ -159,6 +159,7 @@ def spell_check(session: nox.Session) -> None:
         "README.md",
         "./github",
         ".pre-commit-config.yaml",
+        "./docs",
     )
 
 
