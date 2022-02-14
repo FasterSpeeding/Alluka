@@ -204,6 +204,6 @@ class Context(abc.ABC):
 
         Returns
         -------
-        T | Undefined
+        _T | Undefined
             The resolved type if found, else `Undefined`.
         """

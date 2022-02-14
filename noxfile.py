@@ -31,22 +31,32 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
+import itertools
 import pathlib
 import tempfile
+from collections import abc as collections
 
 import nox
 
 nox.options.sessions = ["reformat", "lint", "spell-check", "type-check", "test", "verify-types"]  # type: ignore
 GENERAL_TARGETS = ["./examples", "./noxfile.py", "./alluka", "./tests"]
 PYTHON_VERSIONS = ["3.9", "3.10"]  # TODO: @nox.session(python=["3.6", "3.7", "3.8"])?
+_DEV_DEP_GROUPS = ["docs", "flake8", "lint", "nox", "publish", "reformat", "tests", "type-checking"]
+_DEV_DEP_DIR = pathlib.Path("./dev-requirements")
 
 
-def install_requirements(session: nox.Session, *other_requirements: str) -> None:
+def _dev_dep(*values: str) -> collections.Iterator[str]:
+    return itertools.chain.from_iterable(("-r", str(_DEV_DEP_DIR / f"{value}.txt")) for value in values)
+
+
+def install_requirements(session: nox.Session, *other_requirements: str, first_call: bool = True) -> None:
     # --no-install --no-venv leads to it trying to install in the global venv
     # as --no-install only skips "reused" venvs and global is not considered reused.
     if not _try_find_option(session, "--skip-install", when_empty="True"):
-        session.install("--upgrade", "wheel")
-        session.install("--upgrade", *other_requirements)
+        if first_call:
+            session.install("--upgrade", "wheel")
+
+        session.install("--upgrade", *map(str, other_requirements))
 
 
 def _try_find_option(session: nox.Session, name: str, *other_names: str, when_empty: str | None = None) -> str | None:
@@ -88,24 +98,54 @@ def cleanup(session: nox.Session) -> None:
             session.log(f"[  OK  ] Removed '{raw_path}'")
 
 
+@nox.session(name="freeze-dev-deps", reuse_venv=True)
+def freeze_dev_deps(session: nox.Session) -> None:
+    """Freeze the dev dependencies."""
+    install_requirements(session, *_dev_dep("publish"))
+    for name in _DEV_DEP_GROUPS:
+        session.run(
+            "pip-compile",
+            str(_DEV_DEP_DIR / f"{name}.in"),
+            "--output-file",
+            str(_DEV_DEP_DIR / f"{name}.txt"),
+            # "--generate-hashes",
+        )
+
+
+@nox.session(name="update-dev-deps", reuse_venv=True)
+def update_dev_deps(session: nox.Session) -> None:
+    """Update the dev dependencies."""
+    install_requirements(session, *_dev_dep("publish"))
+    for name in _DEV_DEP_GROUPS:
+        session.run(
+            "pip-compile",
+            "--upgrade",
+            str(_DEV_DEP_DIR / f"{name}.in"),
+            "--output-file",
+            str(_DEV_DEP_DIR / f"{name}.txt"),
+            # "--generate-hashes",
+        )
+
+
 @nox.session(name="generate-docs", reuse_venv=True)
 def generate_docs(session: nox.Session) -> None:
     """Generate docs for this project using Mkdoc."""
-    install_requirements(session, ".[docs]", "--use-feature=in-tree-build")
-    session.run("mkdocs", "build")
+    install_requirements(session, *_dev_dep("docs"))
+    output_directory = _try_find_option(session, "-o", "--output") or "./docs"
+    session.run("mkdocs", "build", "-d", output_directory)
 
 
 @nox.session(reuse_venv=True)
 def lint(session: nox.Session) -> None:
     """Run this project's modules against the pre-defined flake8 linters."""
-    install_requirements(session, ".[flake8]", "--use-feature=in-tree-build")
+    install_requirements(session, *_dev_dep("flake8"))
     session.run("flake8", *GENERAL_TARGETS)
 
 
 @nox.session(reuse_venv=True, name="spell-check")
 def spell_check(session: nox.Session) -> None:
     """Check this project's text-like files for common spelling mistakes."""
-    install_requirements(session, ".[lint]", "--use-feature=in-tree-build")  # include_standard_requirements=False
+    install_requirements(session, *_dev_dep("lint"))  # include_standard_requirements=False
     session.run(
         "codespell",
         *GENERAL_TARGETS,
@@ -133,8 +173,8 @@ def build(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def publish(session: nox.Session, test: bool = False) -> None:
     """Publish this project to pypi."""
-    install_requirements(session, "flit")
-    install_requirements(session, ".", "--use-feature=in-tree-build")
+    install_requirements(session, *_dev_dep("publish"))
+    install_requirements(session, ".", "--use-feature=in-tree-build", first_call=False)
 
     env: dict[str, str] = {}
 
@@ -166,7 +206,7 @@ def test_publish(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def reformat(session: nox.Session) -> None:
     """Reformat this project's modules to fit the standard style."""
-    install_requirements(session, ".[reformat]", "--use-feature=in-tree-build")  # include_standard_requirements=False
+    install_requirements(session, *_dev_dep("reformat"))  # include_standard_requirements=False
     session.run("black", *GENERAL_TARGETS)
     session.run("isort", *GENERAL_TARGETS)
     session.run("sort-all", *map(str, pathlib.Path("./alluka/").glob("**/*.py")), success_codes=[0, 1])
@@ -175,7 +215,7 @@ def reformat(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
-    install_requirements(session, ".[tests]", "--use-feature=in-tree-build")
+    install_requirements(session, ".", "--use-feature=in-tree-build", *_dev_dep("tests"))
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
 
@@ -183,7 +223,7 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-coverage", reuse_venv=True)
 def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
-    install_requirements(session, ".[tests]", "--use-feature=in-tree-build")
+    install_requirements(session, ".", "--use-feature=in-tree-build", *_dev_dep("tests"))
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
     session.run(
@@ -205,16 +245,14 @@ def _run_pyright(session: nox.Session, *args: str) -> None:
 @nox.session(name="type-check", reuse_venv=True)
 def type_check(session: nox.Session) -> None:
     """Statically analyse and veirfy this project using Pyright."""
-    install_requirements(
-        session, ".[tests, type_checking]", "--use-feature=in-tree-build", "-r", "nox-requirements.txt"
-    )
+    install_requirements(session, ".", "--use-feature=in-tree-build", *_dev_dep("nox", "tests", "type-checking"))
     _run_pyright(session)
 
 
 @nox.session(name="verify-types", reuse_venv=True)
 def verify_types(session: nox.Session) -> None:
     """Verify the "type completeness" of types exported by the library using Pyright."""
-    install_requirements(session, ".[type_checking]", "--use-feature=in-tree-build")
+    install_requirements(session, ".", "--use-feature=in-tree-build", *_dev_dep("type-checking"))
     _run_pyright(session, "--verifytypes", "alluka", "--ignoreexternal")
 
 
