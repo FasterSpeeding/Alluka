@@ -1,8 +1,5 @@
 
-markdown-include==0.6.0
 mkdocs==1.2.3
-mkdocs-material==8.1.9
+mkdocs-material==8.1.11
 mkdocstrings[python]==0.18.0
-# mkdocstrings==0.18.0
-# pytkdocs[numpy-style]
-# mkdocstrings-python-legacy==0.2.1
+markdown-include==0.6.0
