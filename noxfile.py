@@ -130,23 +130,22 @@ def update_dev_deps(session: nox.Session) -> None:
 @nox.session(name="generate-docs", reuse_venv=True)
 def generate_docs(session: nox.Session) -> None:
     """Generate docs for this project using Mkdoc."""
-    install_requirements(session, *_dev_dep("docs"), "--use-feature=in-tree-build")
-    session.run("mkdocs", "build")
+    install_requirements(session, *_dev_dep("docs"))
+    output_directory = _try_find_option(session, "-o", "--output") or "./docs"
+    session.run("mkdocs", "build", "-d", output_directory)
 
 
 @nox.session(reuse_venv=True)
 def lint(session: nox.Session) -> None:
     """Run this project's modules against the pre-defined flake8 linters."""
-    install_requirements(session, *_dev_dep("flake8"), "--use-feature=in-tree-build")
+    install_requirements(session, *_dev_dep("flake8"))
     session.run("flake8", *GENERAL_TARGETS)
 
 
 @nox.session(reuse_venv=True, name="spell-check")
 def spell_check(session: nox.Session) -> None:
     """Check this project's text-like files for common spelling mistakes."""
-    install_requirements(
-        session, *_dev_dep("lint"), "--use-feature=in-tree-build"
-    )  # include_standard_requirements=False
+    install_requirements(session, *_dev_dep("lint"))  # include_standard_requirements=False
     session.run(
         "codespell",
         *GENERAL_TARGETS,
@@ -207,9 +206,7 @@ def test_publish(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def reformat(session: nox.Session) -> None:
     """Reformat this project's modules to fit the standard style."""
-    install_requirements(
-        session, *_dev_dep("reformat"), "--use-feature=in-tree-build"
-    )  # include_standard_requirements=False
+    install_requirements(session, *_dev_dep("reformat"))  # include_standard_requirements=False
     session.run("black", *GENERAL_TARGETS)
     session.run("isort", *GENERAL_TARGETS)
     session.run("sort-all", *map(str, pathlib.Path("./alluka/").glob("**/*.py")), success_codes=[0, 1])

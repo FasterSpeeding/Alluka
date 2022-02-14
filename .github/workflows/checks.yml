@@ -33,13 +33,13 @@ jobs:
       - name: Build docs
         run: |
           mkdir docs
-          python -m nox -s generate-docs -- -o ./docs
+          python -m nox -s generate-docs -- -o ./site
 
       - name: Archive docs
         uses: actions/upload-artifact@v2
         with:
           name: docs
-          path: ./docs
+          path: ./site
           if-no-files-found: error
 
   lint:
