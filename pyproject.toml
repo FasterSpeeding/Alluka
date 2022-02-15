@@ -8,7 +8,7 @@ readme = "README.md"
 requires-python = ">=3.9.0,<3.12"
 license = {file = "LICENSE"}
 authors = [ {name = "Faster Speeding", email="lucina@lmbyrne.dev"} ]
-keywords= ["hikari"]
+keywords = ["DI", "injection"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: BSD License",
@@ -24,7 +24,7 @@ classifiers = [
     "Topic :: Utilities",
     "Typing :: Typed"
 ]
-dependencies = ["hikari~=2.0.0.dev106"]
+dependencies = []
 dynamic = ["description", "version"]
 
 [project.urls]
@@ -32,9 +32,6 @@ homepage = "https://github.com/FasterSpeeding/Alluka"
 repository = "https://github.com/FasterSpeeding/Alluka"
 documentation = "https://alluka.cursed.solutions/"
 changelog = "https://github.com/FasterSpeeding/Alluka/blob/master/CHANGELOG.md"
-
-[tool.flit.module]
-name = "alluka"
 
 [tool.black]
 line-length     = 120
