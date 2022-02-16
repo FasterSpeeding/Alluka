@@ -135,6 +135,9 @@ class Client(abc.Client):
     def __init__(self, introspect_annotations: bool = True) -> None:
         """Initialise an injector client."""
         self._callback_overrides: dict[abc.CallbackSig[typing.Any], abc.CallbackSig[typing.Any]] = {}
+        # TODO: this forces objects to have a __weakref__ attribute,
+        # and also hashability (so hash and eq or neither), do we want to
+        # keep with this behaviour or document it?
         self._descriptors: weakref.WeakKeyDictionary[
             abc.CallbackSig[typing.Any], dict[str, _types.InjectedTuple]
         ] = weakref.WeakKeyDictionary()
@@ -167,7 +170,7 @@ class Client(abc.Client):
         else:
             kwargs = _EMPTY_KWARGS
 
-        result = callback(ctx, *args, **kwargs)
+        result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):
             raise errors.AsyncOnlyError
 
@@ -192,7 +195,7 @@ class Client(abc.Client):
         else:
             kwargs = _EMPTY_KWARGS
 
-        result = callback(ctx, *args, **kwargs)
+        result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):
             return typing.cast(_T, await result)
 
