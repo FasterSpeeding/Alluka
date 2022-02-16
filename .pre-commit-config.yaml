@@ -13,6 +13,7 @@ repos:
     rev: 5.10.1
     hooks:
     - id: isort
+      exclude: alluka/_vendor
   - repo: https://github.com/aio-libs/sort-all
     rev: v1.2.0
     hooks:
