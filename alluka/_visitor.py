@@ -32,21 +32,30 @@
 """The standard visitor and nodes used to parse function parameters."""
 from __future__ import annotations
 
+import abc
 import typing
 from collections import abc as collections
 
 from . import _types
-from . import abc
+from . import abc as alluca_abc
 from ._vendor import inspect
 
 
-class Annotation:
+class Node(abc.ABC):
+    __slots__ = ()
+
+    @abc.abstractmethod
+    def accept(self, visitor: ParameterVisitor, /) -> typing.Optional[_types.InjectedTuple]:
+        ...
+
+
+class Annotation(Node):
     __slots__ = ("_callback", "_name", "_raw_annotation")
 
-    def __init__(self, raw_annotation: typing.Any, name: str, callback: Callback):
+    def __init__(self, callback: Callback, name: str, /):
         self._callback = callback
         self._name = name
-        self._raw_annotation = raw_annotation
+        self._raw_annotation = callback.parameters[name].annotation
 
     @property
     def callback(self) -> Callback:
@@ -90,7 +99,7 @@ class Callback:
     def resolve_annotation(self, name: str, /) -> _types.UndefinedOr[typing.Any]:
         parameter = self._signature.parameters[name]
         if parameter.annotation is inspect.Parameter.empty:
-            return abc.UNDEFINED
+            return alluca_abc.UNDEFINED
 
         # TODO: do we want to return UNDEFINED if it was resolved to a string?
         if isinstance(parameter.annotation, str) and not self._resolved:
@@ -101,12 +110,12 @@ class Callback:
         return parameter.annotation
 
 
-class Default:
+class Default(Node):
     __slots__ = ("_callback", "_default", "_name")
 
-    def __init__(self, callback: Callback, name: str, default: typing.Any, /) -> None:
+    def __init__(self, callback: Callback, name: str, /) -> None:
         self._callback = callback
-        self._default = default
+        self._default = callback.parameters[name].default
         self._name = name
 
     @property
@@ -118,6 +127,10 @@ class Default:
         return self._default
 
     @property
+    def is_empty(self) -> bool:
+        return self._default is inspect.Parameter.empty
+
+    @property
     def name(self) -> str:
         return self._name
 
@@ -127,13 +140,15 @@ class Default:
 
 def _or_undefined(value: typing.Any) -> _types.UndefinedOr[typing.Any]:
     if value is inspect.Parameter.empty:
-        return abc.UNDEFINED
+        return alluca_abc.UNDEFINED
 
     return value
 
 
 class ParameterVisitor:
     __slots__ = ()
+
+    _NODES: list[collections.Callable[[Callback, str], Node]] = [Default, Annotation]
 
     def visit_annotation(self, annotation: Annotation, /) -> typing.Optional[_types.InjectedTuple]:
         value = annotation.callback.resolve_annotation(annotation.name)
@@ -162,21 +177,21 @@ class ParameterVisitor:
     def visit_callback(self, callback: Callback, /) -> dict[str, _types.InjectedTuple]:
         results: dict[str, _types.InjectedTuple] = {}
         for name, value in callback.parameters.items():
-            result = Annotation(value.annotation, name, callback).accept(self) or Default(
-                callback, name, value.default
-            ).accept(self)
-            if not result:
-                continue
+            for node in self._NODES:
+                result = node(callback, name).accept(self)
+                if not result:
+                    continue
 
-            if value.kind is value.POSITIONAL_ONLY:
-                raise ValueError("Injected positional only arguments are not supported")
+                if value.kind is value.POSITIONAL_ONLY:
+                    raise ValueError("Injected positional only arguments are not supported")
 
-            results[name] = result
+                results[name] = result
+                break
 
         return results
 
     def visit_default(self, default: Default, /) -> typing.Optional[_types.InjectedTuple]:
-        if default.default is inspect.Parameter.empty or not isinstance(default.default, _types.InjectedDescriptor):
+        if default.is_empty or not isinstance(default.default, _types.InjectedDescriptor):
             return
 
         descriptor = default.default
@@ -186,8 +201,8 @@ class ParameterVisitor:
         if descriptor.type is not None:
             return (_types.InjectedTypes.TYPE, _types.InjectedType(descriptor.type))
 
-        if (annotation := default.callback.resolve_annotation(default.name)) is abc.UNDEFINED:
-            raise ValueError(f"Could not resolve type for parameter {default.name!r} with no annotation") from None
+        if (annotation := default.callback.resolve_annotation(default.name)) is alluca_abc.UNDEFINED:
+            raise ValueError(f"Could not resolve type for parameter {default.name!r} with no annotation")
 
-        assert not isinstance(annotation, abc.Undefined)
+        assert not isinstance(annotation, alluca_abc.Undefined)
         return (_types.InjectedTypes.TYPE, _types.InjectedType(annotation))
