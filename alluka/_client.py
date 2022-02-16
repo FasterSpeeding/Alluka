@@ -121,9 +121,6 @@ def inject(
     return typing.cast(_T, _types.InjectedDescriptor(callback=callback, type=type))
 
 
-_EMPTY_KWARGS: dict[str, typing.Any] = {}
-
-
 class Client(abc.Client):
     """Standard implementation of a dependency injection client.
 
@@ -135,6 +132,9 @@ class Client(abc.Client):
     def __init__(self, introspect_annotations: bool = True) -> None:
         """Initialise an injector client."""
         self._callback_overrides: dict[abc.CallbackSig[typing.Any], abc.CallbackSig[typing.Any]] = {}
+        # TODO: this forces objects to have a __weakref__ attribute,
+        # and also hashability (so hash and eq or neither), do we want to
+        # keep with this behaviour or document it?
         self._descriptors: weakref.WeakKeyDictionary[
             abc.CallbackSig[typing.Any], dict[str, _types.InjectedTuple]
         ] = weakref.WeakKeyDictionary()
@@ -162,12 +162,9 @@ class Client(abc.Client):
         # <<inherited docstring from alluka.abc.Client>>.
         descriptors = self._build_descriptors(callback)
         if descriptors:
-            kwargs = {n: v.resolve(ctx) for n, (_, v) in descriptors.items()}
+            kwargs.update((n, v.resolve(ctx)) for n, (_, v) in descriptors.items())
 
-        else:
-            kwargs = _EMPTY_KWARGS
-
-        result = callback(ctx, *args, **kwargs)
+        result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):
             raise errors.AsyncOnlyError
 
@@ -184,15 +181,13 @@ class Client(abc.Client):
         # <<inherited docstring from alluka.abc.Client>>.
         if descriptors := self._build_descriptors(callback):
             # Pyright currently doesn't support `is` for narrowing tuple types like this
-            kwargs = {
-                n: v[1].resolve(ctx) if v[0] == _types.InjectedTypes.TYPE else await v[1].resolve_async(ctx)
+            new_kwargs = [
+                (n, v[1].resolve(ctx) if v[0] == _types.InjectedTypes.TYPE else await v[1].resolve_async(ctx))
                 for n, v in descriptors.items()
-            }
+            ]
+            kwargs.update(new_kwargs)
 
-        else:
-            kwargs = _EMPTY_KWARGS
-
-        result = callback(ctx, *args, **kwargs)
+        result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):
             return typing.cast(_T, await result)
 
@@ -307,7 +302,7 @@ class BasicContext(abc.Context):
         """
         self._injection_client = client
         self._result_cache: typing.Optional[dict[abc.CallbackSig[typing.Any], typing.Any]] = None
-        self._special_case_types: typing.Optional[dict[type[typing.Any], typing.Any]] = None
+        self._special_case_types: dict[type[typing.Any], typing.Any] = {abc.Context: self}
 
     @property
     def injection_client(self) -> abc.Client:

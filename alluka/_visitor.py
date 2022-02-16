@@ -32,12 +32,12 @@
 """The standard visitor and nodes used to parse function parameters."""
 from __future__ import annotations
 
-import inspect
 import typing
 from collections import abc as collections
 
 from . import _types
 from . import abc
+from ._vendor import inspect
 
 
 class Annotation:
@@ -69,11 +69,11 @@ class Annotation:
 
 
 class Callback:
-    __slots__ = ("_annotations", "_callback", "_signature")
+    __slots__ = ("_callback", "_resolved", "_signature")
 
     def __init__(self, callback: collections.Callable[..., typing.Any], /) -> None:
-        self._annotations: typing.Optional[dict[str, typing.Any]] = None
         self._callback: collections.Callable[..., typing.Any] = callback
+        self._resolved = False
         self._signature = inspect.signature(callback)
 
     @property
@@ -92,11 +92,11 @@ class Callback:
         if parameter.annotation is inspect.Parameter.empty:
             return abc.UNDEFINED
 
-        if isinstance(parameter.annotation, str):
-            if self._annotations is None:
-                self._annotations = typing.get_type_hints(self._callback)
-
-            return self._annotations[name]
+        # TODO: do we want to return UNDEFINED if it was resolved to a string?
+        if isinstance(parameter.annotation, str) and not self._resolved:
+            self._signature = inspect.signature(self._callback, eval_str=True)
+            self._resolved = True
+            return self.resolve_annotation(name)
 
         return parameter.annotation
 
@@ -162,7 +162,7 @@ class ParameterVisitor:
     def visit_callback(self, callback: Callback, /) -> dict[str, _types.InjectedTuple]:
         results: dict[str, _types.InjectedTuple] = {}
         for name, value in callback.parameters.items():
-            result = Annotation(callback, name, value.annotation).accept(self) or Default(
+            result = Annotation(value.annotation, name, callback).accept(self) or Default(
                 callback, name, value.default
             ).accept(self)
             if not result:
