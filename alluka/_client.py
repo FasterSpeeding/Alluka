@@ -214,7 +214,6 @@ class Client(abc.Client):
         Self
             The client instance to allow chaining.
         """
-
         self._type_dependencies[type_] = value
         return self
 
@@ -321,6 +320,14 @@ class BasicContext(abc.Context):
             self._result_cache = {}
 
         self._result_cache[callback] = value
+
+    def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+        # <<inherited docstring from alluka.abc.Context>>.
+        return self._injection_client.execute_with_ctx(self, callback, *args, **kwargs)
+
+    async def execute_async(self, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+        # <<inherited docstring from alluka.abc.Context>>.
+        return await self._injection_client.execute_with_ctx_async(self, callback, *args, **kwargs)
 
     def get_cached_result(self, callback: abc.CallbackSig[_T], /) -> _types.UndefinedOr[_T]:
         # <<inherited docstring from alluka.abc.Context>>.

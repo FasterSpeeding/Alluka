@@ -72,7 +72,7 @@ _UndefinedOr = typing.Union[Undefined, _T]
 
 
 CallbackSig = typing.Union[
-    collections.Callable[..., _T], collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, _T]]
+    collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, _T]], collections.Callable[..., _T]
 ]
 """Type-hint of a injector callback.
 
@@ -181,6 +181,14 @@ class Context(abc.ABC):
         value : _T
             The value to cache.
         """
+
+    @abc.abstractmethod
+    def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+        ...
+
+    @abc.abstractmethod
+    async def execute_async(self, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+        ...
 
     @abc.abstractmethod
     def get_cached_result(self, callback: CallbackSig[_T], /) -> _UndefinedOr[_T]:
