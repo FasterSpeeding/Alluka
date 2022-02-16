@@ -37,7 +37,7 @@ changelog = "https://github.com/FasterSpeeding/Alluka/blob/master/CHANGELOG.md"
 line-length     = 120
 target-version  = ["py39"]
 include         = ".*pyi?$"
-force-exclude = ["^/alluka/_vendor/.*"]
+extend-exclude = ["^/alluka/_vendor/.*"]
 
 [tool.coverage.run]
 concurrency = ["multiprocessing"]
