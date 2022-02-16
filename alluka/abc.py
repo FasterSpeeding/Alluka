@@ -45,7 +45,6 @@ import typing
 from collections import abc as collections
 
 _T = typing.TypeVar("_T")
-_OtherT = typing.TypeVar("_OtherT")
 
 
 class Undefined:
@@ -132,7 +131,7 @@ class Client:
 
     @abc.abstractmethod
     def get_callback_override(self, callback: CallbackSig[_T], /) -> typing.Optional[CallbackSig[_T]]:
-        """Get the set override for a specific injected callback.
+        """Get the override for a specific injected callback.
 
         Parameters
         ----------
@@ -147,7 +146,18 @@ class Client:
 
     @abc.abstractmethod
     def validate_callback(self, callback: CallbackSig[_T], /) -> None:
-        ...
+        """Check that a callback's signature is valid for this client's dependency injection.
+
+        Parameters
+        ----------
+        callback: CallbackSig
+            The callback to validate.
+
+        Raises
+        ------
+        ValueError
+            If the callback's signature is invalid.
+        """
 
 
 class Context(abc.ABC):
@@ -185,7 +195,8 @@ class Context(abc.ABC):
         -------
         _T | Undefined
             The cached result of the callback, or `UNDEFINED` if the callback
-            has not been cached within this context.
+            has not been cached within this context or caching isn't
+            implemented.
         """
 
     @abc.abstractmethod
@@ -194,8 +205,7 @@ class Context(abc.ABC):
 
         !!! note
             Unlike `Client.get_type_dependency`, this method may also
-            return context specific implementations of a type if the type isn't
-            registered with the client.
+            return context specific implementations of a type.
 
         Parameters
         ----------

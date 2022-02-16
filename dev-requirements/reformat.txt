@@ -18,7 +18,7 @@ pathspec==0.9.0
     # via black
 platformdirs==2.5.0
     # via black
-sort-all @ git+https://github.com/FasterSpeeding/sort-all.git@task/handle-empty
+sort-all==1.2.0
     # via -r dev-requirements\reformat.in
 tokenize-rt==4.2.1
     # via sort-all

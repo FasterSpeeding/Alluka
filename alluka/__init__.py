@@ -51,9 +51,9 @@ from . import abc
 from . import errors
 from ._client import BasicContext
 from ._client import Client
-from ._client import Injected
-from ._client import InjectedDescriptor
 from ._client import inject
+from ._types import Injected
+from ._types import InjectedDescriptor
 from .errors import AllukaError
 from .errors import AsyncOnlyError
 from .errors import MissingDependencyError

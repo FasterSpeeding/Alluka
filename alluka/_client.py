@@ -32,154 +32,25 @@
 """Alluka's standard injection client implementation."""
 from __future__ import annotations
 
-__all__: list[str] = ["BasicContext", "Client", "Injected", "InjectedDescriptor", "inject"]
+__all__: list[str] = ["BasicContext", "Client", "inject"]
 
 import asyncio
-import enum
-import inspect
-import sys
-import types
 import typing
 import weakref
 from collections import abc as collections
 
+from . import _types
+from . import _visitor
 from . import abc
 from . import errors
 
 _T = typing.TypeVar("_T")
 
 
-class _InjectedTypes(int, enum.Enum):
-    CALLBACK = enum.auto()
-    TYPE = enum.auto()
-
-
-class _InjectedCallback:
-    __slots__ = ("callback",)
-
-    def __init__(self, callback: abc.CallbackSig[typing.Any], /) -> None:
-        self.callback = callback
-
-    def resolve(self, ctx: abc.Context) -> typing.Any:
-        return ctx.injection_client.execute_with_ctx(ctx, self.callback)
-
-    def resolve_async(self, ctx: abc.Context) -> collections.Coroutine[typing.Any, typing.Any, typing.Any]:
-        return ctx.injection_client.execute_with_ctx_async(ctx, self.callback)
-
-
-if sys.version_info >= (3, 10):
-    _UnionTypes = {typing.Union, types.UnionType}
-    _NoneType = types.NoneType
-
-else:
-    _UnionTypes = {typing.Union}
-    _NoneType = type(None)
-
-
-class _InjectedType:
-    __slots__ = ("base_type", "default", "union_fields")
-
-    def __init__(self, base_type: type[typing.Any], /, *, default: _UndefinedOr[typing.Any] = abc.UNDEFINED) -> None:
-        self.base_type = base_type
-        self.default = default
-        self.union_fields: typing.Optional[list[type[typing.Any]]] = None
-
-        if typing.get_origin(base_type) not in _UnionTypes:
-            return
-
-        sub_types = list(typing.get_args(base_type))
-        try:
-            sub_types.remove(_NoneType)
-        except ValueError:
-            pass
-        else:
-            if self.default is abc.UNDEFINED:
-                self.default = None
-
-        self.union_fields = sub_types
-
-    def resolve(self, ctx: abc.Context) -> typing.Any:
-        if (result := ctx.get_type_dependency(self.base_type)) is not abc.UNDEFINED:
-            return result
-
-        # We still want to allow for the possibility of a Union being
-        # explicitly implemented so we check types within a union
-        # after the literal type.
-        if self.union_fields:
-            for cls in self.union_fields:
-                if (result := ctx.get_type_dependency(cls)) is not abc.UNDEFINED:
-                    return result
-
-        if self.default is not abc.UNDEFINED:
-            return self.default
-
-        raise errors.MissingDependencyError(
-            f"Couldn't resolve injected type {self.base_type} to actual value", self.base_type
-        ) from None
-
-
 _BasicContextT = typing.TypeVar("_BasicContextT", bound="BasicContext")
 _ClientT = typing.TypeVar("_ClientT", bound="Client")
-_InjectedTuple = typing.Union[
-    tuple[typing.Literal[_InjectedTypes.CALLBACK], _InjectedCallback],
-    tuple[typing.Literal[_InjectedTypes.TYPE], _InjectedType],
-]
+
 _TypeT = type[_T]
-_UndefinedOr = typing.Union[abc.Undefined, _T]
-
-
-class InjectedDescriptor(typing.Generic[_T]):
-    """Descriptor used to a declare keyword-argument as requiring an injected dependency.
-
-    This is the type returned by `inject`.
-    """
-
-    __slots__ = ("callback", "type")
-
-    def __init__(
-        self,
-        *,
-        callback: typing.Optional[abc.CallbackSig[_T]] = None,
-        type: typing.Optional[_TypeT[_T]] = None,  # noqa: A002
-    ) -> None:  # TODO: add default/factory to this?
-        """Initialise an injection default descriptor.
-
-        !!! note
-            If neither `type` or `callback` is provided, an injected type
-            will be inferred from the argument's annotation.
-
-        Parameters
-        ----------
-        callback : alluka.abc.CallbackSig | None
-            The callback to use to resolve the dependency.
-
-            If this callback has no type dependencies then this will still work
-            without an injection context but this can be overridden using
-            `InjectionClient.set_callback_override`.
-        type : type | None
-            The type of the dependency to resolve.
-
-            If a union (e.g. `typing.Union[A, B]`, `A | B`, `typing.Optional[A]`)
-            is passed for `type` then each type in the union will be tried
-            separately after the litarl union type is tried, allowing for resolving
-            `A | B` to the value set by `set_type_dependency(B, ...)`.
-
-            If a union has `None` as one of its types (including `Optional[T]`)
-            then `None` will be passed for the parameter if none of the types could
-            be resolved using the linked client.
-        """
-        if callback is None and type is None:
-            raise ValueError("Must specify one of `callback` or `type`")
-
-        if callback is not None and type is not None:
-            raise ValueError("Only one of `callback` or `type` can be specified")
-
-        self.callback = callback
-        self.type = type
-
-
-Injected = typing.Annotated[_T, _InjectedTypes.TYPE]
-"""Type alias used to declare a keyword argument as requiring an injected type."""
 
 
 @typing.overload
@@ -247,79 +118,17 @@ def inject(
         then `None` will be passed for the parameter if none of the types could
         be resolved using the linked client.
     """
-    return typing.cast(_T, InjectedDescriptor(callback=callback, type=type))
-
-
-def _process_annotation(
-    annotation: typing.Any, default: _UndefinedOr[typing.Any]
-) -> typing.Union[_InjectedTuple, None]:
-    if typing.get_origin(annotation) is not typing.Annotated:
-        return None
-
-    args = typing.get_origin(annotation)
-    assert args
-    if _InjectedTypes.TYPE in args:
-        return (_InjectedTypes.TYPE, _InjectedType(args[0]))
-
-    for arg in args:
-        if not isinstance(arg, InjectedDescriptor):
-            continue
-
-        if arg.callback:
-            return (_InjectedTypes.CALLBACK, _InjectedCallback(arg.callback))
-
-        if arg.type:
-            return (_InjectedTypes.TYPE, _InjectedType(arg.type, default=default))
-
-    return (_InjectedTypes.TYPE, _InjectedType(args[0], default=default))
-
-
-def _parse_callback(
-    callback: abc.CallbackSig[typing.Any], /, *, introspect_annotations: bool
-) -> dict[str, _InjectedTuple]:
-    try:
-        parameters = inspect.signature(callback).parameters.items()
-    except ValueError:  # If we can't inspect it then we have to assume this is a NO
-        # As a note, this fails on some "signature-less" builtin functions/types like str.
-        return {}
-
-    annotations = typing.get_type_hints(callback) if introspect_annotations else {}
-    descriptors: dict[str, _InjectedTuple] = {}
-    for name, parameter in parameters:
-        if parameter.default is not parameter.empty and isinstance(parameter.default, InjectedDescriptor):
-            descriptor = parameter.default
-
-        else:
-            default = abc.UNDEFINED if parameter.default is parameter.empty else parameter.default
-            if result := _process_annotation(annotations.get(name), default=default):
-                descriptors[name] = result
-
-            continue
-
-        if parameter.kind is parameter.POSITIONAL_ONLY:
-            raise ValueError("Injected positional only arguments are not supported")
-
-        if descriptor.callback is not None:
-            descriptors[name] = (_InjectedTypes.CALLBACK, _InjectedCallback(descriptor.callback))
-
-        elif descriptor.type is not None:
-            descriptors[name] = (_InjectedTypes.TYPE, _InjectedType(descriptor.type))
-
-        else:
-            try:
-                descriptors[name] = (_InjectedTypes.TYPE, _InjectedType(annotations[name]))
-
-            except KeyError:
-                raise ValueError(f"Could not resolve type for parameter {name!r} with no annotation") from None
-
-    return descriptors
+    return typing.cast(_T, _types.InjectedDescriptor(callback=callback, type=type))
 
 
 _EMPTY_KWARGS: dict[str, typing.Any] = {}
 
 
 class Client(abc.Client):
-    """Dependency injection client used by Tanjun's standard implementation."""
+    """Standard implementation of a dependency injection client.
+
+    This is used to track type dependencies and execute callbacks.
+    """
 
     __slots__ = ("_callback_overrides", "_descriptors", "_introspect_annotations", "_type_dependencies")
 
@@ -327,29 +136,30 @@ class Client(abc.Client):
         """Initialise an injector client."""
         self._callback_overrides: dict[abc.CallbackSig[typing.Any], abc.CallbackSig[typing.Any]] = {}
         self._descriptors: weakref.WeakKeyDictionary[
-            abc.CallbackSig[typing.Any], dict[str, _InjectedTuple]
+            abc.CallbackSig[typing.Any], dict[str, _types.InjectedTuple]
         ] = weakref.WeakKeyDictionary()
         self._introspect_annotations = introspect_annotations
         self._type_dependencies: dict[type[typing.Any], typing.Any] = {Client: self}
 
-    def _build_descriptors(self, callback: abc.CallbackSig[typing.Any], /) -> dict[str, _InjectedTuple]:
+    def _build_descriptors(self, callback: abc.CallbackSig[typing.Any], /) -> dict[str, _types.InjectedTuple]:
         try:
             return self._descriptors[callback]
 
         except KeyError:
             pass
 
-        descriptors = self._descriptors[callback] = _parse_callback(
-            callback, introspect_annotations=self._introspect_annotations
-        )
+        # TODO: introspect_annotations=self._introspect_annotations
+        descriptors = self._descriptors[callback] = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
         return descriptors
 
     def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+        # <<inherited docstring from alluka.abc.Client>>.
         return self.execute_with_ctx(BasicContext(self), callback, *args, **kwargs)
 
     def execute_with_ctx(
         self, ctx: abc.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
+        # <<inherited docstring from alluka.abc.Client>>.
         descriptors = self._build_descriptors(callback)
         if descriptors:
             kwargs = {n: v.resolve(ctx) for n, (_, v) in descriptors.items()}
@@ -365,15 +175,17 @@ class Client(abc.Client):
         return result
 
     async def execute_async(self, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+        # <<inherited docstring from alluka.abc.Client>>.
         return await self.execute_with_ctx_async(BasicContext(self), callback, *args, **kwargs)
 
     async def execute_with_ctx_async(
         self, ctx: abc.Context, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
+        # <<inherited docstring from alluka.abc.Client>>.
         if descriptors := self._build_descriptors(callback):
             # Pyright currently doesn't support `is` for narrowing tuple types like this
             kwargs = {
-                n: v[1].resolve(ctx) if v[0] == _InjectedTypes.TYPE else await v[1].resolve_async(ctx)
+                n: v[1].resolve(ctx) if v[0] == _types.InjectedTypes.TYPE else await v[1].resolve_async(ctx)
                 for n, v in descriptors.items()
             }
 
@@ -406,7 +218,8 @@ class Client(abc.Client):
         self._type_dependencies[type_] = value
         return self
 
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> _types.UndefinedOr[_T]:
+        # <<inherited docstring from alluka.abc.Client>>.
         return self._type_dependencies.get(type_, abc.UNDEFINED)
 
     def remove_type_dependency(self: _ClientT, type_: type[typing.Any], /) -> _ClientT:
@@ -435,9 +248,6 @@ class Client(abc.Client):
     ) -> _ClientT:
         """Override a specific injected callback.
 
-        !!! note
-            This does not effect the callbacks set for type injectors.
-
         Parameters
         ----------
         callback: alluka.abc.CallbackSig[_T]
@@ -454,6 +264,7 @@ class Client(abc.Client):
         return self
 
     def get_callback_override(self, callback: abc.CallbackSig[_T], /) -> typing.Optional[abc.CallbackSig[_T]]:
+        # <<inherited docstring from alluka.abc.Client>>.
         return self._callback_overrides.get(callback)
 
     def remove_callback_override(self: _ClientT, callback: abc.CallbackSig[_T], /) -> _ClientT:
@@ -478,6 +289,7 @@ class Client(abc.Client):
         return self
 
     def validate_callback(self, callback: abc.CallbackSig[typing.Any], /) -> None:
+        # <<inherited docstring from alluka.abc.Client>>.
         self._build_descriptors(callback)
 
 
@@ -500,22 +312,22 @@ class BasicContext(abc.Context):
 
     @property
     def injection_client(self) -> abc.Client:
-        # <<inherited docstring from alluka.abc.Client>>.
+        # <<inherited docstring from alluka.abc.Context>>.
         return self._injection_client
 
     def cache_result(self, callback: abc.CallbackSig[_T], value: _T, /) -> None:
-        # <<inherited docstring from alluka.abc.Client>>.
+        # <<inherited docstring from alluka.abc.Context>>.
         if self._result_cache is None:
             self._result_cache = {}
 
         self._result_cache[callback] = value
 
-    def get_cached_result(self, callback: abc.CallbackSig[_T], /) -> _UndefinedOr[_T]:
-        # <<inherited docstring from alluka.abc.Client>>.
+    def get_cached_result(self, callback: abc.CallbackSig[_T], /) -> _types.UndefinedOr[_T]:
+        # <<inherited docstring from alluka.abc.Context>>.
         return self._result_cache.get(callback, abc.UNDEFINED) if self._result_cache else abc.UNDEFINED
 
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
-        # <<inherited docstring from alluka.abc.Client>>.
+    def get_type_dependency(self, type_: type[_T], /) -> _types.UndefinedOr[_T]:
+        # <<inherited docstring from alluka.abc.Context>>.
         if (
             self._special_case_types
             and (value := self._special_case_types.get(type_, abc.UNDEFINED)) is not abc.UNDEFINED

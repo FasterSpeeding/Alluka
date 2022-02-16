@@ -67,13 +67,11 @@ typeCheckingMode = "strict"
 reportMissingModuleSource = "error"
 reportMissingTypeStubs = "error"
 
-reportIncompatibleMethodOverride = "warning"    # This relies on ordering for key-word only arguments
-                                                # which is more annoying than it's worth
 reportUnknownMemberType = "warning"             # This messes with instance checking generic objects
 reportUnknownArgumentType = "warning"           # Pretty much the same as reportUnknownMemberType
-reportUnknownLambdaType = "warning"
 reportImportCycles = "warning"                  # This isn't necessarily an issue if it's type checking only.
 reportUnknownVariableType = "warning"           # Lotta false-positives, might fix/change later.
+reportPrivateUsage = "none"                     # Leads to funky false-positives around private module imports.
 
 [tool.pytest.ini_options]
 asyncio_mode = "strict"
@@ -94,4 +92,4 @@ warn_redundant_casts = false
 
 # compatibility with pyright
 allow_redefinition = true
-disable_error_code = ["return"]
+disable_error_code = ["return-value"]
