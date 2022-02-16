@@ -121,9 +121,6 @@ def inject(
     return typing.cast(_T, _types.InjectedDescriptor(callback=callback, type=type))
 
 
-_EMPTY_KWARGS: dict[str, typing.Any] = {}
-
-
 class Client(abc.Client):
     """Standard implementation of a dependency injection client.
 
@@ -165,10 +162,7 @@ class Client(abc.Client):
         # <<inherited docstring from alluka.abc.Client>>.
         descriptors = self._build_descriptors(callback)
         if descriptors:
-            kwargs = {n: v.resolve(ctx) for n, (_, v) in descriptors.items()}
-
-        else:
-            kwargs = _EMPTY_KWARGS
+            kwargs.update((n, v.resolve(ctx)) for n, (_, v) in descriptors.items())
 
         result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):
@@ -187,13 +181,12 @@ class Client(abc.Client):
         # <<inherited docstring from alluka.abc.Client>>.
         if descriptors := self._build_descriptors(callback):
             # Pyright currently doesn't support `is` for narrowing tuple types like this
-            kwargs = {
-                n: v[1].resolve(ctx) if v[0] == _types.InjectedTypes.TYPE else await v[1].resolve_async(ctx)
-                for n, v in descriptors.items()
-            }
-
-        else:
-            kwargs = _EMPTY_KWARGS
+            kwargs.update(
+                [
+                    (n, v[1].resolve(ctx) if v[0] == _types.InjectedTypes.TYPE else await v[1].resolve_async(ctx))
+                    for n, v in descriptors.items()
+                ]
+            )
 
         result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):
@@ -310,9 +303,7 @@ class BasicContext(abc.Context):
         """
         self._injection_client = client
         self._result_cache: typing.Optional[dict[abc.CallbackSig[typing.Any], typing.Any]] = None
-        self._special_case_types: dict[type[typing.Any], typing.Any] = {
-            abc.Context: self
-        }
+        self._special_case_types: dict[type[typing.Any], typing.Any] = {abc.Context: self}
 
     @property
     def injection_client(self) -> abc.Client:
