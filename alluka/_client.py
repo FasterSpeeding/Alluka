@@ -79,23 +79,25 @@ def inject(
     or as a part of its Annotated metadata.
 
     !!! note
-        If neither `type` or `callback` is provided, an injected type
+        If neither `type` nor `callback` is provided, an injected type
         will be inferred from the argument's annotation.
 
     Examples
     --------
     ```py
-    @tanjun.as_slash_command("name", "description")
-    async def command_callback(
-        ctx: tanjun.abc.Context,
-        # Here we take advantage of scope based special casing which allows
-        # us to inject the `Component` type.
-        injected_type: tanjun.abc.Component = tanjun.inject(type=tanjun.abc.Component)
+    async def callback(
+        # Here we require an implementation of the type `Component` to be
+        # injected.
+        injected_type: Component = alluka.inject(type=Component)
         # Here we inject an out-of-scope callback which itself is taking
-        # advantage of type injection.
-        callback_result: ResultT = tanjun.inject(callback=injected_callback)
+        # advantage of type injectioallukan.
+        callback_result: ResultT = alluka.inject(callback=injected_callback)
     ) -> None:
         raise NotImplementedError
+
+    ...
+    # where client is an `alluka.Client` instance.
+    result = await client.execute_async(callback)
     ```
 
     Parameters
@@ -105,7 +107,7 @@ def inject(
 
         If this callback has no type dependencies then this will still work
         without an injection context but this can be overridden using
-        `InjectionClient.set_callback_override`.
+        `alluka.abc.Client.set_callback_override`.
     type : type | None
         The type of the dependency to resolve.
 

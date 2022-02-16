@@ -33,12 +33,22 @@
 from __future__ import annotations
 
 import abc
+import sys
+import types
 import typing
 from collections import abc as collections
 
 from . import _types
-from . import abc as alluca_abc
+from . import abc as alluka_abc
 from ._vendor import inspect
+
+if sys.version_info >= (3, 10):
+    _UnionTypes = {typing.Union, types.UnionType}
+    _NoneType = types.NoneType
+
+else:
+    _UnionTypes = {typing.Union}
+    _NoneType = type(None)
 
 
 class Node(abc.ABC):
@@ -99,7 +109,7 @@ class Callback:
     def resolve_annotation(self, name: str, /) -> _types.UndefinedOr[typing.Any]:
         parameter = self._signature.parameters[name]
         if parameter.annotation is inspect.Parameter.empty:
-            return alluca_abc.UNDEFINED
+            return alluka_abc.UNDEFINED
 
         # TODO: do we want to return UNDEFINED if it was resolved to a string?
         if isinstance(parameter.annotation, str) and not self._resolved:
@@ -140,7 +150,7 @@ class Default(Node):
 
 def _or_undefined(value: typing.Any) -> _types.UndefinedOr[typing.Any]:
     if value is inspect.Parameter.empty:
-        return alluca_abc.UNDEFINED
+        return alluka_abc.UNDEFINED
 
     return value
 
@@ -150,9 +160,26 @@ class ParameterVisitor:
 
     _NODES: list[collections.Callable[[Callback, str], Node]] = [Default, Annotation]
 
+    def parse_type(
+        self, type_: typing.Any, *, other_default: _types.UndefinedOr[typing.Any] = alluka_abc.UNDEFINED
+    ) -> tuple[list[typing.Any], _types.UndefinedOr[None]]:
+        if typing.get_origin(type_) not in _UnionTypes:
+            return ([type_], other_default)
+
+        sub_types = list(typing.get_args(type_))
+        try:
+            sub_types.remove(_NoneType)
+        except ValueError:
+            return (sub_types, other_default)
+
+        if other_default is not alluka_abc.UNDEFINED:
+            # Explicitly defined defaults take priority over implicit defaults.
+            return (sub_types, other_default)
+
+        return (sub_types, None)
+
     def visit_annotation(self, annotation: Annotation, /) -> typing.Optional[_types.InjectedTuple]:
         value = annotation.callback.resolve_annotation(annotation.name)
-
         if typing.get_origin(value) is not typing.Annotated:
             return None
 
@@ -160,7 +187,8 @@ class ParameterVisitor:
         args = typing.get_origin(value)
         assert args
         if _types.InjectedTypes.TYPE in args:
-            return (_types.InjectedTypes.TYPE, _types.InjectedType(args[0]))
+            union, default = self.parse_type(args[0], other_default=default)
+            return (_types.InjectedTypes.TYPE, _types.InjectedType(args[0], union, default=default))
 
         for arg in args:
             if not isinstance(arg, _types.InjectedDescriptor):
@@ -170,9 +198,11 @@ class ParameterVisitor:
                 return (_types.InjectedTypes.CALLBACK, _types.InjectedCallback(arg.callback))
 
             if arg.type:
-                return (_types.InjectedTypes.TYPE, _types.InjectedType(arg.type, default=default))
+                union, default = self.parse_type(arg.type, other_default=default)
+                return (_types.InjectedTypes.TYPE, _types.InjectedType(arg.type, union, default=default))
 
-        return (_types.InjectedTypes.TYPE, _types.InjectedType(args[0], default=default))
+            union, default = self.parse_type(args[0], other_default=default)
+            return (_types.InjectedTypes.TYPE, _types.InjectedType(args[0], union, default=default))
 
     def visit_callback(self, callback: Callback, /) -> dict[str, _types.InjectedTuple]:
         results: dict[str, _types.InjectedTuple] = {}
@@ -190,19 +220,21 @@ class ParameterVisitor:
 
         return results
 
-    def visit_default(self, default: Default, /) -> typing.Optional[_types.InjectedTuple]:
-        if default.is_empty or not isinstance(default.default, _types.InjectedDescriptor):
+    def visit_default(self, value: Default, /) -> typing.Optional[_types.InjectedTuple]:
+        if value.is_empty or not isinstance(value.default, _types.InjectedDescriptor):
             return
 
-        descriptor = default.default
+        descriptor = value.default
         if descriptor.callback is not None:
             return (_types.InjectedTypes.CALLBACK, _types.InjectedCallback(descriptor.callback))
 
         if descriptor.type is not None:
-            return (_types.InjectedTypes.TYPE, _types.InjectedType(descriptor.type))
+            union, default = self.parse_type(descriptor.type)
+            return (_types.InjectedTypes.TYPE, _types.InjectedType(descriptor.type, union, default=default))
 
-        if (annotation := default.callback.resolve_annotation(default.name)) is alluca_abc.UNDEFINED:
-            raise ValueError(f"Could not resolve type for parameter {default.name!r} with no annotation")
+        if (annotation := value.callback.resolve_annotation(value.name)) is alluka_abc.UNDEFINED:
+            raise ValueError(f"Could not resolve type for parameter {value.name!r} with no annotation")
 
-        assert not isinstance(annotation, alluca_abc.Undefined)
-        return (_types.InjectedTypes.TYPE, _types.InjectedType(annotation))
+        assert not isinstance(annotation, alluka_abc.Undefined)
+        union, default = self.parse_type(annotation)
+        return (_types.InjectedTypes.TYPE, _types.InjectedType(annotation, union, default=default))

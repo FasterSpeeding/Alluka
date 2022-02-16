@@ -35,22 +35,11 @@ from __future__ import annotations
 __all__ = ["Injected", "InjectedDescriptor"]
 
 import enum
-import sys
-import types
 import typing
 from collections import abc as collections
 
 from . import abc
 from . import errors
-
-if sys.version_info >= (3, 10):
-    _UnionTypes = {typing.Union, types.UnionType}
-    _NoneType = types.NoneType
-
-else:
-    _UnionTypes = {typing.Union}
-    _NoneType = type(None)
-
 
 _T = typing.TypeVar("_T")
 UndefinedOr = typing.Union[abc.Undefined, _T]
@@ -114,9 +103,16 @@ class InjectedCallback:
 class InjectedType:
     """Descriptor of a type that a parameter's value is being resolved to."""
 
-    __slots__ = ("base_type", "default", "union_fields")
+    __slots__ = ("default", "repr_type", "types")
 
-    def __init__(self, base_type: type[typing.Any], /, *, default: UndefinedOr[typing.Any] = abc.UNDEFINED) -> None:
+    def __init__(
+        self,
+        repr_type: typing.Any,
+        types: collections.Sequence[type[typing.Any]],
+        /,
+        *,
+        default: UndefinedOr[typing.Any] = abc.UNDEFINED,
+    ) -> None:
         """Initialize the type descriptor.
 
         Parameters
@@ -131,28 +127,10 @@ class InjectedType:
 
             Without a default, any attempts to resolve a type that isn't implemented
             by the linked client will lead to `alluka.MissingDependencyError`.
-
-            !!! note
-                This may be implicitly set to `None` by passing a Union with
-                `None` as one of its fields for `base_type`.
         """
-        self.base_type = base_type
         self.default = default
-        self.union_fields: typing.Optional[list[type[typing.Any]]] = None
-
-        if typing.get_origin(base_type) not in _UnionTypes:
-            return
-
-        sub_types = list(typing.get_args(base_type))
-        try:
-            sub_types.remove(_NoneType)
-        except ValueError:
-            pass
-        else:
-            if self.default is abc.UNDEFINED:
-                self.default = None
-
-        self.union_fields = sub_types
+        self.repr_type = repr_type
+        self.types = types
 
     def resolve(self, ctx: abc.Context) -> typing.Any:
         """Resolve the type.
@@ -163,22 +141,18 @@ class InjectedType:
             The context to use when resolving the type.
 
         """
-        if (result := ctx.get_type_dependency(self.base_type)) is not abc.UNDEFINED:
-            return result
-
         # We still want to allow for the possibility of a Union being
         # explicitly implemented so we check types within a union
         # after the literal type.
-        if self.union_fields:
-            for cls in self.union_fields:
-                if (result := ctx.get_type_dependency(cls)) is not abc.UNDEFINED:
-                    return result
+        for cls in self.types:
+            if (result := ctx.get_type_dependency(cls)) is not abc.UNDEFINED:
+                return result
 
         if self.default is not abc.UNDEFINED:
             return self.default
 
         raise errors.MissingDependencyError(
-            f"Couldn't resolve injected type {self.base_type} to actual value", self.base_type
+            f"Couldn't resolve injected type(s) {self.repr_type} to actual value", self.repr_type
         ) from None
 
 
