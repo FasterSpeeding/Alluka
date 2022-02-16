@@ -310,7 +310,9 @@ class BasicContext(abc.Context):
         """
         self._injection_client = client
         self._result_cache: typing.Optional[dict[abc.CallbackSig[typing.Any], typing.Any]] = None
-        self._special_case_types: typing.Optional[dict[type[typing.Any], typing.Any]] = None
+        self._special_case_types: dict[type[typing.Any], typing.Any] = {
+            abc.Context: self
+        }
 
     @property
     def injection_client(self) -> abc.Client:
