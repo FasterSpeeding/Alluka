@@ -63,7 +63,7 @@ skip = ["alluka/_vendor"]
 
 [tool.pyright]
 exclude = ["alluka/_vendor"]
-include = ["examples", "alluka", "noxfile.py", "tests"]
+include = ["alluka", "noxfile.py", "tests"]
 
 pythonVersion = "3.9"
 typeCheckingMode = "strict"

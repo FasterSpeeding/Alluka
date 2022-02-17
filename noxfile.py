@@ -39,7 +39,7 @@ from collections import abc as collections
 import nox
 
 nox.options.sessions = ["reformat", "lint", "spell-check", "type-check", "test", "verify-types"]  # type: ignore
-GENERAL_TARGETS = ["./examples", "./noxfile.py", "./tests"]
+GENERAL_TARGETS = ["./noxfile.py", "./tests"]
 _BLACKLISTED_TARGETS = {"_vendor", "__pycache__"}
 for path in pathlib.Path("./alluka").glob("*"):
     if path.name not in _BLACKLISTED_TARGETS:
