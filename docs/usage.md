@@ -56,7 +56,7 @@ calls to the function (by leaving these parameters required).
 
 ```py
 async def callback(
-    foo: alluka.Injected[Foo] 
+    foo: alluka.Injected[Foo]
 ) -> None:
     ...
 ```
