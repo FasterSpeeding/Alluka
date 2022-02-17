@@ -50,9 +50,9 @@ def callback(
     ...
 ```
 
-Where passing the default descriptors returned bu [alluka.inject][] to [typing.Annotated][]
-as a type argument lets you declare the type or callback dependency for an argument without
-effecting non-DI calls to the function (by leaving these parameters required).
+Where passing the default descriptors returned by [alluka.inject][] to [typing.Annotated][]
+lets you declare the type or callback dependency for an argument without effecting non-DI
+calls to the function (by leaving these parameters required).
 
 ```py
 async def callback(
@@ -61,12 +61,12 @@ async def callback(
     ...
 ```
 
-With [alluka.Injected][] providing a shorthand for using [typing.Annotated][] to declare
+And [alluka.Injected][] provides a shorthand for using [typing.Annotated][] to declare
 a type dependency.
 
 !!! note
     [alluka.Injected][] can be safely passed to [typing.Annotated][] as the first type argument
-    or vice versa.
+    or vice versa thanks to how Annotated handles nesting.
 
 ### Calling functions with DI
 
