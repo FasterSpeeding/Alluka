@@ -2,12 +2,13 @@
 
 ## Function injection
 
-Function DI works by injecting dependencies during function calls as keyword
-arguments. This is the main dependency injection strategy implemented by Alluka.
+This form of dependency injection works by injecting values for keyword
+arguments during callback execution based on the linked client.
+This is the main dependency injection strategy implemented by Alluka.
 
 ### Declaring a function's injected dependencies
 
-There are two main styles for declaring a function's injected dependencies:
+There are two styles for declaring a function's injected dependencies in Alluka:
 
 #### Default descriptors
 
@@ -69,13 +70,13 @@ a type dependency.
     [alluka.Injected][] can be safely passed to [typing.Annotated][] as the first type argument
     or vice versa thanks to how Annotated handles nesting.
 
-### Calling functions with DI
+### Calling functions with dependency injection
 
 <!-- TODO: switch over to linking to alluka.Client once inherited members works -->
 Either [alluka.abc.Client.execute][] or [alluka.abc.Client.execute_async][] may be called with a
-function and any `*args` or `**kwargs` to call a function with dependnecy injection, where
+function and any `*args` or `**kwargs` to call a function with dependency injection, where
 [execute][alluka.abc.Client.execute] only enables synchronous execution and will fail if a
 function is asynchronous or is relying on asynchronous dependencies.
 <!-- TODO: revisit behaviour for when an async function with no async callbacks is passed to execute--->
 Alternatively, [alluka.abc.Context.execute][] and [alluka.abc.Context.execute_async][] can be used
-to execute functions with DI while preserving the current injection context.
+to execute functions with dependency injection while preserving the current injection context.
