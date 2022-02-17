@@ -2,8 +2,8 @@
 
 ## Function injection
 
-The main dependency injection strategy implemented by Alluka, for this dependencies
-are injected during function calls as keyword arguments.
+Function DI works by injecting dependencies during function calls as keyword
+arguments. This is the main dependency injection strategy implemented by Alluka.
 
 ### Declaring a function's injected dependencies
 
@@ -33,9 +33,10 @@ If neither `type` nor `callback` is passed to [alluka.inject][] then a type depe
 will be inferred from the parameter's annotation.
 
 !!! warning
-    The type-hint will need to resolvable/access at runtime in the callback's module
-    (so it can't be hidden behind a [typing.TYPE_CHECKING][] only import or using a
-    type or operation that isn't implemented in the current python version).
+    The type-hint will need to resolvable/accessible at runtime in the callback's module
+    for it to be inferred (so it can't be hidden behind a [typing.TYPE_CHECKING][] only
+    import or using a type or operation that isn't implemented in the current python
+    version).
 
 #### Type-hint metadata
 
@@ -72,7 +73,7 @@ a type dependency.
 
 <!-- TODO: switch over to linking to alluka.Client once inherited members works -->
 Either [alluka.abc.Client.execute][] or [alluka.abc.Client.execute_async][] may be called with a
-function and any `*args` and/or `**kwargs` to call a function with dependnecy injection, where
+function and any `*args` or `**kwargs` to call a function with dependnecy injection, where
 [execute][alluka.abc.Client.execute] only enables synchronous execution and will fail if a
 function is asynchronous or is relying on asynchronous dependencies.
 <!-- TODO: revisit behaviour for when an async function with no async callbacks is passed to execute--->
