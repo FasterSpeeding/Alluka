@@ -80,3 +80,37 @@ function is asynchronous or is relying on asynchronous dependencies.
 <!-- TODO: revisit behaviour for when an async function with no async callbacks is passed to execute--->
 Alternatively, [alluka.abc.Context.execute][] and [alluka.abc.Context.execute_async][] can be used
 to execute functions with dependency injection while preserving the current injection context.
+
+## Using the client
+
+<!-- TODO: add note about call chaining -->
+
+### Adding type dependencies
+
+```py
+client = (
+    alluka.Client()
+    .set_type_dependency(TypeA, type_a_impl)
+    .set_type_dependencu(TypeB, type_b_impl)
+)
+```
+
+For a type dependency to work, the linked client will have to have an implementation loaded for it.
+While right now the only way to load type dependencies is with the lower-level
+[alluka.Client.set_type_dependency][] method, more approaches and helpers will be added in the future
+as Alluka is further developed.
+
+### Overriding callback dependencies
+
+```py
+client = alluka.Client().set_callback_override(callback, other_callback)
+```
+
+While (unlike type dependencies) callback dependencies can work on their own without being explicitly
+declared on the client unless they're relying on a type dependency themselves, they can still be
+overridden on a client level using [alluka.Client.set_callback_override][].
+
+Generally speaking you should only ever override an injected callback with a callback which returns
+a compatible type but their signatures do not need to match and asynchronous callbacks can be
+overridden with synchronous with vice versa also working (although the latter will prevent callbacks
+from being  used in a synchronous context).
