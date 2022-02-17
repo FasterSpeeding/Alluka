@@ -33,6 +33,7 @@
 from __future__ import annotations
 
 __all__: list[str] = [
+    "AsyncSelfInjecting",
     "CallbackSig",
     "Client",
     "Context",
@@ -94,6 +95,44 @@ class Client:
     """Abstract interface of a dependency injection client."""
 
     __slots__ = ()
+
+    @abc.abstractmethod
+    def as_async_self_injecting(self, callback: CallbackSig[_T], /) -> AsyncSelfInjecting[_T]:
+        """Link a function to a client to make it self-injecting.
+
+        Parameters
+        ----------
+        callback : CallbackSig[_T]
+            The callback to make self-injecting.
+
+            This may be sync or async.
+
+        Returns
+        -------
+        AsyncSelfInjecting[_T]
+            The asynchronous self-injecting callback.
+        """
+
+    @abc.abstractmethod
+    def as_self_injecting(self, callback: collections.Callable[..., _T], /) -> SelfInjecting[_T]:
+        """Link a synchronous function to a client to make it self-injecting.
+
+        !!! note
+            This uses synchronous dependencyinjection and therefore will lead
+            to errors if any of the callback's dependencies are asynchronous.
+
+        Parameters
+        ----------
+        callback : collections.Callable[..., _T]
+            The callback to make self-injecting.
+
+            This must be sync.
+
+        Returns
+        -------
+        SelfInjecting[_T]
+            The self-injecting callback.
+        """
 
     @abc.abstractmethod
     def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
@@ -228,15 +267,15 @@ class Context(abc.ABC):
         """
 
 
-class SelfInjecting(abc.ABC, typing.Generic[_T]):
-    """Class used to make a callback self-injecting by linking it to a client.
+class AsyncSelfInjecting(abc.ABC, typing.Generic[_T]):
+    """Interface of a class used to make an asynchronous self-injecting callback.
 
     Examples
     --------
     ```py
     client = alluka.Client()
 
-    @client.as_self_injecting
+    @client.as_async_self_injecting
     async def callback(database: Database = alluka.inject(type=Database)) -> None:
         ...
     ```
@@ -248,3 +287,77 @@ class SelfInjecting(abc.ABC, typing.Generic[_T]):
     @abc.abstractmethod
     def callback(self) -> CallbackSig[_T]:
         """The callback this wraps."""
+
+    @abc.abstractmethod
+    async def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> _T:
+        """Call this with the provided arguments and any injected arguments.
+
+        Parameters
+        ----------
+        *args : typing.Any
+            Positional arguments to pass to the callback.
+        **kwargs : typing.Any
+            Keyword arguments to pass to the callback alongside injected arguments.
+
+        Returns
+        -------
+        _T
+            The callback's result.
+
+        Raises
+        ------
+        alluka.MissingDependencyError
+            If any of the callback's required type dependencies aren't implemented
+            by the client.
+        """
+
+
+class SelfInjecting(abc.ABC, typing.Generic[_T]):
+    """Interface of a class used to make a self-injecting callback.
+
+    !!! note
+        This executes the callback synchronously and therefore will error if
+        any of the callback's dependencies are asynchronous.
+
+    Examples
+    --------
+    ```py
+    client = alluka.Client()
+
+    @client.as_self_injecting
+    def callback(database: Database = alluka.inject(type=Database)) -> None:
+        ...
+    ```
+    """
+
+    __slots__ = ()
+
+    @property
+    @abc.abstractmethod
+    def callback(self) -> collections.Callable[..., _T]:
+        """The callback this wraps."""
+
+    @abc.abstractmethod
+    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> _T:
+        """Call this callback with the provided arguments + injected arguments.
+
+        Parameters
+        ----------
+        *args : typing.Any
+            Positional arguments to pass to the callback.
+        **kwargs : typing.Any
+            Keyword arguments to pass to the callback.
+
+        Returns
+        -------
+        _T
+            The callback's result.
+
+        Raises
+        ------
+        alluka.MissingDependencyError
+            If any of the callback's required type dependencies aren't implemented
+            by the client.
+        alluka.AsyncOnlyError
+            If the callback or any of its callback dependencies are asynchronous.
+        """

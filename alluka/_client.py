@@ -155,7 +155,11 @@ class Client(abc.Client):
         descriptors = self._descriptors[callback] = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
         return descriptors
 
-    def as_self_injecting(self, callback: abc.CallbackSig[_T], /) -> abc.SelfInjecting[_T]:
+    def as_async_self_injecting(self, callback: abc.CallbackSig[_T], /) -> abc.AsyncSelfInjecting[_T]:
+        # <<inherited docstring from alluka.abc.Client>>.
+        return _self_injecting.AsyncSelfInjecting(self, callback)
+
+    def as_self_injecting(self, callback: collections.Callable[..., _T], /) -> abc.SelfInjecting[_T]:
         # <<inherited docstring from alluka.abc.Client>>.
         return _self_injecting.SelfInjecting(self, callback)
 

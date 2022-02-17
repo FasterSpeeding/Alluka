@@ -35,6 +35,7 @@ from __future__ import annotations
 __all__: list[str] = [
     "AllukaError",
     "AsyncOnlyError",
+    "AsyncSelfInjecting",
     "BasicContext",
     "Client",
     "Injected",
@@ -53,6 +54,7 @@ from . import errors
 from ._client import BasicContext
 from ._client import Client
 from ._client import inject
+from ._self_injecting import AsyncSelfInjecting
 from ._self_injecting import SelfInjecting
 from ._types import Injected
 from ._types import InjectedDescriptor
