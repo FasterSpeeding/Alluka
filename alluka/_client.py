@@ -169,7 +169,8 @@ class Client(abc.Client):
         # <<inherited docstring from alluka.abc.Client>>.
         descriptors = self._build_descriptors(callback)
         if descriptors:
-            kwargs.update((n, v.resolve(ctx)) for n, (_, v) in descriptors.items())
+            # This prioritises passed **kwargs over the injected dependencies.
+            {n: v.resolve(ctx) for n, (_, v) in descriptors.items()} | kwargs
 
         result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):
@@ -188,11 +189,11 @@ class Client(abc.Client):
         # <<inherited docstring from alluka.abc.Client>>.
         if descriptors := self._build_descriptors(callback):
             # Pyright currently doesn't support `is` for narrowing tuple types like this
-            new_kwargs = [
-                (n, v[1].resolve(ctx) if v[0] == _types.InjectedTypes.TYPE else await v[1].resolve_async(ctx))
+            # This prioritises passed **kwargs over the injected dependencies.
+            kwargs = {
+                n: v[1].resolve(ctx) if v[0] == _types.InjectedTypes.TYPE else await v[1].resolve_async(ctx)
                 for n, v in descriptors.items()
-            ]
-            kwargs.update(new_kwargs)
+            } | kwargs
 
         result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):

@@ -24,6 +24,9 @@ part of Tanjun.
   * `parameter: alluka.Inject[Type]` to infer specifically a type dependency.
   * `parameter: typing.Annotated(Type, alluka.inject(type=.../callback=...))`.
 
+### Changed
+- Passed keyword arguments are now prioritised over dependency injection.
+
 ### Removed
 - The public `CallackDescriptor` and `TypeDescriptor` classes as callbacks
   are now processed within the client and any necessary caching is kept internal.
