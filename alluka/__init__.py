@@ -40,6 +40,7 @@ __all__: list[str] = [
     "Injected",
     "InjectedDescriptor",
     "MissingDependencyError",
+    "SelfInjecting",
     "abc",
     "errors",
     "inject",
@@ -52,6 +53,7 @@ from . import errors
 from ._client import BasicContext
 from ._client import Client
 from ._client import inject
+from ._self_injecting import SelfInjecting
 from ._types import Injected
 from ._types import InjectedDescriptor
 from .errors import AllukaError
