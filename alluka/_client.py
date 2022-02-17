@@ -39,6 +39,7 @@ import typing
 import weakref
 from collections import abc as collections
 
+from . import _self_injecting
 from . import _types
 from . import _visitor
 from . import abc
@@ -153,6 +154,10 @@ class Client(abc.Client):
         # TODO: introspect_annotations=self._introspect_annotations
         descriptors = self._descriptors[callback] = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
         return descriptors
+
+    def as_self_injecting(self, callback: abc.CallbackSig[_T], /) -> abc.SelfInjecting[_T]:
+        # <<inherited docstring from alluka.abc.Client>>.
+        return _self_injecting.SelfInjecting(self, callback)
 
     def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.

@@ -36,6 +36,7 @@ __all__: list[str] = [
     "CallbackSig",
     "Client",
     "Context",
+    "SelfInjecting",
     "UNDEFINED",
     "Undefined",
 ]
@@ -225,3 +226,25 @@ class Context(abc.ABC):
         _T | Undefined
             The resolved type if found, else `Undefined`.
         """
+
+
+class SelfInjecting(abc.ABC, typing.Generic[_T]):
+    """Class used to make a callback self-injecting by linking it to a client.
+
+    Examples
+    --------
+    ```py
+    client = alluka.Client()
+
+    @client.as_self_injecting
+    async def callback(database: Database = alluka.inject(type=Database)) -> None:
+        ...
+    ```
+    """
+
+    __slots__ = ()
+
+    @property
+    @abc.abstractmethod
+    def callback(self) -> CallbackSig[_T]:
+        """The callback this wraps."""
