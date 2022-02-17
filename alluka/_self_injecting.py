@@ -55,7 +55,7 @@ class SelfInjecting(abc.SelfInjecting[_T]):
     await injecting_callback()
     ```
 
-    Alternatively `alluka.abc.Client.as_self_injecting` may be used:
+    Alternatively [alluka.abc.Client.as_self_injecting][] may be used:
 
     ```py
     client = alluka.Client()

@@ -45,8 +45,11 @@ plugins:
             docstring_style: numpy
           #   heading_level: 2
           rendering:
+            # separate_signature: true
             show_source: false
             show_signature_annotations: true
+            show_submodules: false
+            # line_length: 80
           import:
             - https://docs.python.org/3.9/objects.inv
       watch:

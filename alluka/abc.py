@@ -49,7 +49,7 @@ _T = typing.TypeVar("_T")
 
 
 class Undefined:
-    """Class/type of `UNDEFINED`."""
+    """Class/type of [UNDEFINED][alluka.abc.UNDEFINED]."""
 
     __instance: Undefined
 
@@ -127,7 +127,7 @@ class Client:
         Returns
         -------
         _T | Undefined
-            The resolved type if found, else `Undefined`.
+            The resolved type if found, else [UNDEFINED][alluka.abc.UNDEFINED].
         """
 
     @abc.abstractmethod
@@ -142,7 +142,7 @@ class Client:
         Returns
         -------
         CallbackSig[_T] | None
-            The override if found, else `None`.
+            The override if found, else [None][].
         """
 
     @abc.abstractmethod
@@ -203,9 +203,9 @@ class Context(abc.ABC):
         Returns
         -------
         _T | Undefined
-            The cached result of the callback, or `UNDEFINED` if the callback
-            has not been cached within this context or caching isn't
-            implemented.
+            The cached result of the callback, or [UNDEFINED][alluka.abc.UNDEFINED]
+            if the callback has not been cached within this context or
+            caching isn't implemented.
         """
 
     @abc.abstractmethod
@@ -213,8 +213,8 @@ class Context(abc.ABC):
         """Get the implementation for an injected type.
 
         !!! note
-            Unlike `Client.get_type_dependency`, this method may also
-            return context specific implementations of a type.
+            Unlike [Client.get_type_dependency][alluka.abc.Client.get_type_dependency],
+            this method may also return context specific implementations of a type.
 
         Parameters
         ----------
@@ -224,7 +224,7 @@ class Context(abc.ABC):
         Returns
         -------
         _T | Undefined
-            The resolved type if found, else `Undefined`.
+            The resolved type if found, else [UNDEFINED][alluka.abc.UNDEFINED].
         """
 
 

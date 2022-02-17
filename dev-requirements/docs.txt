@@ -10,9 +10,9 @@ colorama==0.4.4
     # via click
 ghp-import==2.0.2
     # via mkdocs
-griffe==0.12.2
+griffe==0.12.4
     # via mkdocstrings-python
-importlib-metadata==4.11.0
+importlib-metadata==4.11.1
     # via mkdocs
 jinja2==3.0.3
     # via

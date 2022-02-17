@@ -83,24 +83,6 @@ def inject(
         If neither `type` nor `callback` is provided, an injected type
         will be inferred from the argument's annotation.
 
-    Examples
-    --------
-    ```py
-    async def callback(
-        # Here we require an implementation of the type `Component` to be
-        # injected.
-        injected_type: Component = alluka.inject(type=Component)
-        # Here we inject an out-of-scope callback which itself is taking
-        # advantage of type injectioallukan.
-        callback_result: ResultT = alluka.inject(callback=injected_callback)
-    ) -> None:
-        raise NotImplementedError
-
-    ...
-    # where client is an `alluka.Client` instance.
-    result = await client.execute_async(callback)
-    ```
-
     Parameters
     ----------
     callback : alluka.abc.CallbackSig | None
@@ -120,6 +102,24 @@ def inject(
         If a union has `None` as one of its types (including `Optional[T]`)
         then `None` will be passed for the parameter if none of the types could
         be resolved using the linked client.
+
+    Examples
+    --------
+    ```py
+    async def callback(
+        # Here we require an implementation of the type `Component` to be
+        # injected.
+        injected_type: Component = alluka.inject(type=Component)
+        # Here we inject an out-of-scope callback which itself is taking
+        # advantage of type injectioallukan.
+        callback_result: ResultT = alluka.inject(callback=injected_callback)
+    ) -> None:
+        raise NotImplementedError
+
+    ...
+    # where client is an `alluka.Client` instance.
+    result = await client.execute_async(callback)
+    ```
     """
     return typing.cast(_T, _types.InjectedDescriptor(callback=callback, type=type))
 
@@ -295,7 +295,7 @@ class Client(abc.Client):
 
 
 class BasicContext(abc.Context):
-    """Basic implementation of a `alluka.abc.Context`."""
+    """Basic implementation of [alluka.abc.Context][]."""
 
     __slots__ = ("_injection_client", "_result_cache", "_special_case_types")
 

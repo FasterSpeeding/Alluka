@@ -64,7 +64,7 @@ class InjectedCallback:
         """Synchronously resolve the callback.
 
         !!! warning
-            Unlike `InjectedCallback.resolve_async`, this method will block the
+            Unlike [InjectedCallback.resolve_async][], this method will block the
             current thread and does not support asynchronous callback
             dependencies.
 
@@ -126,7 +126,7 @@ class InjectedType:
             The default value to use if the type can't be resolved.
 
             Without a default, any attempts to resolve a type that isn't implemented
-            by the linked client will lead to `alluka.MissingDependencyError`.
+            by the linked client will lead to [alluka.MissingDependencyError][].
         """
         self.default = default
         self.repr_type = repr_type
@@ -185,7 +185,7 @@ _TypeT = type[_T]
 class InjectedDescriptor(typing.Generic[_T]):
     """Descriptor used to a declare keyword-argument as requiring an injected dependency.
 
-    This is the type returned by `inject`.
+    This is the type returned by [alluka.inject][].
     """
 
     __slots__ = ("callback", "type")
@@ -222,7 +222,7 @@ class InjectedDescriptor(typing.Generic[_T]):
 
             If this callback has no type dependencies then this will still work
             without an injection context but this can be overridden using
-            `InjectionClient.set_callback_override`.
+            [alluka.Client.set_callback_override][].
         type : type | None
             The type of the dependency to resolve.
 
@@ -249,6 +249,6 @@ Injected = typing.Annotated[_T, InjectedTypes.TYPE]
 """Type alias used to declare a keyword argument as requiring an injected type.
 
 !!! note
-    This is an `typing.Annotated` alias and the behaviour for nested
-    Annotated types may be found at the docs for it `typing.Annoated`.
+    This is an [typing.Annotated][] alias and the behaviour for nested
+    Annotated types may be found at the docs for it [typing.Annotated][].
 """
