@@ -246,4 +246,9 @@ class InjectedDescriptor(typing.Generic[_T]):
 
 
 Injected = typing.Annotated[_T, InjectedTypes.TYPE]
-"""Type alias used to declare a keyword argument as requiring an injected type."""
+"""Type alias used to declare a keyword argument as requiring an injected type.
+
+!!! note
+    This is an `typing.Annotated` alias and the behaviour for nested
+    Annotated types may be found at the docs for it `typing.Annoated`.
+"""
