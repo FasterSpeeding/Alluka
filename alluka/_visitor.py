@@ -178,17 +178,29 @@ class ParameterVisitor:
 
         return (sub_types, None)
 
+    def _annotation_to_type(self, value: typing.Any, /) -> typing.Any:
+        if typing.get_origin(value) is typing.Annotated:
+            args = typing.get_origin(value)
+            assert args
+            # The first "type" arg of annotated will always be flatterned to a type.
+            # so we don't have to deal with Annotated nesting".
+            return args[0]
+
+        return value
+
     def visit_annotation(self, annotation: Annotation, /) -> typing.Optional[_types.InjectedTuple]:
         value = annotation.callback.resolve_annotation(annotation.name)
+        default = _or_undefined(annotation.callback.parameters[annotation.name].default)
+
         if typing.get_origin(value) is not typing.Annotated:
             return None
 
-        default = _or_undefined(annotation.callback.parameters[annotation.name].default)
         args = typing.get_origin(value)
         assert args
         if _types.InjectedTypes.TYPE in args:
-            union, default = self.parse_type(args[0], other_default=default)
-            return (_types.InjectedTypes.TYPE, _types.InjectedType(args[0], union, default=default))
+            type_ = self._annotation_to_type(args[0])
+            union, default = self.parse_type(type_, other_default=default)
+            return (_types.InjectedTypes.TYPE, _types.InjectedType(type_, union, default=default))
 
         for arg in args:
             if not isinstance(arg, _types.InjectedDescriptor):
@@ -201,8 +213,9 @@ class ParameterVisitor:
                 union, default = self.parse_type(arg.type, other_default=default)
                 return (_types.InjectedTypes.TYPE, _types.InjectedType(arg.type, union, default=default))
 
-            union, default = self.parse_type(args[0], other_default=default)
-            return (_types.InjectedTypes.TYPE, _types.InjectedType(args[0], union, default=default))
+            type_ = self._annotation_to_type(args[0])
+            union, default = self.parse_type(type_, other_default=default)
+            return (_types.InjectedTypes.TYPE, _types.InjectedType(type_, union, default=default))
 
     def visit_callback(self, callback: Callback, /) -> dict[str, _types.InjectedTuple]:
         results: dict[str, _types.InjectedTuple] = {}
@@ -236,5 +249,5 @@ class ParameterVisitor:
             raise ValueError(f"Could not resolve type for parameter {value.name!r} with no annotation")
 
         assert not isinstance(annotation, alluka_abc.Undefined)
-        union, default = self.parse_type(annotation)
+        union, default = self.parse_type(self._annotation_to_type(annotation))
         return (_types.InjectedTypes.TYPE, _types.InjectedType(annotation, union, default=default))
