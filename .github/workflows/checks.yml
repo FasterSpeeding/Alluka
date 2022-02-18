@@ -58,8 +58,14 @@ jobs:
           python -m pip install --upgrade pip wheel
           python -m pip install -r ./dev-requirements/nox.txt
 
-      - name: lint
-        run: python -m nox -s lint spell-check
+      - name: Flake8
+        run: python -m nox -s flake8
+
+      - name: slot check
+        run: python -m nox -s slot-check
+
+      - name: spell check
+        run: python -m nox -s spell-check
 
   test:
     strategy:
