@@ -40,22 +40,13 @@ import typing
 class AllukaError(Exception):
     """Base clases for the custom errirs raised by Alluka."""
 
-    __slots__ = ()
-
-
-_T = typing.TypeVar("_T")
-
 
 class AsyncOnlyError(AllukaError):
     """Error raised when trying to execute async DI in a sync context."""
 
-    __slots__ = ()
-
 
 class MissingDependencyError(AllukaError):
     """Error raised when a dependency couldn't be found."""
-
-    __slots__ = ("message",)
 
     message: str
     """The error's message."""

@@ -38,7 +38,7 @@ from collections import abc as collections
 
 import nox
 
-nox.options.sessions = ["reformat", "lint", "spell-check", "type-check", "test", "verify-types"]  # type: ignore
+nox.options.sessions = ["reformat", "flake8", "spell-check", "slot-check", "type-check", "test", "verify-types"]  # type: ignore
 GENERAL_TARGETS = ["./noxfile.py", "./tests"]
 _BLACKLISTED_TARGETS = {"_vendor", "__pycache__"}
 for path in pathlib.Path("./alluka").glob("*"):
@@ -137,10 +137,17 @@ def generate_docs(session: nox.Session) -> None:
 
 
 @nox.session(reuse_venv=True)
-def lint(session: nox.Session) -> None:
+def flake8(session: nox.Session) -> None:
     """Run this project's modules against the pre-defined flake8 linters."""
     install_requirements(session, *_dev_dep("flake8"))
     session.run("flake8", *GENERAL_TARGETS)
+
+
+@nox.session(reuse_venv=True, name="slot-check")
+def slot_check(session: nox.Session) -> None:
+    """Check this project's slotted classes for common mistakes."""
+    install_requirements(session, ".", "--use-feature=in-tree-build", *_dev_dep("lint"))
+    session.run("slotscheck", "-m", "alluka")
 
 
 @nox.session(reuse_venv=True, name="spell-check")
