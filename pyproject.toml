@@ -99,3 +99,9 @@ disable_error_code = ["return", "return-value"]
 
 # Ignore vendored modules
 exclude = ["alluka/_vendor/"]
+
+[tool.slotscheck]
+strict-imports = true
+require-superclass = true
+require-subclass = true
+exclude-modules = "alluka._vendor"

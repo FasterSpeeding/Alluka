@@ -52,6 +52,7 @@ _T = typing.TypeVar("_T")
 class Undefined:
     """Class/type of [UNDEFINED][alluka.abc.UNDEFINED]."""
 
+    __slots__ = ()
     __instance: Undefined
 
     def __bool__(self) -> typing.Literal[False]:
