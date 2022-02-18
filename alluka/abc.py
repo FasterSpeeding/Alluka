@@ -103,7 +103,7 @@ class Client:
 
         Parameters
         ----------
-        callback : CallbackSig[_T]
+        callback
             The callback to make self-injecting.
 
             This may be sync or async.
@@ -124,7 +124,7 @@ class Client:
 
         Parameters
         ----------
-        callback : collections.Callable[..., _T]
+        callback
             The callback to make self-injecting.
 
             This must be sync.
@@ -141,16 +141,13 @@ class Client:
 
         Parameters
         ----------
-        callback : collections.Callable[..., _T]
+        callback
             The callback to execute.
 
             This must be synchronous.
-
-        Other Parameters
-        ----------------
-        *args : typing.Any
+        *args
             Positional arguments to pass to the callback.
-        **kwargs : typing.Any
+        **kwargs
             Keyword arguments to pass to the callback.
 
         Returns
@@ -175,20 +172,17 @@ class Client:
 
         Parameters
         ----------
-        ctx : Context
+        ctx
             The DI context to execute the callback with.
 
             This will be used for scoped type injection.
-        callback : collections.Callable[..., _T]
+        callback
             The callback to execute.
 
             This must be synchronous.
-
-        Other Parameters
-        ----------------
-        *args : typing.Any
+        *args
             Positional arguments to pass to the callback.
-        **kwargs : typing.Any
+        **kwargs
             Keyword arguments to pass to the callback.
 
         Returns
@@ -211,16 +205,13 @@ class Client:
 
         Parameters
         ----------
-        callback : CallbackSig[_T]
+        callback
             The callback to execute.
 
             This may be synchronous or asynchronous.
-
-        Other Parameters
-        ----------------
-        *args : typing.Any
+        *args
             Positional arguments to pass to the callback.
-        **kwargs : typing.Any
+        **kwargs
             Keyword arguments to pass to the callback.
 
         Returns
@@ -245,20 +236,17 @@ class Client:
 
         Parameters
         ----------
-        ctx : Context
+        ctx
             The DI context to execute the callback with.
 
             This will be used for scoped type injection.
-        callback : CallbackSig[_T]
+        callback
             The callback to execute.
 
             This may be synchronous or asynchronous.
-
-        Other Parameters
-        ----------------
-        *args : typing.Any
+        *args
             Positional arguments to pass to the callback.
-        **kwargs : typing.Any
+        **kwargs
             Keyword arguments to pass to the callback.
 
         Returns
@@ -279,7 +267,7 @@ class Client:
 
         Parameters
         ----------
-        type_: type[_T]
+        type_
             The associated type.
 
         Returns
@@ -294,7 +282,7 @@ class Client:
 
         Parameters
         ----------
-        callback: CallbackSig[_T]
+        callback
             The injected callback to get the override for.
 
         Returns
@@ -309,7 +297,7 @@ class Client:
 
         Parameters
         ----------
-        callback: CallbackSig
+        callback
             The callback to validate.
 
         Raises
@@ -335,7 +323,7 @@ class Context(abc.ABC):
 
         Parameters
         ----------
-        callback : CallbackSig[_T]
+        callback
             The callback to cache the result of.
         value : _T
             The value to cache.
@@ -347,16 +335,13 @@ class Context(abc.ABC):
 
         Parameters
         ----------
-        callback : collections.Callable[..., _T]
+        callback
             The callback to execute.
 
             This must be synchronous.
-
-        Other Parameters
-        ----------------
-        *args : typing.Any
+        *args
             Positional arguments to pass to the callback.
-        **kwargs : typing.Any
+        **kwargs
             Keyword arguments to pass to the callback.
 
         Returns
@@ -379,16 +364,13 @@ class Context(abc.ABC):
 
         Parameters
         ----------
-        callback : CallbackSig[_T]
+        callback
             The callback to execute.
 
             This may be synchronous or asynchronous.
-
-        Other Parameters
-        ----------------
-        *args : typing.Any
+        *args
             Positional arguments to pass to the callback.
-        **kwargs : typing.Any
+        **kwargs
             Keyword arguments to pass to the callback.
 
         Returns
@@ -409,7 +391,7 @@ class Context(abc.ABC):
 
         Parameters
         ----------
-        callback : CallbackSig[_T]
+        callback
             The callback to get the cached result of.
 
         Returns
@@ -430,7 +412,7 @@ class Context(abc.ABC):
 
         Parameters
         ----------
-        type_: type[_T]
+        type_
             The associated type.
 
         Returns
@@ -467,9 +449,9 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_T]):
 
         Parameters
         ----------
-        *args : typing.Any
+        *args
             Positional arguments to pass to the callback.
-        **kwargs : typing.Any
+        **kwargs
             Keyword arguments to pass to the callback alongside injected arguments.
 
         Returns
@@ -516,9 +498,9 @@ class SelfInjecting(abc.ABC, typing.Generic[_T]):
 
         Parameters
         ----------
-        *args : typing.Any
+        *args
             Positional arguments to pass to the callback.
-        **kwargs : typing.Any
+        **kwargs
             Keyword arguments to pass to the callback.
 
         Returns

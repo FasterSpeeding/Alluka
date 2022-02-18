@@ -74,9 +74,9 @@ class AsyncSelfInjecting(abc.AsyncSelfInjecting[_T]):
 
         Parameters
         ----------
-        client : alluka.abc.Client
+        client
             The injection client to use to resolve dependencies.
-        callback : alluka.abc.CallbackSig[_T]
+        callback
             The callback to make self-injecting.
 
             This may be synchronous or asynchronous.
@@ -137,9 +137,9 @@ class SelfInjecting(abc.SelfInjecting[_T]):
 
         Parameters
         ----------
-        client : alluka.abc.Client
+        client
             The injection client to use to resolve dependencies.
-        callback : collections.abc.Callable[..., _T]
+        callback
             The callback to make self-injecting.
 
             This must be synchronous.

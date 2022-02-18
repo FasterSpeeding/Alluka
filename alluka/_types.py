@@ -55,7 +55,7 @@ class InjectedCallback:
 
         Parameters
         ----------
-        callback : alluka.abc.CallbackSig
+        callback
             The callback to use to resolve the parameter's value.
         """
         self.callback = callback
@@ -70,7 +70,7 @@ class InjectedCallback:
 
         Parameters
         ----------
-        ctx : alluka.abc.Context
+        ctx
             The context to use when resolving the callback.
 
         Raises
@@ -88,7 +88,7 @@ class InjectedCallback:
 
         Parameters
         ----------
-        ctx : alluka.abc.Context
+        ctx
             The context to use when resolving the callback.
 
         Raises
@@ -117,12 +117,9 @@ class InjectedType:
 
         Parameters
         ----------
-        base_type : type
+        base_type
             The type to resolve to.
-
-        Other Parameters
-        ----------------
-        default : typing.Any | alluka.abc.UNDEFINED
+        default
             The default value to use if the type can't be resolved.
 
             Without a default, any attempts to resolve a type that isn't implemented
@@ -137,9 +134,13 @@ class InjectedType:
 
         Parameters
         ----------
-        ctx : alluka.abc.Context
+        ctx
             The context to use when resolving the type.
 
+        Returns
+        -------
+        typing.Any
+            The resolved type.
         """
         # We still want to allow for the possibility of a Union being
         # explicitly implemented so we check types within a union
@@ -217,13 +218,13 @@ class InjectedDescriptor(typing.Generic[_T]):
 
         Parameters
         ----------
-        callback : alluka.abc.CallbackSig | None
+        callback
             The callback to use to resolve the dependency.
 
             If this callback has no type dependencies then this will still work
             without an injection context but this can be overridden using
             [alluka.Client.set_callback_override][].
-        type : type | None
+        type
             The type of the dependency to resolve.
 
             If a union (e.g. `typing.Union[A, B]`, `A | B`, `typing.Optional[A]`)
