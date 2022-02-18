@@ -20,7 +20,7 @@ def callback(
     ...
 ```
 
-Assigning the result of [alluka.inject][] to a function's parameter will declare it as
+Assigning the result of [alluka.inject][] to a parameter's default will declare it as
 requiring an injected type or callback.
 
 ```py

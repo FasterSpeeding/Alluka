@@ -98,7 +98,7 @@ isort==5.10.1
     # via flake8-isort
 jinja2==3.0.3
     # via flake8-html
-markupsafe==2.0.1
+markupsafe==2.1.0
     # via jinja2
 mccabe==0.6.1
     # via flake8
