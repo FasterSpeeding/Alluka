@@ -47,7 +47,6 @@ for path in pathlib.Path("./alluka").glob("*"):
 
 
 PYTHON_VERSIONS = ["3.9", "3.10"]  # TODO: @nox.session(python=["3.6", "3.7", "3.8"])?
-_DEV_DEP_GROUPS = ["docs", "flake8", "lint", "nox", "publish", "reformat", "tests", "type-checking"]
 _DEV_DEP_DIR = pathlib.Path("./dev-requirements")
 
 
@@ -104,33 +103,29 @@ def cleanup(session: nox.Session) -> None:
             session.log(f"[  OK  ] Removed '{raw_path}'")
 
 
+def _pip_compile(session: nox.Session, /, *args: str) -> None:
+    install_requirements(session, *_dev_dep("publish"))
+    for path in pathlib.Path("./dev-requirements/").glob("*.in"):
+        session.run(
+            "pip-compile",
+            str(path),
+            "--output-file",
+            str(path.with_name(path.name.removesuffix(".in") + ".txt")),
+            *args
+            # "--generate-hashes",
+        )
+
+
 @nox.session(name="freeze-dev-deps", reuse_venv=True)
 def freeze_dev_deps(session: nox.Session) -> None:
     """Freeze the dev dependencies."""
-    install_requirements(session, *_dev_dep("publish"))
-    for name in _DEV_DEP_GROUPS:
-        session.run(
-            "pip-compile",
-            str(_DEV_DEP_DIR / f"{name}.in"),
-            "--output-file",
-            str(_DEV_DEP_DIR / f"{name}.txt"),
-            # "--generate-hashes",
-        )
+    _pip_compile(session)
 
 
 @nox.session(name="update-dev-deps", reuse_venv=True)
 def update_dev_deps(session: nox.Session) -> None:
     """Update the dev dependencies."""
-    install_requirements(session, *_dev_dep("publish"))
-    for name in _DEV_DEP_GROUPS:
-        session.run(
-            "pip-compile",
-            "--upgrade",
-            str(_DEV_DEP_DIR / f"{name}.in"),
-            "--output-file",
-            str(_DEV_DEP_DIR / f"{name}.txt"),
-            # "--generate-hashes",
-        )
+    _pip_compile(session, "--upgrade")
 
 
 @nox.session(name="generate-docs", reuse_venv=True)
