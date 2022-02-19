@@ -216,7 +216,7 @@ def test_publish(session: nox.Session) -> None:
 def reformat(session: nox.Session) -> None:
     """Reformat this project's modules to fit the standard style."""
     install_requirements(session, *_dev_dep("reformat"))  # include_standard_requirements=False
-    session.run("black", *GENERAL_TARGETS)
+    session.run("black", *GENERAL_TARGETS, "--extend-exclude", "^/alluka/_vendor/.*$")
     session.run("isort", *GENERAL_TARGETS)
     session.run("sort-all", *map(str, pathlib.Path("./alluka/").glob("**/*.py")), success_codes=[0, 1])
 

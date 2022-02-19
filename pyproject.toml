@@ -11,6 +11,9 @@ authors = [ {name = "Faster Speeding", email="lucina@lmbyrne.dev"} ]
 keywords = ["DI", "injection"]
 classifiers = [
     "Development Status :: 3 - Alpha",
+    "Framework :: AnyIO",
+    "Framework :: AsyncIO",
+    "Framework :: Trio",
     "License :: OSI Approved :: BSD License",
     "Intended Audience :: Developers",
     "Natural Language :: English",
@@ -37,7 +40,7 @@ changelog = "https://github.com/FasterSpeeding/Alluka/blob/master/CHANGELOG.md"
 line-length     = 120
 target-version  = ["py39"]
 include         = ".*pyi?$"
-extend-exclude = ["^/alluka/_vendor/.*"]
+extend-exclude = ["^/alluka/_vendor/.*$"]
 
 [tool.coverage.run]
 concurrency = ["multiprocessing"]
@@ -77,9 +80,8 @@ reportUnknownVariableType = "warning"           # Lotta false-positives, might f
 reportPrivateUsage = "none"                     # Leads to funky false-positives around private module imports.
 
 [tool.pytest.ini_options]
-asyncio_mode = "strict"
 testpaths = ["tests"]
-required_plugins = ["pytest-asyncio"]
+required_plugins = ["anyio"]
 
 [tool.mypy]
 # some good strict settings

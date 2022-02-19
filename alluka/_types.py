@@ -234,10 +234,12 @@ class InjectedDescriptor(typing.Generic[_T]):
             If a union has `None` as one of its types (including `Optional[T]`)
             then `None` will be passed for the parameter if none of the types could
             be resolved using the linked client.
-        """
-        if callback is None and type is None:
-            raise ValueError("Must specify one of `callback` or `type`")
 
+        Raises
+        ------
+        ValueError
+            If both `callback` and `type` are provided.
+        """
         if callback is not None and type is not None:
             raise ValueError("Only one of `callback` or `type` can be specified")
 
