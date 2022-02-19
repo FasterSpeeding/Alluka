@@ -85,13 +85,13 @@ def inject(
 
     Parameters
     ----------
-    callback : alluka.abc.CallbackSig | None
+    callback
         The callback to use to resolve the dependency.
 
         If this callback has no type dependencies then this will still work
         without an injection context but this can be overridden using
         `alluka.abc.Client.set_callback_override`.
-    type : type | None
+    type
         The type of the dependency to resolve.
 
         If a union (e.g. `typing.Union[A, B]`, `A | B`, `typing.Optional[A]`)
@@ -211,9 +211,9 @@ class Client(abc.Client):
 
         Parameters
         ----------
-        type_: type[_T]
+        type_
             The type of the dependency to add an implementation for.
-        value: _T
+        value
             The value of the dependency.
 
         Returns
@@ -233,7 +233,7 @@ class Client(abc.Client):
 
         Parameters
         ----------
-        type_: type
+        type_
             The associated type.
 
         Returns
@@ -256,9 +256,9 @@ class Client(abc.Client):
 
         Parameters
         ----------
-        callback: alluka.abc.CallbackSig[_T]
+        callback
             The injected callback to override.
-        override: alluka.abc.CallbackSig[_T]
+        override
             The callback to use instead.
 
         Returns
@@ -278,7 +278,7 @@ class Client(abc.Client):
 
         Parameters
         ----------
-        callback: alluka.abc.CallbackSig
+        callback
             The injected callback to remove the override for.
 
         Returns
@@ -309,7 +309,7 @@ class BasicContext(abc.Context):
 
         Parameters
         ----------
-        client : alluka.abc.Client
+        client
             The injection client this context is bound to.
         """
         self._injection_client = client

@@ -84,9 +84,9 @@ CallbackSig = typing.Union[
     keyword arguments for a dependency callback may also ask for dependencies
     themselves.
 
-This may either be a synchronous or asynchronous function with dependency
-injection being available for the callback's keyword arguments but dynamically
-returning either a coroutine or raw value may lead to errors.
+This may either be a sync or asyc function with dependency injection being
+available for the callback's keyword arguments but dynamically returning either
+a coroutine or raw value may lead to errors.
 
 Dependent on the context positional arguments may also be proivded.
 """
@@ -103,7 +103,7 @@ class Client:
 
         Parameters
         ----------
-        callback : CallbackSig[_T]
+        callback
             The callback to make self-injecting.
 
             This may be sync or async.
@@ -111,20 +111,20 @@ class Client:
         Returns
         -------
         AsyncSelfInjecting[_T]
-            The asynchronous self-injecting callback.
+            The async self-injecting callback.
         """
 
     @abc.abstractmethod
     def as_self_injecting(self, callback: collections.Callable[..., _T], /) -> SelfInjecting[_T]:
-        """Link a synchronous function to a client to make it self-injecting.
+        """Link a sync function to a client to make it self-injecting.
 
         !!! note
-            This uses synchronous dependencyinjection and therefore will lead
-            to errors if any of the callback's dependencies are asynchronous.
+            This uses sync dependency injection and therefore will lead
+            to errors if any of the callback's dependencies are async.
 
         Parameters
         ----------
-        callback : collections.Callable[..., _T]
+        callback
             The callback to make self-injecting.
 
             This must be sync.
@@ -137,23 +137,129 @@ class Client:
 
     @abc.abstractmethod
     def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        ...
+        """Execute a function with sync dependency injection.
+
+        Parameters
+        ----------
+        callback
+            The callback to execute.
+
+            This must be sync.
+        *args
+            Positional arguments to pass to the callback.
+        **kwargs
+            Keyword arguments to pass to the callback.
+
+        Returns
+        -------
+        _T
+            The result of the callback.
+
+        Raises
+        ------
+        alluka.MissingDependencyError
+            If any of the callback's required type dependencies aren't implemented
+            by the client.
+        alluka.AsyncOnlyError
+            If the callback or any of its callback dependencies are async.
+        """
 
     @abc.abstractmethod
     def execute_with_ctx(
         self, ctx: Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
-        ...
+        """Execute a function with the provided DI context.
+
+        Parameters
+        ----------
+        ctx
+            The DI context to execute the callback with.
+
+            This will be used for scoped type injection.
+        callback
+            The callback to execute.
+
+            This must be sync.
+        *args
+            Positional arguments to pass to the callback.
+        **kwargs
+            Keyword arguments to pass to the callback.
+
+        Returns
+        -------
+        _T
+            The result of the callback.
+
+        Raises
+        ------
+        alluka.MissingDependencyError
+            If any of the callback's required type dependencies aren't implemented
+            by the client.
+        alluka.AsyncOnlyError
+            If the callback or any of its callback dependencies are async.
+        """
 
     @abc.abstractmethod
     async def execute_async(self, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        ...
+        """Execute a function with async dependency injection.
+
+        Parameters
+        ----------
+        callback
+            The callback to execute.
+
+            This may be sync or async.
+        *args
+            Positional arguments to pass to the callback.
+        **kwargs
+            Keyword arguments to pass to the callback.
+
+        Returns
+        -------
+        _T
+            The result of the callback.
+
+        Raises
+        ------
+        alluka.MissingDependencyError
+            If any of the callback's required type dependencies aren't implemented
+            by the client.
+        alluka.AsyncOnlyError
+            If the callback or any of its callback dependencies are async.
+        """
 
     @abc.abstractmethod
     async def execute_with_ctx_async(
         self, ctx: Context, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
-        ...
+        """Asynchronously execute a function with the provided DI context.
+
+        Parameters
+        ----------
+        ctx
+            The DI context to execute the callback with.
+
+            This will be used for scoped type injection.
+        callback
+            The callback to execute.
+
+            This may be sync or async.
+        *args
+            Positional arguments to pass to the callback.
+        **kwargs
+            Keyword arguments to pass to the callback.
+
+        Returns
+        -------
+        _T
+            The result of the callback.
+
+        Raises
+        ------
+        alluka.MissingDependencyError
+            If any of the callback's required type dependencies aren't implemented
+            by the client.
+        """
 
     @abc.abstractmethod
     def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
@@ -161,7 +267,7 @@ class Client:
 
         Parameters
         ----------
-        type_: type[_T]
+        type_
             The associated type.
 
         Returns
@@ -176,7 +282,7 @@ class Client:
 
         Parameters
         ----------
-        callback: CallbackSig[_T]
+        callback
             The injected callback to get the override for.
 
         Returns
@@ -191,7 +297,7 @@ class Client:
 
         Parameters
         ----------
-        callback: CallbackSig
+        callback
             The callback to validate.
 
         Raises
@@ -217,19 +323,67 @@ class Context(abc.ABC):
 
         Parameters
         ----------
-        callback : CallbackSig[_T]
+        callback
             The callback to cache the result of.
-        value : _T
+        value
             The value to cache.
         """
 
     @abc.abstractmethod
     def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        ...
+        """Execute a function with the current DI context.
+
+        Parameters
+        ----------
+        callback
+            The callback to execute.
+
+            This must be sync.
+        *args
+            Positional arguments to pass to the callback.
+        **kwargs
+            Keyword arguments to pass to the callback.
+
+        Returns
+        -------
+        _T
+            The result of the callback.
+
+        Raises
+        ------
+        alluka.MissingDependencyError
+            If any of the callback's required type dependencies aren't implemented
+            by the client.
+        alluka.AsyncOnlyError
+            If the callback or any of its callback dependencies are async.
+        """
 
     @abc.abstractmethod
     async def execute_async(self, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        ...
+        """Asynchronously execute a function with the current DI context.
+
+        Parameters
+        ----------
+        callback
+            The callback to execute.
+
+            This may be sync or async.
+        *args
+            Positional arguments to pass to the callback.
+        **kwargs
+            Keyword arguments to pass to the callback.
+
+        Returns
+        -------
+        _T
+            The result of the callback.
+
+        Raises
+        ------
+        alluka.MissingDependencyError
+            If any of the callback's required type dependencies aren't implemented
+            by the client.
+        """
 
     @abc.abstractmethod
     def get_cached_result(self, callback: CallbackSig[_T], /) -> _UndefinedOr[_T]:
@@ -237,7 +391,7 @@ class Context(abc.ABC):
 
         Parameters
         ----------
-        callback : CallbackSig[_T]
+        callback
             The callback to get the cached result of.
 
         Returns
@@ -258,7 +412,7 @@ class Context(abc.ABC):
 
         Parameters
         ----------
-        type_: type[_T]
+        type_
             The associated type.
 
         Returns
@@ -269,7 +423,7 @@ class Context(abc.ABC):
 
 
 class AsyncSelfInjecting(abc.ABC, typing.Generic[_T]):
-    """Interface of a class used to make an asynchronous self-injecting callback.
+    """Interface of a class used to make an async self-injecting callback.
 
     Examples
     --------
@@ -295,9 +449,9 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_T]):
 
         Parameters
         ----------
-        *args : typing.Any
+        *args
             Positional arguments to pass to the callback.
-        **kwargs : typing.Any
+        **kwargs
             Keyword arguments to pass to the callback alongside injected arguments.
 
         Returns
@@ -318,7 +472,7 @@ class SelfInjecting(abc.ABC, typing.Generic[_T]):
 
     !!! note
         This executes the callback synchronously and therefore will error if
-        any of the callback's dependencies are asynchronous.
+        any of the callback's dependencies are async.
 
     Examples
     --------
@@ -344,9 +498,9 @@ class SelfInjecting(abc.ABC, typing.Generic[_T]):
 
         Parameters
         ----------
-        *args : typing.Any
+        *args
             Positional arguments to pass to the callback.
-        **kwargs : typing.Any
+        **kwargs
             Keyword arguments to pass to the callback.
 
         Returns
@@ -360,5 +514,5 @@ class SelfInjecting(abc.ABC, typing.Generic[_T]):
             If any of the callback's required type dependencies aren't implemented
             by the client.
         alluka.AsyncOnlyError
-            If the callback or any of its callback dependencies are asynchronous.
+            If the callback or any of its callback dependencies are async.
         """

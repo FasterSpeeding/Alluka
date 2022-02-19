@@ -59,7 +59,7 @@ class MissingDependencyError(AllukaError):
 
         Parameters
         ----------
-        message : str
+        message
             The error message.
         """
         self.dependency_type = dependency_type

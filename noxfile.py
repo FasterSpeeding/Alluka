@@ -122,9 +122,9 @@ def freeze_dev_deps(session: nox.Session) -> None:
     _pip_compile(session)
 
 
-@nox.session(name="update-dev-deps", reuse_venv=True)
-def update_dev_deps(session: nox.Session) -> None:
-    """Update the dev dependencies."""
+@nox.session(name="upgrade-dev-deps", reuse_venv=True)
+def upgrade_dev_deps(session: nox.Session) -> None:
+    """Upgrade the dev dependencies."""
     _pip_compile(session, "--upgrade")
 
 
@@ -132,7 +132,7 @@ def update_dev_deps(session: nox.Session) -> None:
 def generate_docs(session: nox.Session) -> None:
     """Generate docs for this project using Mkdoc."""
     install_requirements(session, *_dev_dep("docs"))
-    output_directory = _try_find_option(session, "-o", "--output") or "./docs"
+    output_directory = _try_find_option(session, "-o", "--output") or "./site"
     session.run("mkdocs", "build", "-d", output_directory)
 
 
