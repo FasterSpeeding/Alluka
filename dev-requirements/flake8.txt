@@ -14,7 +14,7 @@ bandit==1.7.2
     # via flake8-bandit
 black==22.1.0
     # via flake8-black
-click==8.0.3
+click==8.0.4
     # via
     #   black
     #   mr-proper
@@ -112,7 +112,7 @@ pathspec==0.9.0
     # via black
 pbr==5.8.1
     # via stevedore
-platformdirs==2.5.0
+platformdirs==2.5.1
     # via black
 pluggy==1.0.0
     # via pytest

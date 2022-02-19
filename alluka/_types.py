@@ -141,9 +141,6 @@ class InjectedType:
         typing.Any
             The resolved type.
         """
-        # We still want to allow for the possibility of a Union being
-        # explicitly implemented so we check types within a union
-        # after the literal type.
         for cls in self.types:
             if (result := ctx.get_type_dependency(cls)) is not abc.UNDEFINED:
                 return result
@@ -249,6 +246,15 @@ class InjectedDescriptor(typing.Generic[_T]):
 
 Injected = typing.Annotated[_T, InjectedTypes.TYPE]
 """Type alias used to declare a keyword argument as requiring an injected type.
+
+If a union (e.g. `typing.Union[A, B]`, `A | B`, `typing.Optional[A]`)
+is passed then each type in the union will be tried separately rather than
+the literal type, allowing for resolving `A | B` to the value set by
+`set_type_dependency(B, ...)`.
+
+If a union has `None` as one of its types (including `Optional[T]`)
+then `None` will be passed for the parameter if none of the types could
+be resolved using the linked client.
 
 !!! note
     This is a [typing.Annotated][] alias and the behaviour for nested

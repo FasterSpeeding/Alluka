@@ -29,6 +29,10 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# pyright: reportUnknownMemberType=none
+# pyright: reportPrivateUsage=none
+
 import typing
 from unittest import mock
 
@@ -169,27 +173,65 @@ class TestClient:
         with pytest.raises(KeyError):
             client.remove_callback_override(mock_callback)
 
-    @pytest.mark.skip(reason="TODO: decide on whether to keep this")
-    def test_validate_callback(self):
-        ...
-
 
 class TestBasicContext:
     def test_injection_client_property(self):
-        ...
+        mock_client = mock.Mock()
+        ctx = alluka.BasicContext(mock_client)
+
+        assert ctx.injection_client is mock_client
 
     def test_cache_result(self):
-        ...
+        mock_callback = mock.Mock()
+        mock_result = mock.Mock()
+        ctx = alluka.BasicContext(mock.Mock())
+        ctx.cache_result(mock_callback, mock_result)
+
+        assert ctx.get_cached_result(mock_callback) is mock_result
 
     def test_execute(self):
-        ...
+        mock_client = mock.Mock()
+        mock_callback = mock.Mock()
+        ctx = alluka.BasicContext(mock_client)
+
+        result = ctx.execute(mock_callback, 1, "ok", ex="nah", pa="bah")
+
+        assert result is mock_client.execute_with_ctx.return_value
+        mock_client.execute_with_ctx.assert_called_once_with(ctx, mock_callback, 1, "ok", ex="nah", pa="bah")
 
     @pytest.mark.anyio()
     async def test_execute_async(self):
-        ...
+        mock_client = mock.AsyncMock()
+        mock_callback = mock.Mock()
+        ctx = alluka.BasicContext(mock_client)
+
+        result = await ctx.execute_async(mock_callback, "op", ah=123)
+
+        assert result is mock_client.execute_with_ctx_async.return_value
+        mock_client.execute_with_ctx_async.assert_awaited_once_with(ctx, mock_callback, "op", ah=123)
 
     def test_get_cached_result(self):
-        ...
+        ctx = alluka.BasicContext(mock.Mock())
+
+        assert ctx.get_cached_result(mock.Mock()) is alluka.abc.UNDEFINED
 
     def test_get_type_dependency(self):
-        ...
+        mock_client = mock.Mock()
+        mock_type: typing.Any = mock.Mock()
+        ctx = alluka.BasicContext(mock_client)
+
+        result = ctx.get_type_dependency(mock_type)
+
+        assert result is mock_client.get_type_dependency.return_value
+        mock_client.get_type_dependency.assert_called_once_with(mock_type)
+
+    def test_get_type_dependency_when_special_cased(self):
+        mock_client = mock.Mock()
+        mock_type: typing.Any = mock.Mock()
+        mock_value = mock.Mock()
+        ctx = alluka.BasicContext(mock_client)._set_type_special_case(mock_type, mock_value)
+
+        result = ctx.get_type_dependency(mock_type)
+
+        assert result is mock_value
+        mock_client.get_type_dependency.assert_not_called()

@@ -113,7 +113,7 @@ def inject(
 
         If a union (e.g. `typing.Union[A, B]`, `A | B`, `typing.Optional[A]`)
         is passed for `type` then each type in the union will be tried
-        separately after the litarl union type is tried, allowing for resolving
+        separately rather than the literal type, allowing for resolving
         `A | B` to the value set by `set_type_dependency(B, ...)`.
 
         If a union has `None` as one of its types (including `Optional[T]`)
@@ -297,10 +297,6 @@ class Client(abc.Client):
         """
         del self._callback_overrides[callback]
         return self
-
-    def validate_callback(self, callback: abc.CallbackSig[typing.Any], /) -> None:
-        # <<inherited docstring from alluka.abc.Client>>.
-        self._build_descriptors(callback)
 
 
 class BasicContext(abc.Context):

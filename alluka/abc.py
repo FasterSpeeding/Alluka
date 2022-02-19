@@ -291,21 +291,6 @@ class Client:
             The override if found, else [None][].
         """
 
-    @abc.abstractmethod
-    def validate_callback(self, callback: CallbackSig[_T], /) -> None:
-        """Check that a callback's signature is valid for this client's dependency injection.
-
-        Parameters
-        ----------
-        callback
-            The callback to validate.
-
-        Raises
-        ------
-        ValueError
-            If the callback's signature is invalid.
-        """
-
 
 class Context(abc.ABC):
     """Abstract interface of an injection context."""
