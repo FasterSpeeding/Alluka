@@ -65,8 +65,7 @@ class InjectedCallback:
 
         !!! warning
             Unlike [InjectedCallback.resolve_async][], this method will block the
-            current thread and does not support asynchronous callback
-            dependencies.
+            current thread and does not support async callback dependencies.
 
         Parameters
         ----------
@@ -76,7 +75,7 @@ class InjectedCallback:
         Raises
         ------
         alluka.AsyncOnlyError
-            If the callback or any of its callback dependencies are asynchronous.
+            If the callback or any of its callback dependencies are async.
         alluka.MissingDependencyError
             If any of the callback's type dependencies aren't implemented by
             the context's client.

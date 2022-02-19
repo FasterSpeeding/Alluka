@@ -84,9 +84,9 @@ CallbackSig = typing.Union[
     keyword arguments for a dependency callback may also ask for dependencies
     themselves.
 
-This may either be a synchronous or asynchronous function with dependency
-injection being available for the callback's keyword arguments but dynamically
-returning either a coroutine or raw value may lead to errors.
+This may either be a sync or asyc function with dependency injection being
+available for the callback's keyword arguments but dynamically returning either
+a coroutine or raw value may lead to errors.
 
 Dependent on the context positional arguments may also be proivded.
 """
@@ -111,16 +111,16 @@ class Client:
         Returns
         -------
         AsyncSelfInjecting[_T]
-            The asynchronous self-injecting callback.
+            The async self-injecting callback.
         """
 
     @abc.abstractmethod
     def as_self_injecting(self, callback: collections.Callable[..., _T], /) -> SelfInjecting[_T]:
-        """Link a synchronous function to a client to make it self-injecting.
+        """Link a sync function to a client to make it self-injecting.
 
         !!! note
-            This uses synchronous dependencyinjection and therefore will lead
-            to errors if any of the callback's dependencies are asynchronous.
+            This uses sync dependency injection and therefore will lead
+            to errors if any of the callback's dependencies are async.
 
         Parameters
         ----------
@@ -137,14 +137,14 @@ class Client:
 
     @abc.abstractmethod
     def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        """Execute a function with synchronous dependency injection.
+        """Execute a function with sync dependency injection.
 
         Parameters
         ----------
         callback
             The callback to execute.
 
-            This must be synchronous.
+            This must be sync.
         *args
             Positional arguments to pass to the callback.
         **kwargs
@@ -161,7 +161,7 @@ class Client:
             If any of the callback's required type dependencies aren't implemented
             by the client.
         alluka.AsyncOnlyError
-            If the callback or any of its callback dependencies are asynchronous.
+            If the callback or any of its callback dependencies are async.
         """
 
     @abc.abstractmethod
@@ -179,7 +179,7 @@ class Client:
         callback
             The callback to execute.
 
-            This must be synchronous.
+            This must be sync.
         *args
             Positional arguments to pass to the callback.
         **kwargs
@@ -196,19 +196,19 @@ class Client:
             If any of the callback's required type dependencies aren't implemented
             by the client.
         alluka.AsyncOnlyError
-            If the callback or any of its callback dependencies are asynchronous.
+            If the callback or any of its callback dependencies are async.
         """
 
     @abc.abstractmethod
     async def execute_async(self, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        """Execute a function with asynchronous dependency injection.
+        """Execute a function with async dependency injection.
 
         Parameters
         ----------
         callback
             The callback to execute.
 
-            This may be synchronous or asynchronous.
+            This may be sync or async.
         *args
             Positional arguments to pass to the callback.
         **kwargs
@@ -225,7 +225,7 @@ class Client:
             If any of the callback's required type dependencies aren't implemented
             by the client.
         alluka.AsyncOnlyError
-            If the callback or any of its callback dependencies are asynchronous.
+            If the callback or any of its callback dependencies are async.
         """
 
     @abc.abstractmethod
@@ -243,7 +243,7 @@ class Client:
         callback
             The callback to execute.
 
-            This may be synchronous or asynchronous.
+            This may be sync or async.
         *args
             Positional arguments to pass to the callback.
         **kwargs
@@ -325,7 +325,7 @@ class Context(abc.ABC):
         ----------
         callback
             The callback to cache the result of.
-        value : _T
+        value
             The value to cache.
         """
 
@@ -338,7 +338,7 @@ class Context(abc.ABC):
         callback
             The callback to execute.
 
-            This must be synchronous.
+            This must be sync.
         *args
             Positional arguments to pass to the callback.
         **kwargs
@@ -355,7 +355,7 @@ class Context(abc.ABC):
             If any of the callback's required type dependencies aren't implemented
             by the client.
         alluka.AsyncOnlyError
-            If the callback or any of its callback dependencies are asynchronous.
+            If the callback or any of its callback dependencies are async.
         """
 
     @abc.abstractmethod
@@ -367,7 +367,7 @@ class Context(abc.ABC):
         callback
             The callback to execute.
 
-            This may be synchronous or asynchronous.
+            This may be sync or async.
         *args
             Positional arguments to pass to the callback.
         **kwargs
@@ -423,7 +423,7 @@ class Context(abc.ABC):
 
 
 class AsyncSelfInjecting(abc.ABC, typing.Generic[_T]):
-    """Interface of a class used to make an asynchronous self-injecting callback.
+    """Interface of a class used to make an async self-injecting callback.
 
     Examples
     --------
@@ -472,7 +472,7 @@ class SelfInjecting(abc.ABC, typing.Generic[_T]):
 
     !!! note
         This executes the callback synchronously and therefore will error if
-        any of the callback's dependencies are asynchronous.
+        any of the callback's dependencies are async.
 
     Examples
     --------
@@ -514,5 +514,5 @@ class SelfInjecting(abc.ABC, typing.Generic[_T]):
             If any of the callback's required type dependencies aren't implemented
             by the client.
         alluka.AsyncOnlyError
-            If the callback or any of its callback dependencies are asynchronous.
+            If the callback or any of its callback dependencies are async.
         """

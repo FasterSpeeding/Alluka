@@ -42,7 +42,7 @@ _T = typing.TypeVar("_T")
 
 
 class AsyncSelfInjecting(abc.AsyncSelfInjecting[_T]):
-    """Class used to link a synchronous function to a client to make it self-injecting.
+    """Class used to link a sync function to a client to make it self-injecting.
 
     Examples
     --------
@@ -79,7 +79,7 @@ class AsyncSelfInjecting(abc.AsyncSelfInjecting[_T]):
         callback
             The callback to make self-injecting.
 
-            This may be synchronous or asynchronous.
+            This may be sync or async.
 
         Raises
         ------
@@ -101,11 +101,11 @@ class AsyncSelfInjecting(abc.AsyncSelfInjecting[_T]):
 
 
 class SelfInjecting(abc.SelfInjecting[_T]):
-    """Class used to link a synchronous function to a client to make it self-injecting.
+    """Class used to link a sync function to a client to make it self-injecting.
 
     !!! note
         This executes the callback synchronously and therefore will error if
-        any of the callback's dependencies are asynchronous.
+        any of the callback's dependencies are async.
 
     Examples
     --------
@@ -133,7 +133,7 @@ class SelfInjecting(abc.SelfInjecting[_T]):
     __slots__ = ("_callback", "_client")
 
     def __init__(self, client: abc.Client, callback: collections.Callable[..., _T], /) -> None:
-        """Initialise a synchronous self injecting callback.
+        """Initialise a sync self injecting callback.
 
         Parameters
         ----------
@@ -142,7 +142,7 @@ class SelfInjecting(abc.SelfInjecting[_T]):
         callback
             The callback to make self-injecting.
 
-            This must be synchronous.
+            This must be sync.
 
         Raises
         ------
