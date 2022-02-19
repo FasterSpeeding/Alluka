@@ -88,8 +88,8 @@ result = await client.execute_async(callback, 123, keyword_arg="ok")
 ```
 
 To execute a function with async dependency injection [alluka.abc.Client.execute_async][] should
-be called with the function and any positional and keyword arguments which should be passed through
-to it passed alongside the injected arguments.
+be called with the function and any positional or keyword arguments to pass through alongside the
+the injected arguments.
 
 !!! note
     While both sync and async functions may be executed with `execute_async`, you'll always have to
@@ -112,7 +112,7 @@ result = client.execute(callback, 123, keyword_arg="ok")
 ```
 
 To execute a function with purely sync dependency injection [alluka.abc.Client.execute][] can be
-used with similar semantics to `execute_async` around passed through arguments but comes with the
+used with similar semantics to `execute_async` for passed through arguments but this comes with the
 limitation that only sync functions may be used and any dependency on async callback dependencies
 will lead to [alluka.AsyncOnlyError][] being raised.
 
