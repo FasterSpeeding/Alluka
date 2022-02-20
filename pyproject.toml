@@ -48,6 +48,7 @@ parallel = true
 branch = true
 timid = false
 source = ["alluka"]
+omit = ["alluka/_vendor/*"]
 
 [tool.coverage.report]
 precision = 2
