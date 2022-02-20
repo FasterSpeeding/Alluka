@@ -61,9 +61,6 @@ def context(client: alluka.Client) -> alluka.BasicContext:
 
 # TODO: test cases for type scoped dependencies
 # TODO: test cases for cached callback results
-# TODO: test cases for default being prioritsed over Annotated
-# TODO: add | defaulting cases
-# TODO: add tests for sub-type dependency handling
 def test_execute_with_ctx_when_no_di(context: alluka.BasicContext):
     def callback(x: int, bar: str) -> str:
         assert x == 42
@@ -73,6 +70,78 @@ def test_execute_with_ctx_when_no_di(context: alluka.BasicContext):
     result = context.execute(callback, 42, bar="ok")
 
     assert result == "nyaa"
+
+
+def test_execute_prioritises_defaults_over_annotations(context: alluka.BasicContext):
+    mock_type: typing.Any = mock.Mock()
+    mock_value = mock.Mock()
+    mock_other_type: typing.Any = mock.Mock()
+    mock_other_value = mock.Mock()
+    mock_callback = mock.Mock()
+
+    def dependency(
+        result: typing.Annotated[float, alluka.inject(type=123)] = alluka.inject(callback=mock_callback)
+    ) -> str:
+        assert result is mock_callback.return_value
+        return "sexual catgirls"
+
+    def callback(
+        x: int,
+        bar: str,
+        baz: alluka.Injected[str] = alluka.inject(type=mock_type),
+        bat: typing.Annotated[int, alluka.inject(type=float)] = alluka.inject(type=mock_other_type),
+        bath: typing.Annotated[str, alluka.inject(callback=mock.Mock)] = alluka.inject(callback=dependency),
+    ) -> str:
+        assert x == 69
+        assert bar == "rew"
+        assert baz is mock_value
+        assert bat is mock_other_value
+        assert bath == "sexual catgirls"
+        return "meow"
+
+    (
+        context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
+            mock_other_type, mock_other_value
+        )
+    )
+
+    result = context.execute(callback, 69, bar="rew")
+
+    assert result == "meow"
+    mock_callback.assert_called_once_with()
+
+
+def test_execute_with_ctx_with_type_dependency_and_callback(context: alluka.BasicContext):
+    mock_type: typing.Any = mock.Mock()
+    mock_value = mock.Mock()
+    mock_other_type: typing.Any = mock.Mock()
+    mock_other_value = mock.Mock()
+    mock_callback = mock.Mock()
+
+    def callback(
+        x: int,
+        bar: str,
+        baz: str = alluka.inject(type=mock_type),
+        bat: int = alluka.inject(type=mock_other_type),
+        bath: typing.Any = alluka.inject(callback=mock_callback),
+    ) -> str:
+        assert x == 69
+        assert bar == "rew"
+        assert baz is mock_value
+        assert bat is mock_other_value
+        assert bath is mock_callback.return_value
+        return "meow"
+
+    (
+        context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
+            mock_other_type, mock_other_value
+        )
+    )
+
+    result = context.execute(callback, 69, bar="rew")
+
+    assert result == "meow"
+    mock_callback.assert_called_once_with()
 
 
 def test_execute_with_ctx_with_type_dependency(context: alluka.BasicContext):
@@ -210,12 +279,69 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
         context.injection_client.set_type_dependency(StubType, mock_value)
 
-        def callback(
-            bar: int, baz: str, cope: int = alluka.inject(type=typing.Union[StubOtherType, StubType])
-        ) -> float:
+        def callback(bar: int, baz: str, cope: int = alluka.inject(type=StubOtherType | StubType)) -> float:
             assert bar == 123
             assert baz == "ok"
             assert cope is mock_value
+            return 451.123
+
+        result = context.execute(callback, 123, "ok")
+
+        assert result == 451.123
+
+    def test_execute_with_ctx_with_3_10_union_type_dependency_not_found(context: alluka.BasicContext):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        mock_value = StubType()
+
+        def callback(bar: int, baz: str, cope: int = alluka.inject(type=StubOtherType | StubType)) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope is mock_value
+            return 451.123
+
+        with pytest.raises(alluka.MissingDependencyError) as exc_info:
+            context.execute(callback, 123, "ok")
+
+        assert exc_info.value.dependency_type == StubOtherType | StubType
+        assert exc_info.value.message == f"Couldn't resolve injected type(s) {StubOtherType | StubType} to actual value"
+
+    def test_execute_with_ctx_with_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        mock_value = StubType()
+
+        context.injection_client.set_type_dependency(StubType, mock_value)
+
+        def callback(bar: int, baz: str, cope: int = alluka.inject(type=StubOtherType | StubType | None)) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope is mock_value
+            return 451.123
+
+        result = context.execute(callback, 123, "ok")
+
+        assert result == 451.123
+
+    def test_execute_with_ctx_with_3_10_union_type_dependency_defaulting_not_found(context: alluka.BasicContext):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        def callback(bar: int, baz: str, cope: int = alluka.inject(type=StubOtherType | StubType | None)) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope is None
             return 451.123
 
         result = context.execute(callback, 123, "ok")
@@ -401,6 +527,119 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         result = context.execute(callback, yeee="yeee", nyaa=True)
 
         assert result == "hey"
+
+    def test_execute_with_ctx_with_annotated_3_10_union_type_dependency_not_found(context: alluka.BasicContext):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        mock_value = StubType()
+
+        def callback(
+            bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=StubOtherType | StubType)]
+        ) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope is mock_value
+            return 451.123
+
+        with pytest.raises(alluka.MissingDependencyError) as exc_info:
+            context.execute(callback, 123, "ok")
+
+        assert exc_info.value.dependency_type == StubOtherType | StubType
+        assert exc_info.value.message == f"Couldn't resolve injected type(s) {StubOtherType | StubType} to actual value"
+
+    def test_execute_with_ctx_with_annotated_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        mock_value = StubType()
+
+        context.injection_client.set_type_dependency(StubType, mock_value)
+
+        def callback(
+            bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=StubOtherType | StubType | None)]
+        ) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope is mock_value
+            return 451.123
+
+        result = context.execute(callback, 123, "ok")
+
+        assert result == 451.123
+
+    def test_execute_with_ctx_with_annotated_3_10_union_type_dependency_defaulting_not_found(
+        context: alluka.BasicContext,
+    ):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        def callback(
+            bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=StubOtherType | StubType | None)]
+        ) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope is None
+            return 451.123
+
+        result = context.execute(callback, 123, "ok")
+
+        assert result == 451.123
+
+    def test_execute_with_ctx_with_annotated_3_10_union_type_dependency_natural_defaulting(
+        context: alluka.BasicContext,
+    ):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        mock_value = StubType()
+
+        context.injection_client.set_type_dependency(StubType, mock_value)
+
+        def callback(
+            bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=StubOtherType | StubType | None)] = 123
+        ) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope is mock_value
+            return 451.123
+
+        result = context.execute(callback, 123, "ok")
+
+        assert result == 451.123
+
+    def test_execute_with_ctx_with_annotated_3_10_union_type_dependency_natural_defaulting_not_found(
+        context: alluka.BasicContext,
+    ):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        def callback(
+            bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=StubOtherType | StubType)] = 43123
+        ) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope == 43123
+            return 451.123
+
+        result = context.execute(callback, 123, "ok")
+
+        assert result == 451.123
 
 
 def test_execute_with_ctx_with_annotated_union_type_dependency_not_found(context: alluka.BasicContext):
@@ -669,6 +908,115 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
         assert result == "hey"
 
+    def test_execute_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_not_found(
+        context: alluka.BasicContext,
+    ):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        mock_value = StubType()
+
+        def callback(bar: int, baz: str, cope: alluka.Injected[StubOtherType | StubType]) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope is mock_value
+            return 451.123
+
+        with pytest.raises(alluka.MissingDependencyError) as exc_info:
+            context.execute(callback, 123, "ok")
+
+        assert exc_info.value.dependency_type == StubOtherType | StubType
+        assert exc_info.value.message == f"Couldn't resolve injected type(s) {StubOtherType | StubType} to actual value"
+
+    def test_execute_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_defaulting(
+        context: alluka.BasicContext,
+    ):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        mock_value = StubType()
+
+        context.injection_client.set_type_dependency(StubType, mock_value)
+
+        def callback(bar: int, baz: str, cope: alluka.Injected[StubOtherType | StubType | None]) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope is mock_value
+            return 451.123
+
+        result = context.execute(callback, 123, "ok")
+
+        assert result == 451.123
+
+    def test_execute_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_defaulting_not_found(
+        context: alluka.BasicContext,
+    ):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        def callback(bar: int, baz: str, cope: alluka.Injected[StubOtherType | StubType | None]) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope is None
+            return 451.123
+
+        result = context.execute(callback, 123, "ok")
+
+        assert result == 451.123
+
+    def test_execute_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_natural_defaulting(
+        context: alluka.BasicContext,
+    ):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        mock_value = StubType()
+
+        context.injection_client.set_type_dependency(StubType, mock_value)
+
+        def callback(bar: int, baz: str, cope: alluka.Injected[StubOtherType | StubType | None] = 123) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope is mock_value
+            return 451.123
+
+        result = context.execute(callback, 123, "ok")
+
+        assert result == 451.123
+
+    def test_execute_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_natural_defaulting_not_found(
+        context: alluka.BasicContext,
+    ):
+        class StubType:
+            ...
+
+        class StubOtherType:
+            ...
+
+        mock_default = mock.Mock()
+
+        def callback(bar: int, baz: str, cope: alluka.Injected[StubOtherType | StubType] = mock_default) -> float:
+            assert bar == 123
+            assert baz == "ok"
+            assert cope is mock_default
+            return 451.123
+
+        result = context.execute(callback, 123, "ok")
+
+        assert result == 451.123
+
 
 def test_execute_with_ctx_with_shorthand_annotated_union_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
@@ -844,6 +1192,101 @@ def test_execute_with_ctx_with_shorthand_annotated_natural_defaulting_union_type
     result = context.execute(callback, 123)
 
     assert result == "yeeee"
+
+
+def test_execute_with_ctx_with_callback_dependency(context: alluka.BasicContext):
+    mock_callback = mock.Mock()
+
+    def callback(foo: int, result: int = alluka.inject(callback=mock_callback)) -> int:
+        assert foo == 123
+        assert result is mock_callback.return_value
+        return 43123
+
+    result = context.execute(callback, 123)
+
+    assert result == 43123
+
+
+def test_execute_with_ctx_with_sub_callback_dependency(context: alluka.BasicContext):
+    mock_callback = mock.Mock()
+
+    def dependency(result: int = alluka.inject(callback=mock_callback)) -> int:
+        assert result is mock_callback.return_value
+        return 541232
+
+    def callback(foo: int, result: int = alluka.inject(callback=dependency)) -> str:
+        assert foo == 123
+        assert result == 541232
+        return "43123"
+
+    result = context.execute(callback, 123)
+
+    assert result == "43123"
+
+
+def test_execute_with_ctx_with_annotated_callback_dependency(context: alluka.BasicContext):
+    mock_callback = mock.Mock()
+
+    def callback(foo: int, result: typing.Annotated[int, alluka.inject(callback=mock_callback)]) -> int:
+        assert foo == 123
+        assert result is mock_callback.return_value
+        return 43123
+
+    result = context.execute(callback, 123)
+
+    assert result == 43123
+
+
+def test_execute_with_ctx_with_annotated_sub_callback_dependency(context: alluka.BasicContext):
+    mock_callback = mock.Mock()
+
+    def dependency(result: typing.Annotated[int, alluka.inject(callback=mock_callback)]) -> int:
+        assert result is mock_callback.return_value
+        return 541232
+
+    def callback(foo: int, result: typing.Annotated[int, alluka.inject(callback=dependency)]) -> str:
+        assert foo == 123
+        assert result == 541232
+        return "43123"
+
+    result = context.execute(callback, 123)
+
+    assert result == "43123"
+
+
+def test_execute_with_ctx_with_sub_type_dependency(context: alluka.BasicContext):
+    mock_type: typing.Any = mock.Mock()
+    mock_value = mock.Mock()
+    context.injection_client.set_type_dependency(mock_type, mock_value)
+
+    def dependency(result: int = alluka.inject(type=mock_type)) -> int:
+        assert result is mock_value
+        return 123321
+
+    def callback(foo: int, result: int = alluka.inject(callback=dependency)) -> str:
+        assert foo == 54123
+        assert result == 123321
+        return "asddsa"
+
+    result = context.execute(callback, 54123)
+
+    assert result == "asddsa"
+
+
+def test_execute_with_ctx_with_unknown_sub_type_dependency(context: alluka.BasicContext):
+    mock_type: typing.Any = mock.Mock()
+
+    def dependency(result: typing.Annotated[int, alluka.inject(type=mock_type)]) -> int:
+        raise NotImplementedError
+
+    def callback(foo: int, result: int = alluka.inject(callback=dependency)) -> str:
+        raise NotImplementedError
+
+    with pytest.raises(alluka.MissingDependencyError) as exc_info:
+        context.execute(callback, 54123)
+
+    assert exc_info.value.dependency_type is mock_type
+    assert exc_info.value.message == (f"Couldn't resolve injected type(s) {mock_type} to actual value")
 
 
 def test_execute_with_ctx_when_async_callback(context: alluka.BasicContext):
