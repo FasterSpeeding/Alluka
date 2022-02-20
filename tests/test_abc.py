@@ -29,47 +29,14 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from unittest import mock
-
-import pytest
 
 import alluka
 
 
-class TestAsyncSelfInjecting:
-    @pytest.mark.anyio()
-    async def test_call_dunder_method(self):
-        mock_callback = mock.Mock()
-        mock_client = mock.AsyncMock()
-        self_injecting = alluka.AsyncSelfInjecting(mock_client, mock_callback)
+class TestUndefined:
+    def test_bool_dunder_method(self):
+        assert bool(alluka.abc.UNDEFINED) is False
 
-        result = await self_injecting()
-
-        assert result is mock_client.execute_async.return_value
-        mock_client.execute_async.assert_awaited_once_with(mock_callback)
-
-    def test_callback_property(self):
-        mock_callback = mock.Mock()
-
-        self_injecting = alluka.AsyncSelfInjecting(mock.Mock(), mock_callback)
-
-        assert self_injecting.callback is mock_callback
-
-
-class TestSelfInjecting:
-    def test_call_dunder_method(self):
-        mock_callback = mock.Mock()
-        mock_client = mock.Mock()
-        self_injecting = alluka.SelfInjecting(mock_client, mock_callback)
-
-        result = self_injecting()
-
-        assert result is mock_client.execute.return_value
-        mock_client.execute.assert_called_once_with(mock_callback)
-
-    def test_callback_property(self):
-        mock_callback = mock.Mock()
-
-        self_injecting = alluka.SelfInjecting(mock.Mock(), mock_callback)
-
-        assert self_injecting.callback is mock_callback
+    def test_singleton_behaviour(self):
+        assert alluka.abc.Undefined() is alluka.abc.Undefined()
+        assert alluka.abc.Undefined() is alluka.abc.UNDEFINED
