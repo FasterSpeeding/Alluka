@@ -72,16 +72,8 @@ class Annotation(Node):
         return self._callback
 
     @property
-    def is_empty(self) -> bool:
-        return self._raw_annotation is inspect.Parameter.empty
-
-    @property
     def name(self) -> str:
         return self._name
-
-    @property
-    def raw_annotation(self) -> typing.Any:
-        return self._raw_annotation
 
     def accept(self, visitor: ParameterVisitor, /) -> typing.Optional[_types.InjectedTuple]:
         return visitor.visit_annotation(self)
@@ -94,10 +86,6 @@ class Callback:
         self._callback: collections.Callable[..., typing.Any] = callback
         self._resolved = False
         self._signature = inspect.signature(callback)
-
-    @property
-    def callback(self) -> collections.Callable[..., typing.Any]:
-        return self._callback
 
     @property
     def parameters(self) -> collections.Mapping[str, inspect.Parameter]:
