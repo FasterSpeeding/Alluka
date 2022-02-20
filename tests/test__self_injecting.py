@@ -45,8 +45,8 @@ class TestAsyncSelfInjecting:
 
         result = await self_injecting()
 
-        assert result is mock_client.execute_async.return_value
-        mock_client.execute_async.assert_awaited_once_with(mock_callback)
+        assert result is mock_client.call_with_di_async.return_value
+        mock_client.call_with_di_async.assert_awaited_once_with(mock_callback)
 
     def test_callback_property(self):
         mock_callback = mock.Mock()
@@ -64,8 +64,8 @@ class TestSelfInjecting:
 
         result = self_injecting()
 
-        assert result is mock_client.execute.return_value
-        mock_client.execute.assert_called_once_with(mock_callback)
+        assert result is mock_client.call_with_di.return_value
+        mock_client.call_with_di.assert_called_once_with(mock_callback)
 
     def test_callback_property(self):
         mock_callback = mock.Mock()

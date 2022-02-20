@@ -93,37 +93,37 @@ class TestClient:
         assert result._callback is mock_callback
         assert result._client is client
 
-    def test_execute(self):
-        mock_execute_with_ctx = mock.Mock()
+    def test_call_with_di(self):
+        mock_call_with_di_ctx = mock.Mock()
 
         class MockClient(alluka.Client):
-            execute_with_ctx = mock_execute_with_ctx
+            call_with_di_ctx = mock_call_with_di_ctx
 
         client = MockClient()
         mock_callback = mock.Mock()
 
         with mock.patch("alluka._client.BasicContext") as basic_context:
-            result = client.execute(mock_callback, "ea", "gb", jp="nyaa")
+            result = client.call_with_di(mock_callback, "ea", "gb", jp="nyaa")
 
-        assert result is mock_execute_with_ctx.return_value
-        mock_execute_with_ctx.assert_called_once_with(basic_context.return_value, mock_callback, "ea", "gb", jp="nyaa")
+        assert result is mock_call_with_di_ctx.return_value
+        mock_call_with_di_ctx.assert_called_once_with(basic_context.return_value, mock_callback, "ea", "gb", jp="nyaa")
         basic_context.assert_called_once_with(client)
 
     @pytest.mark.anyio()
-    async def test_execute_async(self):
-        mock_execute_with_ctx_async = mock.AsyncMock()
+    async def test_call_with_di_async(self):
+        mock_call_with_di_ctx_async = mock.AsyncMock()
 
         class MockClient(alluka.Client):
-            execute_with_ctx_async = mock_execute_with_ctx_async
+            call_with_di_ctx_async = mock_call_with_di_ctx_async
 
         client = MockClient()
         mock_callback = mock.Mock()
 
         with mock.patch("alluka._client.BasicContext") as basic_context:
-            result = await client.execute_async(mock_callback, 123, jp=6969)
+            result = await client.call_with_di_async(mock_callback, 123, jp=6969)
 
-        assert result is mock_execute_with_ctx_async.return_value
-        mock_execute_with_ctx_async.assert_called_once_with(basic_context.return_value, mock_callback, 123, jp=6969)
+        assert result is mock_call_with_di_ctx_async.return_value
+        mock_call_with_di_ctx_async.assert_called_once_with(basic_context.return_value, mock_callback, 123, jp=6969)
         basic_context.assert_called_once_with(client)
 
     def test_set_type_dependency(self):
@@ -209,26 +209,26 @@ class TestBasicContext:
 
         assert ctx.get_cached_result(mock_callback) is mock_result
 
-    def test_execute(self):
+    def test_call_with_di(self):
         mock_client = mock.Mock()
         mock_callback = mock.Mock()
         ctx = alluka.BasicContext(mock_client)
 
-        result = ctx.execute(mock_callback, 1, "ok", ex="nah", pa="bah")
+        result = ctx.call_with_di(mock_callback, 1, "ok", ex="nah", pa="bah")
 
-        assert result is mock_client.execute_with_ctx.return_value
-        mock_client.execute_with_ctx.assert_called_once_with(ctx, mock_callback, 1, "ok", ex="nah", pa="bah")
+        assert result is mock_client.call_with_di_ctx.return_value
+        mock_client.call_with_di_ctx.assert_called_once_with(ctx, mock_callback, 1, "ok", ex="nah", pa="bah")
 
     @pytest.mark.anyio()
-    async def test_execute_async(self):
+    async def test_call_with_di_async(self):
         mock_client = mock.AsyncMock()
         mock_callback = mock.Mock()
         ctx = alluka.BasicContext(mock_client)
 
-        result = await ctx.execute_async(mock_callback, "op", ah=123)
+        result = await ctx.call_with_di_async(mock_callback, "op", ah=123)
 
-        assert result is mock_client.execute_with_ctx_async.return_value
-        mock_client.execute_with_ctx_async.assert_awaited_once_with(ctx, mock_callback, "op", ah=123)
+        assert result is mock_client.call_with_di_ctx_async.return_value
+        mock_client.call_with_di_ctx_async.assert_awaited_once_with(ctx, mock_callback, "op", ah=123)
 
     def test_get_cached_result(self):
         ctx = alluka.BasicContext(mock.Mock())
