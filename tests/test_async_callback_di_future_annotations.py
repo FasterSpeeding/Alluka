@@ -380,9 +380,8 @@ async def test_execute_with_ctx_async_with_union_type_dependency_not_found(conte
         await context.execute_async(callback, 123, "ok")
 
     assert exc_info.value.dependency_type == typing.Union[mock_type, mock_other_type]
-    assert exc_info.value.message == (
-        f"Couldn't resolve injected type(s) {typing.Union[mock_type, mock_other_type]} to actual value"
-    )
+    # On 3.10.1/2+ typing.Unions are converted to | while resolving future annotations so we can't consistently
+    # assert the message.
 
 
 @pytest.mark.anyio()
@@ -647,10 +646,8 @@ async def test_execute_with_ctx_async_with_annotated_union_type_dependency_not_f
         await context.execute_async(callback, yeee="yeee", nyaa=True)
 
     assert exc_info.value.dependency_type == typing.Union[GlobalStubType, GlobalOtherStubType]
-    assert (
-        exc_info.value.message
-        == f"Couldn't resolve injected type(s) {typing.Union[GlobalStubType, GlobalOtherStubType]} to actual value"
-    )
+    # On 3.10.1/2+ typing.Unions are converted to | while resolving future annotations so we can't consistently
+    # assert the message.
 
 
 @pytest.mark.anyio()
@@ -997,10 +994,8 @@ async def test_execute_with_ctx_async_with_shorthand_annotated_union_type_depend
         await context.execute_async(callback, yeee="yeee", nyaa=True)
 
     assert exc_info.value.dependency_type == typing.Union[GlobalStubType, GlobalOtherStubType]
-    assert (
-        exc_info.value.message
-        == f"Couldn't resolve injected type(s) {typing.Union[GlobalStubType, GlobalOtherStubType]} to actual value"
-    )
+    # On 3.10.1/2+ typing.Unions are converted to | while resolving future annotations so we can't consistently
+    # assert the message.
 
 
 @pytest.mark.anyio()

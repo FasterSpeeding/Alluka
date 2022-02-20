@@ -355,9 +355,8 @@ def test_execute_with_ctx_with_union_type_dependency_not_found(context: alluka.B
         context.execute(callback, 123, "ok")
 
     assert exc_info.value.dependency_type == typing.Union[mock_type, mock_other_type]
-    assert exc_info.value.message == (
-        f"Couldn't resolve injected type(s) {typing.Union[mock_type, mock_other_type]} to actual value"
-    )
+    # On 3.10.1/2+ typing.Unions are converted to | while resolving future annotations so we can't consistently
+    # assert the message.
 
 
 def test_execute_with_ctx_with_defaulting_union_type_dependency(context: alluka.BasicContext):
@@ -927,10 +926,8 @@ def test_execute_with_ctx_with_shorthand_annotated_union_type_dependency_not_fou
         context.execute(callback, yeee="yeee", nyaa=True)
 
     assert exc_info.value.dependency_type == typing.Union[GlobalStubType, GlobalOtherStubType]
-    assert (
-        exc_info.value.message
-        == f"Couldn't resolve injected type(s) {typing.Union[GlobalStubType, GlobalOtherStubType]} to actual value"
-    )
+    # On 3.10.1/2+ typing.Unions are converted to | while resolving future annotations so we can't consistently
+    # assert the message.
 
 
 def test_execute_with_ctx_with_shorthand_annotated_defaulting_type_dependency(context: alluka.BasicContext):
