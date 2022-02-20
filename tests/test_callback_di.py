@@ -72,7 +72,7 @@ def test_execute_with_ctx_when_no_di(context: alluka.BasicContext):
     assert result == "nyaa"
 
 
-def test_execute_prioritises_defaults_over_annotations(context: alluka.BasicContext):
+def test_execute_with_ctx_prioritises_defaults_over_annotations(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
@@ -268,8 +268,6 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
         class StubOtherType:
             ...
-
-        mock_value = StubType()
 
         def callback(bar: int, baz: str, cope: int = alluka.inject(type=StubOtherType | StubType)) -> float:
             raise NotImplementedError
@@ -497,8 +495,6 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
         class StubOtherType:
             ...
-
-        mock_value = StubType()
 
         def callback(
             bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=StubOtherType | StubType)]
@@ -875,8 +871,6 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         class StubOtherType:
             ...
 
-        mock_value = StubType()
-
         def callback(bar: int, baz: str, cope: alluka.Injected[StubOtherType | StubType]) -> float:
             raise NotImplementedError
 
@@ -1180,6 +1174,7 @@ def test_execute_with_ctx_with_callback_dependency(context: alluka.BasicContext)
     result = context.execute(callback, 123)
 
     assert result == 43123
+    mock_callback.assert_called_once_with()
 
 
 def test_execute_with_ctx_with_sub_callback_dependency(context: alluka.BasicContext):
@@ -1197,6 +1192,7 @@ def test_execute_with_ctx_with_sub_callback_dependency(context: alluka.BasicCont
     result = context.execute(callback, 123)
 
     assert result == "43123"
+    mock_callback.assert_called_once_with()
 
 
 def test_execute_with_ctx_with_annotated_callback_dependency(context: alluka.BasicContext):
@@ -1210,6 +1206,7 @@ def test_execute_with_ctx_with_annotated_callback_dependency(context: alluka.Bas
     result = context.execute(callback, 123)
 
     assert result == 43123
+    mock_callback.assert_called_once_with()
 
 
 def test_execute_with_ctx_with_annotated_sub_callback_dependency(context: alluka.BasicContext):
@@ -1227,6 +1224,7 @@ def test_execute_with_ctx_with_annotated_sub_callback_dependency(context: alluka
     result = context.execute(callback, 123)
 
     assert result == "43123"
+    mock_callback.assert_called_once_with()
 
 
 def test_execute_with_ctx_with_sub_type_dependency(context: alluka.BasicContext):
