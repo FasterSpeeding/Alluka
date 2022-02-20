@@ -38,8 +38,8 @@ import enum
 import typing
 from collections import abc as collections
 
+from . import _errors
 from . import abc
-from . import errors
 
 _T = typing.TypeVar("_T")
 UndefinedOr = typing.Union[abc.Undefined, _T]
@@ -150,7 +150,7 @@ class InjectedType:
         if self.default is not abc.UNDEFINED:
             return self.default
 
-        raise errors.MissingDependencyError(
+        raise _errors.MissingDependencyError(
             f"Couldn't resolve injected type(s) {self.repr_type} to actual value", self.repr_type
         ) from None
 

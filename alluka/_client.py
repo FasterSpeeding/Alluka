@@ -39,11 +39,11 @@ import typing
 import weakref
 from collections import abc as collections
 
+from . import _errors
 from . import _self_injecting
 from . import _types
 from . import _visitor
 from . import abc
-from . import errors
 
 _T = typing.TypeVar("_T")
 
@@ -205,7 +205,7 @@ class Client(abc.Client):
 
         result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):
-            raise errors.AsyncOnlyError
+            raise _errors.AsyncOnlyError
 
         assert not isinstance(result, collections.Coroutine)
         return result
