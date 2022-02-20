@@ -48,6 +48,7 @@ from . import errors
 _T = typing.TypeVar("_T")
 
 
+_AnyCoro = collections.Coroutine[typing.Any, typing.Any, typing.Any]
 _BasicContextT = typing.TypeVar("_BasicContextT", bound="BasicContext")
 _ClientT = typing.TypeVar("_ClientT", bound="Client")
 
@@ -167,9 +168,31 @@ class Client(abc.Client):
         # <<inherited docstring from alluka.abc.Client>>.
         return _self_injecting.SelfInjecting(self, callback)
 
+    @typing.overload
+    def execute(
+        self, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
+    ) -> typing.NoReturn:
+        ...
+
+    @typing.overload
+    def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+        ...
+
     def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
         return self.execute_with_ctx(BasicContext(self), callback, *args, **kwargs)
+
+    @typing.overload
+    def execute_with_ctx(
+        self, ctx: abc.Context, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
+    ) -> typing.NoReturn:
+        ...
+
+    @typing.overload
+    def execute_with_ctx(
+        self, ctx: abc.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
+    ) -> _T:
+        ...
 
     def execute_with_ctx(
         self, ctx: abc.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
@@ -178,7 +201,7 @@ class Client(abc.Client):
         descriptors = self._build_descriptors(callback)
         if descriptors:
             # This prioritises passed **kwargs over the injected dependencies.
-            {n: v.resolve(ctx) for n, (_, v) in descriptors.items()} | kwargs
+            kwargs = {n: v.resolve(ctx) for n, (_, v) in descriptors.items()} | kwargs
 
         result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):
@@ -211,20 +234,7 @@ class Client(abc.Client):
         return result
 
     def set_type_dependency(self: _ClientT, type_: type[_T], value: _T, /) -> _ClientT:
-        """Set a callback to be called to resolve a injected type.
-
-        Parameters
-        ----------
-        type_
-            The type of the dependency to add an implementation for.
-        value
-            The value of the dependency.
-
-        Returns
-        -------
-        Self
-            The client instance to allow chaining.
-        """
+        # <<inherited docstring from alluka.abc.Client>>.
         self._type_dependencies[type_] = value
         return self
 
@@ -233,43 +243,14 @@ class Client(abc.Client):
         return self._type_dependencies.get(type_, abc.UNDEFINED)
 
     def remove_type_dependency(self: _ClientT, type_: type[typing.Any], /) -> _ClientT:
-        """Remove a type dependency.
-
-        Parameters
-        ----------
-        type_
-            The associated type.
-
-        Returns
-        -------
-        Self
-            The client instance to allow chaining.
-
-        Raises
-        ------
-        KeyError
-            If `type` is not registered.
-        """
+        # <<inherited docstring from alluka.abc.Client>>.
         del self._type_dependencies[type_]
         return self
 
     def set_callback_override(
         self: _ClientT, callback: abc.CallbackSig[_T], override: abc.CallbackSig[_T], /
     ) -> _ClientT:
-        """Override a specific injected callback.
-
-        Parameters
-        ----------
-        callback
-            The injected callback to override.
-        override
-            The callback to use instead.
-
-        Returns
-        -------
-        Self
-            The client instance to allow chaining.
-        """
+        # <<inherited docstring from alluka.abc.Client>>.
         self._callback_overrides[callback] = override
         return self
 
@@ -278,23 +259,7 @@ class Client(abc.Client):
         return self._callback_overrides.get(callback)
 
     def remove_callback_override(self: _ClientT, callback: abc.CallbackSig[_T], /) -> _ClientT:
-        """Remove a callback override.
-
-        Parameters
-        ----------
-        callback
-            The injected callback to remove the override for.
-
-        Returns
-        -------
-        Self
-            The client instance to allow chaining.
-
-        Raises
-        ------
-        KeyError
-            If no override is found for the callback.
-        """
+        # <<inherited docstring from alluka.abc.Client>>.
         del self._callback_overrides[callback]
         return self
 
@@ -327,6 +292,16 @@ class BasicContext(abc.Context):
             self._result_cache = {}
 
         self._result_cache[callback] = value
+
+    @typing.overload
+    def execute(
+        self, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
+    ) -> typing.NoReturn:
+        ...
+
+    @typing.overload
+    def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+        ...
 
     def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Context>>.

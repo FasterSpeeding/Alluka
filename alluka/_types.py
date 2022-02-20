@@ -80,7 +80,8 @@ class InjectedCallback:
             If any of the callback's type dependencies aren't implemented by
             the context's client.
         """
-        return ctx.injection_client.execute_with_ctx(ctx, self.callback)
+        callback = ctx.injection_client.get_callback_override(self.callback) or self.callback
+        return ctx.injection_client.execute_with_ctx(ctx, callback)
 
     def resolve_async(self, ctx: abc.Context) -> collections.Coroutine[typing.Any, typing.Any, typing.Any]:
         """Asynchronously resolve the callback.
@@ -96,7 +97,8 @@ class InjectedCallback:
             If any of the callback's type dependencies aren't implemented by
             the context's client.
         """
-        return ctx.injection_client.execute_with_ctx_async(ctx, self.callback)
+        callback = ctx.injection_client.get_callback_override(self.callback) or self.callback
+        return ctx.injection_client.execute_with_ctx_async(ctx, callback)
 
 
 class InjectedType:

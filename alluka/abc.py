@@ -46,7 +46,9 @@ import abc
 import typing
 from collections import abc as collections
 
+_AnyCoro = collections.Coroutine[typing.Any, typing.Any, typing.Any]
 _T = typing.TypeVar("_T")
+_OtherT = typing.TypeVar("_OtherT")
 
 
 class Undefined:
@@ -135,6 +137,18 @@ class Client:
             The self-injecting callback.
         """
 
+    @typing.overload
+    @abc.abstractmethod
+    def execute(
+        self, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
+    ) -> typing.NoReturn:
+        ...
+
+    @typing.overload
+    @abc.abstractmethod
+    def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+        ...
+
     @abc.abstractmethod
     def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Execute a function with sync dependency injection.
@@ -163,6 +177,20 @@ class Client:
         alluka.AsyncOnlyError
             If the callback or any of its callback dependencies are async.
         """
+
+    @typing.overload
+    @abc.abstractmethod
+    def execute_with_ctx(
+        self, ctx: Context, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
+    ) -> typing.NoReturn:
+        ...
+
+    @typing.overload
+    @abc.abstractmethod
+    def execute_with_ctx(
+        self, ctx: Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
+    ) -> _T:
+        ...
 
     @abc.abstractmethod
     def execute_with_ctx(
@@ -262,6 +290,23 @@ class Client:
         """
 
     @abc.abstractmethod
+    def set_type_dependency(self: _T, type_: type[_OtherT], value: _OtherT, /) -> _T:
+        """Set a callback to be called to resolve a injected type.
+
+        Parameters
+        ----------
+        type_
+            The type of the dependency to add an implementation for.
+        value
+            The value of the dependency.
+
+        Returns
+        -------
+        Self
+            The client instance to allow chaining.
+        """
+
+    @abc.abstractmethod
     def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
         """Get the implementation for an injected type.
 
@@ -277,6 +322,43 @@ class Client:
         """
 
     @abc.abstractmethod
+    def remove_type_dependency(self: _T, type_: type[typing.Any], /) -> _T:
+        """Remove a type dependency.
+
+        Parameters
+        ----------
+        type_
+            The associated type.
+
+        Returns
+        -------
+        Self
+            The client instance to allow chaining.
+
+        Raises
+        ------
+        KeyError
+            If `type` is not registered.
+        """
+
+    @abc.abstractmethod
+    def set_callback_override(self: _OtherT, callback: CallbackSig[_T], override: CallbackSig[_T], /) -> _OtherT:
+        """Override a specific injected callback.
+
+        Parameters
+        ----------
+        callback
+            The injected callback to override.
+        override
+            The callback to use instead.
+
+        Returns
+        -------
+        Self
+            The client instance to allow chaining.
+        """
+
+    @abc.abstractmethod
     def get_callback_override(self, callback: CallbackSig[_T], /) -> typing.Optional[CallbackSig[_T]]:
         """Get the override for a specific injected callback.
 
@@ -289,6 +371,26 @@ class Client:
         -------
         CallbackSig[_T] | None
             The override if found, else [None][].
+        """
+
+    @abc.abstractmethod
+    def remove_callback_override(self: _OtherT, callback: CallbackSig[_T], /) -> _OtherT:
+        """Remove a callback override.
+
+        Parameters
+        ----------
+        callback
+            The injected callback to remove the override for.
+
+        Returns
+        -------
+        Self
+            The client instance to allow chaining.
+
+        Raises
+        ------
+        KeyError
+            If no override is found for the callback.
         """
 
 
@@ -313,6 +415,18 @@ class Context(abc.ABC):
         value
             The value to cache.
         """
+
+    @typing.overload
+    @abc.abstractmethod
+    def execute(
+        self, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
+    ) -> typing.NoReturn:
+        ...
+
+    @typing.overload
+    @abc.abstractmethod
+    def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+        ...
 
     @abc.abstractmethod
     def execute(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:

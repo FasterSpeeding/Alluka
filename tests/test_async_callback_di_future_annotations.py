@@ -29,38 +29,24 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""The custom errors raised within and by dependency injection."""
+
 from __future__ import annotations
 
-__all__: list[str] = ["AllukaError", "AsyncOnlyError", "MissingDependencyError"]
-
+import sys
 import typing
+from unittest import mock
+
+import pytest
+
+import alluka
+
+# pyright: reportUnknownMemberType=none
+# pyright: reportPrivateUsage=none
+# pyright: reportIncompatibleMethodOverride=none
 
 
-class AllukaError(Exception):
-    """Base clases for the custom errirs raised by Alluka."""
+#################################################
+# Async dependency injection future annotations #
+#################################################
 
-
-class AsyncOnlyError(AllukaError):
-    """Error raised when trying to execute async DI in a sync context."""
-
-
-class MissingDependencyError(AllukaError):
-    """Error raised when a dependency couldn't be found."""
-
-    message: str
-    """The error's message."""
-
-    dependency_type: typing.Any
-    """Type of the missing dependency."""
-
-    def __init__(self, message: str, dependency_type: typing.Any, /) -> None:
-        """Initialise a missing dependency error.
-
-        Parameters
-        ----------
-        message
-            The error message.
-        """
-        self.dependency_type = dependency_type
-        self.message = message
+sys, typing, mock, pytest, alluka

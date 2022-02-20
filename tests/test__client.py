@@ -30,15 +30,16 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# pyright: reportUnknownMemberType=none
-# pyright: reportPrivateUsage=none
-
 import typing
 from unittest import mock
 
 import pytest
 
 import alluka
+
+# pyright: reportUnknownMemberType=none
+# pyright: reportPrivateUsage=none
+# pyright: reportIncompatibleMethodOverride=none
 
 
 def test_inject():
@@ -93,18 +94,37 @@ class TestClient:
         assert result._client is client
 
     def test_execute(self):
-        ...
+        mock_execute_with_ctx = mock.Mock()
 
-    def test_execute_with_ctx(self):
-        ...
+        class MockClient(alluka.Client):
+            execute_with_ctx = mock_execute_with_ctx
+
+        client = MockClient()
+        mock_callback = mock.Mock()
+
+        with mock.patch("alluka._client.BasicContext") as basic_context:
+            result = client.execute(mock_callback, "ea", "gb", jp="nyaa")
+
+        assert result is mock_execute_with_ctx.return_value
+        mock_execute_with_ctx.assert_called_once_with(basic_context.return_value, mock_callback, "ea", "gb", jp="nyaa")
+        basic_context.assert_called_once_with(client)
 
     @pytest.mark.anyio()
     async def test_execute_async(self):
-        ...
+        mock_execute_with_ctx_async = mock.AsyncMock()
 
-    @pytest.mark.anyio()
-    async def test_execute_with_ctx_async(self):
-        ...
+        class MockClient(alluka.Client):
+            execute_with_ctx_async = mock_execute_with_ctx_async
+
+        client = MockClient()
+        mock_callback = mock.Mock()
+
+        with mock.patch("alluka._client.BasicContext") as basic_context:
+            result = await client.execute_async(mock_callback, 123, jp=6969)
+
+        assert result is mock_execute_with_ctx_async.return_value
+        mock_execute_with_ctx_async.assert_called_once_with(basic_context.return_value, mock_callback, 123, jp=6969)
+        basic_context.assert_called_once_with(client)
 
     def test_set_type_dependency(self):
         mock_type: typing.Any = mock.Mock()
