@@ -500,10 +500,8 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             context.execute(callback, 123, "ok")
 
         assert exc_info.value.dependency_type == GlobalOtherStubType | GlobalStubType
-        assert (
-            exc_info.value.message
-            == f"Couldn't resolve injected type(s) {GlobalOtherStubType | GlobalStubType} to actual value"
-        )
+        # 3.10.1/2+ and 3.11 may re-order the | union types while resolving them from a string
+        # future annotation so we can't reliably assert these.
 
     def test_execute_with_ctx_with_annotated_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
         mock_value = GlobalStubType()
@@ -610,10 +608,8 @@ def test_execute_with_ctx_with_annotated_union_type_dependency_not_found(context
         context.execute(callback, yeee="yeee", nyaa=True)
 
     assert exc_info.value.dependency_type == typing.Union[GlobalStubType, GlobalOtherStubType]
-    assert (
-        exc_info.value.message
-        == f"Couldn't resolve injected type(s) {typing.Union[GlobalStubType, GlobalOtherStubType]} to actual value"
-    )
+    # On 3.10.1/2+ typing.Unions are converted to | while resolving future annotations so we can't consistently
+    # assert the message.
 
 
 def test_execute_with_ctx_with_annotated_defaulting_type_dependency(context: alluka.BasicContext):
