@@ -64,7 +64,7 @@ from .errors import MissingDependencyError
 
 __author__: typing.Final[str] = "Faster Speeding"
 __ci__: typing.Final[str] = "https://github.com/FasterSpeeding/Alluka/actions"
-__copyright__: typing.Final[str] = "© 2020-2021 Faster Speeding"
+__copyright__: typing.Final[str] = "© 2020-2022 Faster Speeding"
 __coverage__: typing.Final[str] = "https://codeclimate.com/github/FasterSpeeding/Alluka"
 __docs__: typing.Final[str] = "https://alluka.cursed.solutions/"
 __email__: typing.Final[str] = "lucina@lmbyrne.dev"

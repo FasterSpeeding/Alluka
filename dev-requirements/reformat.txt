@@ -6,7 +6,7 @@
 #
 black==22.1
     # via -r dev-requirements\reformat.in
-click==8.0.3
+click==8.0.4
     # via black
 colorama==0.4.4
     # via click
@@ -16,7 +16,7 @@ mypy-extensions==0.4.3
     # via black
 pathspec==0.9.0
     # via black
-platformdirs==2.5.0
+platformdirs==2.5.1
     # via black
 sort-all==1.2.0
     # via -r dev-requirements\reformat.in

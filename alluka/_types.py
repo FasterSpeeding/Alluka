@@ -80,7 +80,8 @@ class InjectedCallback:
             If any of the callback's type dependencies aren't implemented by
             the context's client.
         """
-        return ctx.injection_client.execute_with_ctx(ctx, self.callback)
+        callback = ctx.injection_client.get_callback_override(self.callback) or self.callback
+        return ctx.injection_client.execute_with_ctx(ctx, callback)
 
     def resolve_async(self, ctx: abc.Context) -> collections.Coroutine[typing.Any, typing.Any, typing.Any]:
         """Asynchronously resolve the callback.
@@ -96,7 +97,8 @@ class InjectedCallback:
             If any of the callback's type dependencies aren't implemented by
             the context's client.
         """
-        return ctx.injection_client.execute_with_ctx_async(ctx, self.callback)
+        callback = ctx.injection_client.get_callback_override(self.callback) or self.callback
+        return ctx.injection_client.execute_with_ctx_async(ctx, callback)
 
 
 class InjectedType:
@@ -141,9 +143,6 @@ class InjectedType:
         typing.Any
             The resolved type.
         """
-        # We still want to allow for the possibility of a Union being
-        # explicitly implemented so we check types within a union
-        # after the literal type.
         for cls in self.types:
             if (result := ctx.get_type_dependency(cls)) is not abc.UNDEFINED:
                 return result
@@ -234,10 +233,12 @@ class InjectedDescriptor(typing.Generic[_T]):
             If a union has `None` as one of its types (including `Optional[T]`)
             then `None` will be passed for the parameter if none of the types could
             be resolved using the linked client.
-        """
-        if callback is None and type is None:
-            raise ValueError("Must specify one of `callback` or `type`")
 
+        Raises
+        ------
+        ValueError
+            If both `callback` and `type` are provided.
+        """
         if callback is not None and type is not None:
             raise ValueError("Only one of `callback` or `type` can be specified")
 
@@ -247,6 +248,15 @@ class InjectedDescriptor(typing.Generic[_T]):
 
 Injected = typing.Annotated[_T, InjectedTypes.TYPE]
 """Type alias used to declare a keyword argument as requiring an injected type.
+
+If a union (e.g. `typing.Union[A, B]`, `A | B`, `typing.Optional[A]`)
+is passed then each type in the union will be tried separately rather than
+the literal type, allowing for resolving `A | B` to the value set by
+`set_type_dependency(B, ...)`.
+
+If a union has `None` as one of its types (including `Optional[T]`)
+then `None` will be passed for the parameter if none of the types could
+be resolved using the linked client.
 
 !!! note
     This is a [typing.Annotated][] alias and the behaviour for nested

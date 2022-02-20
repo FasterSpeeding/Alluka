@@ -31,5 +31,5 @@ part of Tanjun.
 - The public `CallackDescriptor` and `TypeDescriptor` classes as callbacks
   are now processed within the client and any necessary caching is kept internal.
 
-[Unreleased]: https://github.com/FasterSpeeding/Tanjun/compare/v2.4.0a1...HEAD
-[0.1.0]: https://github.com/FasterSpeeding/Tanjun/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Alluka/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/FasterSpeeding/Alluka/compare/ed0567142b8e11f98408735495dbc4f771dc8643...v0.1.0

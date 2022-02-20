@@ -195,8 +195,7 @@ class ParameterVisitor:
         if typing.get_origin(value) is not typing.Annotated:
             return None
 
-        args = typing.get_origin(value)
-        assert args
+        args = typing.get_args(value)
         if _types.InjectedTypes.TYPE in args:
             type_ = self._annotation_to_type(args[0])
             union, default = self.parse_type(type_, other_default=default)

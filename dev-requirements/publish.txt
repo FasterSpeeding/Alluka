@@ -8,7 +8,7 @@ certifi==2021.10.8
     # via requests
 charset-normalizer==2.0.12
     # via requests
-click==8.0.3
+click==8.0.4
     # via pip-tools
 colorama==0.4.4
     # via click

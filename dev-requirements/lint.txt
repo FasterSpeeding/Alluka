@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file='dev-requirements\lint.txt' 'dev-requirements\lint.in'
 #
-click==8.0.3
+click==8.0.4
     # via slotscheck
 codespell==2.1
     # via -r dev-requirements\lint.in
