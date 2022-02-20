@@ -297,7 +297,8 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             await context.execute_async(callback, 123, "ok")
 
         assert exc_info.value.dependency_type == StubOtherType | StubType
-        assert exc_info.value.message == f"Couldn't resolve injected type(s) {StubOtherType | StubType} to actual value"
+        # 3.10.1/2+ and 3.11 may re-order the | union types while resolving them from a string
+        # future annotation so we can't reliably assert these.
 
     @pytest.mark.anyio()
     async def test_execute_with_ctx_async_with_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
