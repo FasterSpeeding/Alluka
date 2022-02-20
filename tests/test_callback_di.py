@@ -186,6 +186,44 @@ def test_execute_with_ctx_with_type_dependency_inferred_from_type(context: alluk
     assert result == "heeee"
 
 
+def test_execute_with_ctx_with_type_dependency_inferred_from_annotated_type(context: alluka.BasicContext):
+    mock_type: typing.Any = mock.Mock()
+    mock_value = mock.Mock()
+    mock_other_type: typing.Any = mock.Mock()
+    mock_other_value = mock.Mock()
+
+    def callback(
+        nyaa: str,
+        meow: int,
+        baz: typing.Annotated[mock_type, ..., int] = alluka.inject(),
+        bat: typing.Annotated[mock_other_type, int, str] = alluka.inject(),
+    ) -> str:
+        assert nyaa == "5412"
+        assert meow == 34123
+        assert baz is mock_value
+        assert bat is mock_other_value
+        return "heeee"
+
+    context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
+        mock_other_type, mock_other_value
+    )
+
+    result = context.execute(callback, "5412", meow=34123)
+
+    assert result == "heeee"
+
+
+@pytest.mark.anyio()
+def test_execute_with_ctx_async_with_type_dependency_inferred_from_missing_type(context: alluka.BasicContext):
+    mock_type: typing.Any = mock.Mock()
+
+    def callback(nyaa: str, meow: int, baz: mock_type = alluka.inject(), bat=alluka.inject()) -> str:  # type: ignore
+        raise NotImplementedError
+
+    with pytest.raises(ValueError, match="Could not resolve type for parameter 'bat' with no annotation"):
+        context.execute(callback, "5412", meow=34123)
+
+
 def test_execute_with_ctx_with_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
@@ -935,7 +973,9 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
         context.injection_client.set_type_dependency(StubType, mock_value)
 
-        def callback(bar: int, baz: str, cope: alluka.Injected[StubOtherType | StubType | None] = 123) -> float:
+        def callback(
+            bar: int, baz: str, cope: alluka.Injected[StubOtherType | StubType | None] = StubOtherType()
+        ) -> float:
             assert bar == 123
             assert baz == "ok"
             assert cope is mock_value
@@ -1415,3 +1455,56 @@ def test_execute_with_ctx_with_overridden_annotated_sub_async_dependency(context
 
         with pytest.raises(alluka.AsyncOnlyError):
             context.execute(callback)
+
+
+################################
+# Positional-only dependencies #
+################################
+
+
+def test_execute_with_ctx_with_positional_only_type_dependency(context: alluka.BasicContext):
+    def callback(foo: int, bar: str = alluka.inject(type=float), /, baz: float = alluka.inject(type=float)) -> None:
+        raise NotImplementedError
+
+    with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
+        context.execute(callback)
+
+
+def test_execute_with_ctx_with_positional_only_callback_dependency(context: alluka.BasicContext):
+    mock_dependency = mock.Mock()
+
+    def callback(
+        foo: int, bar: str = alluka.inject(callback=mock_dependency), /, baz: float = alluka.inject(type=float)
+    ) -> None:
+        raise NotImplementedError
+
+    with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
+        context.execute(callback)
+
+
+def test_execute_with_ctx_with_sub_positional_only_callback_dependency(context: alluka.BasicContext):
+    sub_dependency = mock.Mock()
+
+    def dependency(baz: str = alluka.inject(callback=sub_dependency), /) -> str:
+        raise NotImplementedError
+
+    def callback(
+        foo: int, bar: str = alluka.inject(callback=dependency), /, baz: float = alluka.inject(type=float)
+    ) -> None:
+        raise NotImplementedError
+
+    with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
+        context.execute(callback)
+
+
+def test_execute_with_ctx_with_sub_positional_only_type_dependency(context: alluka.BasicContext):
+    def dependency(baz: str = alluka.inject(type=int), /) -> str:
+        raise NotImplementedError
+
+    def callback(
+        foo: int, bar: str = alluka.inject(callback=dependency), /, baz: float = alluka.inject(type=float)
+    ) -> None:
+        raise NotImplementedError
+
+    with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
+        context.execute(callback)

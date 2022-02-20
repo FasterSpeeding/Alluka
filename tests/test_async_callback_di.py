@@ -193,6 +193,47 @@ async def test_execute_with_ctx_async_with_type_dependency_inferred_from_type(co
 
 
 @pytest.mark.anyio()
+async def test_execute_with_ctx_async_with_type_dependency_inferred_from_annotated_type(context: alluka.BasicContext):
+    mock_type: typing.Any = mock.Mock()
+    mock_value = mock.Mock()
+    mock_other_type: typing.Any = mock.Mock()
+    mock_other_value = mock.Mock()
+
+    async def callback(
+        nyaa: str,
+        meow: int,
+        baz: typing.Annotated[mock_type, ...] = alluka.inject(),
+        bat: typing.Annotated[mock_other_type, ..., int] = alluka.inject(),
+    ) -> str:
+        assert nyaa == "5412"
+        assert meow == 34123
+        assert baz is mock_value
+        assert bat is mock_other_value
+        return "heeee"
+
+    context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
+        mock_other_type, mock_other_value
+    )
+
+    result = await context.execute_async(callback, "5412", meow=34123)
+
+    assert result == "heeee"
+
+
+@pytest.mark.anyio()
+async def test_execute_with_ctx_async_with_type_dependency_inferred_from_missing_type(context: alluka.BasicContext):
+    mock_type: typing.Any = mock.Mock()
+
+    async def callback(
+        nyaa: str, meow: int, baz: mock_type = alluka.inject(), bat=alluka.inject()  # type: ignore
+    ) -> str:
+        raise NotImplementedError
+
+    with pytest.raises(ValueError, match="Could not resolve type for parameter 'bat' with no annotation"):
+        await context.execute_async(callback, "5412", meow=34123)
+
+
+@pytest.mark.anyio()
 async def test_execute_with_ctx_async_with_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
@@ -1002,7 +1043,9 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
         context.injection_client.set_type_dependency(StubType, mock_value)
 
-        async def callback(bar: int, baz: str, cope: alluka.Injected[StubOtherType | StubType | None] = 123) -> float:
+        async def callback(
+            bar: int, baz: str, cope: alluka.Injected[StubOtherType | StubType | None] = StubOtherType()
+        ) -> float:
             assert bar == 123
             assert baz == "ok"
             assert cope is mock_value
@@ -1570,3 +1613,62 @@ async def test_execute_with_ctx_async_with_overridden_annotated_sub_sync_depende
 
     assert result == "bye bye"
     mock_override.assert_called_once_with()
+
+
+################################
+# Positional-only dependencies #
+################################
+
+
+@pytest.mark.anyio()
+async def test_execute_with_ctx_with_positional_only_type_dependency(context: alluka.BasicContext):
+    async def callback(
+        foo: int, bar: str = alluka.inject(type=float), /, baz: float = alluka.inject(type=float)
+    ) -> None:
+        raise NotImplementedError
+
+    with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
+        await context.execute_async(callback)
+
+
+@pytest.mark.anyio()
+async def test_execute_with_ctx_with_positional_only_callback_dependency(context: alluka.BasicContext):
+    mock_dependency = mock.Mock()
+
+    async def callback(
+        foo: int, bar: str = alluka.inject(callback=mock_dependency), /, baz: float = alluka.inject(type=float)
+    ) -> None:
+        raise NotImplementedError
+
+    with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
+        await context.execute_async(callback)
+
+
+@pytest.mark.anyio()
+async def test_execute_with_ctx_with_sub_positional_only_callback_dependency(context: alluka.BasicContext):
+    sub_dependency = mock.Mock()
+
+    async def dependency(baz: str = alluka.inject(callback=sub_dependency), /) -> str:
+        raise NotImplementedError
+
+    async def callback(
+        foo: int, bar: str = alluka.inject(callback=dependency), /, baz: float = alluka.inject(type=float)
+    ) -> None:
+        raise NotImplementedError
+
+    with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
+        await context.execute_async(callback)
+
+
+@pytest.mark.anyio()
+async def test_execute_with_ctx_with_sub_positional_only_type_dependency(context: alluka.BasicContext):
+    async def dependency(baz: str = alluka.inject(type=int), /) -> str:
+        raise NotImplementedError
+
+    async def callback(
+        foo: int, bar: str = alluka.inject(callback=dependency), /, baz: float = alluka.inject(type=float)
+    ) -> None:
+        raise NotImplementedError
+
+    with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
+        await context.execute_async(callback)

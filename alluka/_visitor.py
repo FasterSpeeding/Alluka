@@ -180,8 +180,7 @@ class ParameterVisitor:
 
     def _annotation_to_type(self, value: typing.Any, /) -> typing.Any:
         if typing.get_origin(value) is typing.Annotated:
-            args = typing.get_origin(value)
-            assert args
+            args = typing.get_args(value)
             # The first "type" arg of annotated will always be flatterned to a type.
             # so we don't have to deal with Annotated nesting".
             return args[0]
