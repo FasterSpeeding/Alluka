@@ -61,9 +61,7 @@ def context(client: alluka.Client) -> alluka.BasicContext:
 
 # TODO: test cases for type scoped dependencies
 # TODO: test cases for cached callback results
-# TODO: test execute_with_ctx_async
 # TODO: test cases for default being prioritsed over Annotated
-# TODO: test cases for forward annotation behaviour
 # TODO: add | defaulting cases
 # TODO: add tests for sub-type dependency handling
 def test_execute_with_ctx_when_no_di(context: alluka.BasicContext):
