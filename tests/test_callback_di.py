@@ -165,22 +165,20 @@ def test_execute_with_ctx_with_type_dependency(context: alluka.BasicContext):
 
 
 def test_execute_with_ctx_with_type_dependency_inferred_from_type(context: alluka.BasicContext):
-    mock_global_type: typing.Any = mock.Mock()
+    mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
-    mock_other_global_type: typing.Any = mock.Mock()
+    mock_other_type: typing.Any = mock.Mock()
     mock_other_value = mock.Mock()
 
-    def callback(
-        nyaa: str, meow: int, baz: mock_global_type = alluka.inject(), bat: mock_other_global_type = alluka.inject()
-    ) -> str:
+    def callback(nyaa: str, meow: int, baz: mock_type = alluka.inject(), bat: mock_other_type = alluka.inject()) -> str:
         assert nyaa == "5412"
         assert meow == 34123
         assert baz is mock_value
         assert bat is mock_other_value
         return "heeee"
 
-    context.injection_client.set_type_dependency(mock_global_type, mock_value).set_type_dependency(
-        mock_other_global_type, mock_other_value
+    context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
+        mock_other_type, mock_other_value
     )
 
     result = context.execute(callback, "5412", meow=34123)
@@ -240,23 +238,6 @@ def test_execute_with_ctx_with_defaulting_type_dependency_not_found(context: all
     assert result == "yeet"
 
 
-def test_execute_with_ctx_with_union_type_dependency(context: alluka.BasicContext):
-    mock_type: typing.Any = mock.Mock()
-    mock_other_type: typing.Any = mock.Mock()
-    mock_value = mock.Mock()
-    context.injection_client.set_type_dependency(mock_other_type, mock_value)
-
-    def callback(bar: int, baz: str, cope: int = alluka.inject(type=typing.Union[mock_type, mock_other_type])) -> float:
-        assert bar == 123
-        assert baz == "ok"
-        assert cope is mock_value
-        return 243.234
-
-    result = context.execute(callback, 123, "ok")
-
-    assert result == 243.234
-
-
 # These tests covers syntax which was introduced in 3.10
 if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for |?
 
@@ -291,10 +272,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         mock_value = StubType()
 
         def callback(bar: int, baz: str, cope: int = alluka.inject(type=StubOtherType | StubType)) -> float:
-            assert bar == 123
-            assert baz == "ok"
-            assert cope is mock_value
-            return 451.123
+            raise NotImplementedError
 
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             context.execute(callback, 123, "ok")
@@ -339,6 +317,23 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         result = context.execute(callback, 123, "ok")
 
         assert result == 451.123
+
+
+def test_execute_with_ctx_with_union_type_dependency(context: alluka.BasicContext):
+    mock_type: typing.Any = mock.Mock()
+    mock_other_type: typing.Any = mock.Mock()
+    mock_value = mock.Mock()
+    context.injection_client.set_type_dependency(mock_other_type, mock_value)
+
+    def callback(bar: int, baz: str, cope: int = alluka.inject(type=typing.Union[mock_type, mock_other_type])) -> float:
+        assert bar == 123
+        assert baz == "ok"
+        assert cope is mock_value
+        return 243.234
+
+    result = context.execute(callback, 123, "ok")
+
+    assert result == 243.234
 
 
 def test_execute_with_ctx_with_union_type_dependency_not_found(context: alluka.BasicContext):
@@ -468,26 +463,6 @@ def test_execute_with_ctx_with_annotated_type_dependency_not_found(context: allu
     assert exc_info.value.message == f"Couldn't resolve injected type(s) {mock_type} to actual value"
 
 
-def test_execute_with_ctx_with_annotated_union_type_dependency(context: alluka.BasicContext):
-    mock_type: typing.Any = mock.Mock()
-    mock_value = mock.Mock()
-    mock_other_type: typing.Any = mock.Mock()
-
-    def callback(
-        meow: int,
-        meowmeow: typing.Annotated[typing.Union[mock_type, mock_other_type], alluka.inject()],
-    ) -> str:
-        assert meow == 1233212
-        assert meowmeow is mock_value
-        return "yay"
-
-    context.injection_client.set_type_dependency(mock_other_type, mock_value)
-
-    result = context.execute(callback, 1233212)
-
-    assert result == "yay"
-
-
 # These tests covers syntax which was introduced in 3.10
 if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for |?
 
@@ -528,10 +503,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         def callback(
             bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=StubOtherType | StubType)]
         ) -> float:
-            assert bar == 123
-            assert baz == "ok"
-            assert cope is mock_value
-            return 451.123
+            raise NotImplementedError
 
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             context.execute(callback, 123, "ok")
@@ -628,6 +600,26 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         result = context.execute(callback, 123, "ok")
 
         assert result == 451.123
+
+
+def test_execute_with_ctx_with_annotated_union_type_dependency(context: alluka.BasicContext):
+    mock_type: typing.Any = mock.Mock()
+    mock_value = mock.Mock()
+    mock_other_type: typing.Any = mock.Mock()
+
+    def callback(
+        meow: int,
+        meowmeow: typing.Annotated[typing.Union[mock_type, mock_other_type], alluka.inject()],
+    ) -> str:
+        assert meow == 1233212
+        assert meowmeow is mock_value
+        return "yay"
+
+    context.injection_client.set_type_dependency(mock_other_type, mock_value)
+
+    result = context.execute(callback, 1233212)
+
+    assert result == "yay"
 
 
 def test_execute_with_ctx_with_annotated_union_type_dependency_not_found(context: alluka.BasicContext):
@@ -846,26 +838,6 @@ def test_execute_with_ctx_with_shorthand_annotated_type_dependency_not_found(con
     assert exc_info.value.message == f"Couldn't resolve injected type(s) {mock_type} to actual value"
 
 
-def test_execute_with_ctx_with_shorthand_annotated_union_type_dependency(context: alluka.BasicContext):
-    mock_type: typing.Any = mock.Mock()
-    mock_value = mock.Mock()
-    mock_other_type: typing.Any = mock.Mock()
-
-    def callback(
-        meow: int,
-        meowmeow: alluka.Injected[typing.Union[mock_type, mock_other_type]],
-    ) -> str:
-        assert meow == 1233212
-        assert meowmeow is mock_value
-        return "yay"
-
-    context.injection_client.set_type_dependency(mock_other_type, mock_value)
-
-    result = context.execute(callback, 1233212)
-
-    assert result == "yay"
-
-
 # These tests covers syntax which was introduced in 3.10
 if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for |?
 
@@ -906,10 +878,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         mock_value = StubType()
 
         def callback(bar: int, baz: str, cope: alluka.Injected[StubOtherType | StubType]) -> float:
-            assert bar == 123
-            assert baz == "ok"
-            assert cope is mock_value
-            return 451.123
+            raise NotImplementedError
 
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             context.execute(callback, 123, "ok")
@@ -1002,6 +971,26 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         result = context.execute(callback, 123, "ok")
 
         assert result == 451.123
+
+
+def test_execute_with_ctx_with_shorthand_annotated_union_type_dependency(context: alluka.BasicContext):
+    mock_type: typing.Any = mock.Mock()
+    mock_value = mock.Mock()
+    mock_other_type: typing.Any = mock.Mock()
+
+    def callback(
+        meow: int,
+        meowmeow: alluka.Injected[typing.Union[mock_type, mock_other_type]],
+    ) -> str:
+        assert meow == 1233212
+        assert meowmeow is mock_value
+        return "yay"
+
+    context.injection_client.set_type_dependency(mock_other_type, mock_value)
+
+    result = context.execute(callback, 1233212)
+
+    assert result == "yay"
 
 
 def test_execute_with_ctx_with_shorthand_annotated_union_type_dependency_not_found(context: alluka.BasicContext):
@@ -1259,7 +1248,7 @@ def test_execute_with_ctx_with_sub_type_dependency(context: alluka.BasicContext)
     assert result == "asddsa"
 
 
-def test_execute_with_ctx_with_unknown_sub_type_dependency(context: alluka.BasicContext):
+def test_execute_with_ctx_with_sub_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
 
     def dependency(result: typing.Annotated[int, alluka.inject(type=mock_type)]) -> int:
