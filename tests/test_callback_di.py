@@ -99,10 +99,8 @@ def test_execute_prioritises_defaults_over_annotations(context: alluka.BasicCont
         assert bath == "sexual catgirls"
         return "meow"
 
-    (
-        context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
-            mock_other_type, mock_other_value
-        )
+    context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
+        mock_other_type, mock_other_value
     )
 
     result = context.execute(callback, 69, bar="rew")
@@ -132,10 +130,8 @@ def test_execute_with_ctx_with_type_dependency_and_callback(context: alluka.Basi
         assert bath is mock_callback.return_value
         return "meow"
 
-    (
-        context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
-            mock_other_type, mock_other_value
-        )
+    context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
+        mock_other_type, mock_other_value
     )
 
     result = context.execute(callback, 69, bar="rew")
@@ -159,10 +155,8 @@ def test_execute_with_ctx_with_type_dependency(context: alluka.BasicContext):
         assert bat is mock_other_value
         return "meow"
 
-    (
-        context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
-            mock_other_type, mock_other_value
-        )
+    context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
+        mock_other_type, mock_other_value
     )
 
     result = context.execute(callback, 69, bar="rew")
@@ -185,10 +179,8 @@ def test_execute_with_ctx_with_type_dependency_inferred_from_type(context: alluk
         assert bat is mock_other_value
         return "heeee"
 
-    (
-        context.injection_client.set_type_dependency(mock_global_type, mock_value).set_type_dependency(
-            mock_other_global_type, mock_other_value
-        )
+    context.injection_client.set_type_dependency(mock_global_type, mock_value).set_type_dependency(
+        mock_other_global_type, mock_other_value
     )
 
     result = context.execute(callback, "5412", meow=34123)
@@ -418,10 +410,8 @@ def test_execute_with_ctx_with_annotated_type_dependency(context: alluka.BasicCo
         assert imacow is mock_other_value
         return "meow"
 
-    (
-        context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
-            mock_other_type, mock_other_value
-        )
+    context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
+        mock_other_type, mock_other_value
     )
 
     result = context.execute(callback, rawr=69, xd="rew")
@@ -447,10 +437,8 @@ def test_execute_with_ctx_with_annotated_type_dependency_inferred_from_type(cont
         assert imacow is mock_other_value
         return "wewewewew"
 
-    (
-        context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
-            mock_other_type, mock_other_value
-        )
+    context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
+        mock_other_type, mock_other_value
     )
 
     result = context.execute(callback, meow=2222, nyaa="xxxxx")
@@ -827,10 +815,8 @@ def test_execute_with_ctx_with_shorthand_annotated_type_dependency(context: allu
         assert other is mock_other_value
         return "eeesss"
 
-    (
-        context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
-            mock_other_type, mock_other_value
-        )
+    context.injection_client.set_type_dependency(mock_type, mock_value).set_type_dependency(
+        mock_other_type, mock_other_value
     )
 
     result = context.execute(callback, 1233212, xd="seee")

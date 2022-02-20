@@ -88,7 +88,7 @@ flake8-raise==0.0.5
     # via -r dev-requirements\flake8.in
 gitdb==4.0.9
     # via gitpython
-gitpython==3.1.26
+gitpython==3.1.27
     # via bandit
 importlib-metadata==4.11.1
     # via flake8-html
