@@ -103,6 +103,7 @@ def inject(
     # where client is an `alluka.Client` instance.
     result = await client.call_with_di_async(callback)
     ```
+
     Parameters
     ----------
     callback

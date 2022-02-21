@@ -149,7 +149,7 @@ client = (
 
 For a type dependency to work, the linked client will have to have an implementation loaded for it.
 While right now the only way to load type dependencies is with the lower-level
-[alluka.Client.set_type_dependency][] method, more approaches and helpers will be added in the
+[alluka.abc.Client.set_type_dependency][] method, more approaches and helpers will be added in the
 future as Alluka is further developed.
 
 ### Overriding callback dependencies
@@ -160,7 +160,7 @@ client = alluka.Client().set_callback_override(callback, other_callback)
 
 While (unlike type dependencies) callback dependencies can work on their own without being
 explicitly declared on the client unless they're relying on a type dependency themselves, they can
-still be overridden on a client level using [alluka.Client.set_callback_override][].
+still be overridden on a client level using [alluka.abc.Client.set_callback_override][].
 
 Generally speaking you should only ever override an injected callback with a callback which returns
 a compatible type but their signatures do not need to match and async callbacks can be overridden

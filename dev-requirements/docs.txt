@@ -52,7 +52,7 @@ mkdocstrings[python]==0.18.0
     #   -r dev-requirements\docs.in
     #   mkdocstrings-python
     #   mkdocstrings-python-legacy
-mkdocstrings-python==0.6.2
+mkdocstrings-python==0.6.3
     # via mkdocstrings
 mkdocstrings-python-legacy==0.2.2
     # via mkdocstrings
