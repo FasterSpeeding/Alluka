@@ -5,20 +5,14 @@
 #    pip-compile --output-file='dev-requirements\tests.txt' 'dev-requirements\tests.in'
 #
 anyio==3.5.0
-    # via -r dev-requirements\tests.in
+    # via -r dev-requirements/tests.in
 async-generator==1.10
     # via trio
-atomicwrites==1.4.0
-    # via pytest
 attrs==21.4.0
     # via
     #   outcome
     #   pytest
     #   trio
-cffi==1.15.0
-    # via trio
-colorama==0.4.4
-    # via pytest
 coverage[toml]==6.3.1
     # via pytest-cov
 execnet==1.9.0
@@ -39,22 +33,20 @@ py==1.11.0
     # via
     #   pytest
     #   pytest-forked
-pycparser==2.21
-    # via cffi
 pyparsing==3.0.7
     # via packaging
 pytest==7.0.1
     # via
-    #   -r dev-requirements\tests.in
+    #   -r dev-requirements/tests.in
     #   pytest-cov
     #   pytest-forked
     #   pytest-xdist
 pytest-cov==3
-    # via -r dev-requirements\tests.in
+    # via -r dev-requirements/tests.in
 pytest-forked==1.4.0
     # via pytest-xdist
 pytest-xdist==2.5
-    # via -r dev-requirements\tests.in
+    # via -r dev-requirements/tests.in
 sniffio==1.2.0
     # via
     #   anyio
@@ -65,5 +57,5 @@ tomli==2.0.1
     # via
     #   coverage
     #   pytest
-trio==0.19.0
-    # via -r dev-requirements\tests.in
+trio==0.20.0
+    # via -r dev-requirements/tests.in
