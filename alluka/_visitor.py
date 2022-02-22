@@ -188,6 +188,7 @@ class ParameterVisitor:
             union, default = self.parse_type(type_, other_default=default)
             return (_types.InjectedTypes.TYPE, _types.InjectedType(type_, union, default=default))
 
+        arg: typing.Union[_types.InjectedDescriptor[typing.Any], typing.Any]
         for arg in args:
             if not isinstance(arg, _types.InjectedDescriptor):
                 continue
@@ -223,7 +224,7 @@ class ParameterVisitor:
         if value.is_empty or not isinstance(value.default, _types.InjectedDescriptor):
             return
 
-        descriptor = value.default
+        descriptor: _types.InjectedDescriptor[typing.Any] = value.default
         if descriptor.callback is not None:
             return (_types.InjectedTypes.CALLBACK, _types.InjectedCallback(descriptor.callback))
 
