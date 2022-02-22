@@ -50,7 +50,9 @@ _T = typing.TypeVar("_T")
 
 _AnyCoro = collections.Coroutine[typing.Any, typing.Any, typing.Any]
 _BasicContextT = typing.TypeVar("_BasicContextT", bound="BasicContext")
+_CallbackSigT = typing.TypeVar("_CallbackSigT", bound=abc.CallbackSig[typing.Any])
 _ClientT = typing.TypeVar("_ClientT", bound="Client")
+_SyncCallbackSigT = typing.TypeVar("_SyncCallbackSigT", bound=collections.Callable[..., typing.Any])
 
 _TypeT = type[_T]
 
@@ -160,11 +162,11 @@ class Client(abc.Client):
         descriptors = self._descriptors[callback] = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
         return descriptors
 
-    def as_async_self_injecting(self, callback: abc.CallbackSig[_T], /) -> abc.AsyncSelfInjecting[_T]:
+    def as_async_self_injecting(self, callback: _CallbackSigT, /) -> abc.AsyncSelfInjecting[_CallbackSigT]:
         # <<inherited docstring from alluka.abc.Client>>.
         return _self_injecting.AsyncSelfInjecting(self, callback)
 
-    def as_self_injecting(self, callback: collections.Callable[..., _T], /) -> abc.SelfInjecting[_T]:
+    def as_self_injecting(self, callback: _SyncCallbackSigT, /) -> abc.SelfInjecting[_SyncCallbackSigT]:
         # <<inherited docstring from alluka.abc.Client>>.
         return _self_injecting.SelfInjecting(self, callback)
 

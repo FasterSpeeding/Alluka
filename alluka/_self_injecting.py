@@ -38,10 +38,12 @@ from collections import abc as collections
 
 from . import abc
 
+_CallbackSigT = typing.TypeVar("_CallbackSigT", bound=abc.CallbackSig[typing.Any])
+_SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
 _T = typing.TypeVar("_T")
 
 
-class AsyncSelfInjecting(abc.AsyncSelfInjecting[_T]):
+class AsyncSelfInjecting(abc.AsyncSelfInjecting[_CallbackSigT]):
     """Class used to link a sync function to a client to make it self-injecting.
 
     Examples
@@ -69,14 +71,14 @@ class AsyncSelfInjecting(abc.AsyncSelfInjecting[_T]):
 
     __slots__ = ("_callback", "_client")
 
-    def __init__(self, client: abc.Client, callback: abc.CallbackSig[_T], /) -> None:
+    def __init__(self, client: abc.Client, callback: _CallbackSigT, /) -> None:
         """Initialise a self injecting callback.
 
         Parameters
         ----------
         client
             The injection client to use to resolve dependencies.
-        callback
+        callback : alluka.abc.CallbackSig
             The callback to make self-injecting.
 
             This may be sync or async.
@@ -90,17 +92,17 @@ class AsyncSelfInjecting(abc.AsyncSelfInjecting[_T]):
         self._callback = callback
         self._client = client
 
-    async def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> _T:
+    async def __call__(self: AsyncSelfInjecting[abc.CallbackSig[_T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.AsyncSelfInjecting>>.
         return await self._client.execute_async(self._callback, *args, **kwargs)
 
     @property
-    def callback(self) -> abc.CallbackSig[_T]:
+    def callback(self) -> _CallbackSigT:
         # <<inherited docstring from alluka.abc.AsyncSelfInjecting>>.
         return self._callback
 
 
-class SelfInjecting(abc.SelfInjecting[_T]):
+class SelfInjecting(abc.SelfInjecting[_CallbackSigT]):
     """Class used to link a sync function to a client to make it self-injecting.
 
     !!! note
@@ -132,14 +134,14 @@ class SelfInjecting(abc.SelfInjecting[_T]):
 
     __slots__ = ("_callback", "_client")
 
-    def __init__(self, client: abc.Client, callback: collections.Callable[..., _T], /) -> None:
+    def __init__(self, client: abc.Client, callback: _CallbackSigT, /) -> None:
         """Initialise a sync self injecting callback.
 
         Parameters
         ----------
         client
             The injection client to use to resolve dependencies.
-        callback
+        callback : collections.abc.Callable
             The callback to make self-injecting.
 
             This must be sync.
@@ -153,11 +155,11 @@ class SelfInjecting(abc.SelfInjecting[_T]):
         self._callback = callback
         self._client = client
 
-    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> _T:
+    def __call__(self: SelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.SelfInjecting>>.
         return self._client.execute(self._callback, *args, **kwargs)
 
     @property
-    def callback(self) -> collections.Callable[..., _T]:
+    def callback(self) -> _CallbackSigT:
         # <<inherited docstring from alluka.abc.SelfInjecting>>.
         return self._callback

@@ -47,8 +47,10 @@ import typing
 from collections import abc as collections
 
 _AnyCoro = collections.Coroutine[typing.Any, typing.Any, typing.Any]
-_T = typing.TypeVar("_T")
+_CallbackT = typing.TypeVar("_CallbackT", bound="CallbackSig[typing.Any]")
 _OtherT = typing.TypeVar("_OtherT")
+_SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
+_T = typing.TypeVar("_T")
 
 
 class Undefined:
@@ -100,24 +102,24 @@ class Client:
     __slots__ = ()
 
     @abc.abstractmethod
-    def as_async_self_injecting(self, callback: CallbackSig[_T], /) -> AsyncSelfInjecting[_T]:
+    def as_async_self_injecting(self, callback: _CallbackT, /) -> AsyncSelfInjecting[_CallbackT]:
         """Link a function to a client to make it self-injecting.
 
         Parameters
         ----------
-        callback
+        callback : CallbackSig
             The callback to make self-injecting.
 
             This may be sync or async.
 
         Returns
         -------
-        AsyncSelfInjecting[_T]
+        AsyncSelfInjecting
             The async self-injecting callback.
         """
 
     @abc.abstractmethod
-    def as_self_injecting(self, callback: collections.Callable[..., _T], /) -> SelfInjecting[_T]:
+    def as_self_injecting(self, callback: _SyncCallbackT, /) -> SelfInjecting[_SyncCallbackT]:
         """Link a sync function to a client to make it self-injecting.
 
         !!! note
@@ -126,14 +128,14 @@ class Client:
 
         Parameters
         ----------
-        callback
+        callback : collections.abc.Callable
             The callback to make self-injecting.
 
             This must be sync.
 
         Returns
         -------
-        SelfInjecting[_T]
+        SelfInjecting
             The self-injecting callback.
         """
 
@@ -521,7 +523,7 @@ class Context(abc.ABC):
         """
 
 
-class AsyncSelfInjecting(abc.ABC, typing.Generic[_T]):
+class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
     """Interface of a class used to make an async self-injecting callback.
 
     Examples
@@ -539,11 +541,11 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_T]):
 
     @property
     @abc.abstractmethod
-    def callback(self) -> CallbackSig[_T]:
+    def callback(self) -> CallbackSig[_CallbackT]:
         """The callback this wraps."""
 
     @abc.abstractmethod
-    async def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> _T:
+    async def __call__(self: AsyncSelfInjecting[CallbackSig[_T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Call this with the provided arguments and any injected arguments.
 
         Parameters
@@ -566,7 +568,7 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_T]):
         """
 
 
-class SelfInjecting(abc.ABC, typing.Generic[_T]):
+class SelfInjecting(abc.ABC, typing.Generic[_SyncCallbackT]):
     """Interface of a class used to make a self-injecting callback.
 
     !!! note
@@ -588,11 +590,11 @@ class SelfInjecting(abc.ABC, typing.Generic[_T]):
 
     @property
     @abc.abstractmethod
-    def callback(self) -> collections.Callable[..., _T]:
+    def callback(self) -> _SyncCallbackT:
         """The callback this wraps."""
 
     @abc.abstractmethod
-    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> _T:
+    def __call__(self: SelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Call this callback with the provided arguments + injected arguments.
 
         Parameters
