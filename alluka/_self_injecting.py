@@ -38,9 +38,9 @@ from collections import abc as collections
 
 from . import abc
 
-_T = typing.TypeVar("_T")
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=abc.CallbackSig[typing.Any])
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
+_T = typing.TypeVar("_T")
 
 
 class AsyncSelfInjecting(abc.AsyncSelfInjecting[_CallbackSigT]):
