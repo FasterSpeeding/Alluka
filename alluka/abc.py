@@ -153,12 +153,12 @@ class Client:
 
     @abc.abstractmethod
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        """Execute a function with sync dependency injection.
+        """Call a function with sync dependency injection.
 
         Parameters
         ----------
         callback
-            The callback to execute.
+            The callback to call.
 
             This must be sync.
         *args
@@ -198,16 +198,16 @@ class Client:
     def call_with_ctx(
         self, ctx: Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
-        """Execute a function with the provided DI context.
+        """Call a function with an existing DI context.
 
         Parameters
         ----------
         ctx
-            The DI context to execute the callback with.
+            The DI context to call the callback with.
 
             This will be used for scoped type injection.
         callback
-            The callback to execute.
+            The callback to call.
 
             This must be sync.
         *args
@@ -231,12 +231,12 @@ class Client:
 
     @abc.abstractmethod
     async def call_with_async_di(self, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        """Execute a function with async dependency injection.
+        """Call a function with async dependency injection.
 
         Parameters
         ----------
         callback
-            The callback to execute.
+            The callback to call.
 
             This may be sync or async.
         *args
@@ -262,16 +262,16 @@ class Client:
     async def call_with_ctx_async(
         self, ctx: Context, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
-        """Asynchronously execute a function with the provided DI context.
+        """Asynchronously call a function with a pre-existing DI context.
 
         Parameters
         ----------
         ctx
-            The DI context to execute the callback with.
+            The DI context to call the callback with.
 
             This will be used for scoped type injection.
         callback
-            The callback to execute.
+            The callback to call.
 
             This may be sync or async.
         *args
@@ -432,12 +432,12 @@ class Context(abc.ABC):
 
     @abc.abstractmethod
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        """Execute a function with the current DI context.
+        """Call a function with the current DI context.
 
         Parameters
         ----------
         callback
-            The callback to execute.
+            The callback to call.
 
             This must be sync.
         *args
@@ -461,12 +461,12 @@ class Context(abc.ABC):
 
     @abc.abstractmethod
     async def call_with_async_di(self, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        """Asynchronously execute a function with the current DI context.
+        """Asynchronously call a function with the current DI context.
 
         Parameters
         ----------
         callback
-            The callback to execute.
+            The callback to call.
 
             This may be sync or async.
         *args
