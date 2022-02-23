@@ -541,8 +541,24 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
 
     @property
     @abc.abstractmethod
-    def callback(self) -> CallbackSig[_CallbackT]:
+    def callback(self) -> _CallbackT:
         """The callback this wraps."""
+
+    @typing.overload
+    @abc.abstractmethod
+    async def __call__(
+        self: AsyncSelfInjecting[collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, _T]]],
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> _T:
+        ...
+
+    @typing.overload
+    @abc.abstractmethod
+    async def __call__(
+        self: AsyncSelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any
+    ) -> _T:
+        ...
 
     @abc.abstractmethod
     async def __call__(self: AsyncSelfInjecting[CallbackSig[_T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
