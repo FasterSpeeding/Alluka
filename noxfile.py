@@ -255,9 +255,10 @@ def _run_pyright(session: nox.Session, *args: str) -> None:
 def type_check(session: nox.Session) -> None:
     """Statically analyse and veirfy this project using Pyright."""
     install_requirements(session, ".", "--use-feature=in-tree-build", *_dev_dep("nox", "tests", "type-checking"))
-    session.run("python", "-m", "mypy", "--version")
-    session.run("python", "-m", "mypy", "alluka", "--show-error-codes")
     _run_pyright(session)
+    session.run("python", "-m", "mypy", "--version")
+    # Right now MyPy is allowed to fail without failing CI as the alternative is to let MyPy bugs block releases.
+    session.run("python", "-m", "mypy", "alluka", "--show-error-codes", success_codes=[0, 1])
 
 
 @nox.session(name="verify-types", reuse_venv=True)
