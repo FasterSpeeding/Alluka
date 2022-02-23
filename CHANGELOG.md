@@ -14,9 +14,9 @@ part of Tanjun.
 ### Added
 - Support for synchronous dependency injection (this comes with `AsyncOnlyError`)
 - Abstract interface for the client with limited functionality.
-- `call_with_di` and `call_with_di_async` to `alluka.abc.Context` as a shorthand for
+- `call_with_di` and `call_with_async_di` to `alluka.abc.Context` as a shorthand for
   executing a callback with that context.
-- `call_with_di`, `call_with_di_async`, `call_with_di_ctx` and `call_with_di_ctx_async`
+- `call_with_di`, `call_with_async_di`, `call_with_ctx` and `call_with_ctx_async`
   methods to the injection client for executing callbacks with DI.
 - Support for inferring the type of a parameter from its type hint
   when no `type` or `callback` is explicitly provided.

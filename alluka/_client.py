@@ -101,7 +101,7 @@ def inject(
 
     ...
     # where client is an `alluka.Client` instance.
-    result = await client.call_with_di_async(callback)
+    result = await client.call_with_async_di(callback)
     ```
 
     Parameters
@@ -183,21 +183,21 @@ class Client(abc.Client):
 
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
-        return self.call_with_di_ctx(BasicContext(self), callback, *args, **kwargs)
+        return self.call_with_ctx(BasicContext(self), callback, *args, **kwargs)
 
     @typing.overload
-    def call_with_di_ctx(
+    def call_with_ctx(
         self, ctx: abc.Context, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
     ) -> typing.NoReturn:
         ...
 
     @typing.overload
-    def call_with_di_ctx(
+    def call_with_ctx(
         self, ctx: abc.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         ...
 
-    def call_with_di_ctx(
+    def call_with_ctx(
         self, ctx: abc.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
@@ -213,11 +213,11 @@ class Client(abc.Client):
         assert not isinstance(result, collections.Coroutine)
         return result
 
-    async def call_with_di_async(self, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    async def call_with_async_di(self, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
-        return await self.call_with_di_ctx_async(BasicContext(self), callback, *args, **kwargs)
+        return await self.call_with_ctx_async(BasicContext(self), callback, *args, **kwargs)
 
-    async def call_with_di_ctx_async(
+    async def call_with_ctx_async(
         self, ctx: abc.Context, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
@@ -308,11 +308,11 @@ class BasicContext(abc.Context):
 
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Context>>.
-        return self._injection_client.call_with_di_ctx(self, callback, *args, **kwargs)
+        return self._injection_client.call_with_ctx(self, callback, *args, **kwargs)
 
-    async def call_with_di_async(self, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    async def call_with_async_di(self, callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Context>>.
-        return await self._injection_client.call_with_di_ctx_async(self, callback, *args, **kwargs)
+        return await self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs)
 
     def get_cached_result(self, callback: abc.CallbackSig[_T], /) -> _types.UndefinedOr[_T]:
         # <<inherited docstring from alluka.abc.Context>>.

@@ -84,16 +84,16 @@ async def callback(
 
 ...
 
-result = await client.call_with_di_async(callback, 123, keyword_arg="ok")
+result = await client.call_with_async_di(callback, 123, keyword_arg="ok")
 ```
 
-To execute a function with async dependency injection [alluka.abc.Client.call_with_di_async][] should
+To execute a function with async dependency injection [alluka.abc.Client.call_with_async_di][] should
 be called with the function and any positional or keyword arguments to pass through alongside the
 the injected arguments.
 
 !!! note
-    While both sync and async functions may be executed with `call_with_di_async`, you'll always have to
-    await `call_with_di_async` to get the result of the call.
+    While both sync and async functions may be executed with `call_with_async_di`, you'll always have to
+    await `call_with_async_di` to get the result of the call.
 
 ```py
 client: alluka.Client
@@ -112,7 +112,7 @@ result = client.call_with_di(callback, 123, keyword_arg="ok")
 ```
 
 To execute a function with purely sync dependency injection [alluka.abc.Client.call_with_di][] can be
-used with similar semantics to `call_with_di_async` for passed through arguments but this comes with the
+used with similar semantics to `call_with_async_di` for passed through arguments but this comes with the
 limitation that only sync functions may be used and any dependency on async callback dependencies
 will lead to [alluka.AsyncOnlyError][] being raised.
 
@@ -122,12 +122,12 @@ def foo(ctx: alluka.Inject[alluka.abc.Context]) -> None:
 
 ```
 
-Alternatively, [alluka.abc.Context.call_with_di][] and [alluka.abc.Context.call_with_di_async][] can be used
+Alternatively, [alluka.abc.Context.call_with_di][] and [alluka.abc.Context.call_with_async_di][] can be used
 to execute functions with dependency injection while preserving the current injection context.
 
 ```py
 async def bar(ctx: alluka.Inject[alluka.abc.Context]) -> None:
-    result = await ctx.call_with_di_async(other_callback, 123, keyword_arg="ok")
+    result = await ctx.call_with_async_di(other_callback, 123, keyword_arg="ok")
 ```
 
 <!-- TODO: revisit behaviour for when an async function with no async deps is passed to call_with_di--->
