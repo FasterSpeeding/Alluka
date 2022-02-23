@@ -94,7 +94,7 @@ class AsyncSelfInjecting(abc.AsyncSelfInjecting[_CallbackSigT]):
 
     async def __call__(self: AsyncSelfInjecting[abc.CallbackSig[_T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.AsyncSelfInjecting>>.
-        return await self._client.execute_async(self._callback, *args, **kwargs)
+        return await self._client.call_with_async_di(self._callback, *args, **kwargs)
 
     @property
     def callback(self) -> _CallbackSigT:
@@ -157,7 +157,7 @@ class SelfInjecting(abc.SelfInjecting[_CallbackSigT]):
 
     def __call__(self: SelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.SelfInjecting>>.
-        return self._client.execute(self._callback, *args, **kwargs)
+        return self._client.call_with_di(self._callback, *args, **kwargs)
 
     @property
     def callback(self) -> _CallbackSigT:

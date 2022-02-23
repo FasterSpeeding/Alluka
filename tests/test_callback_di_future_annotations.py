@@ -71,18 +71,18 @@ def context(client: alluka.Client) -> alluka.BasicContext:
 
 # TODO: test cases for type scoped dependencies
 # TODO: test cases for cached callback results
-def test_execute_with_ctx_when_no_di(context: alluka.BasicContext):
+def test_call_with_ctx_when_no_di(context: alluka.BasicContext):
     def callback(x: int, bar: str) -> str:
         assert x == 42
         assert bar == "ok"
         return "nyaa"
 
-    result = context.execute(callback, 42, bar="ok")
+    result = context.call_with_di(callback, 42, bar="ok")
 
     assert result == "nyaa"
 
 
-def test_execute_with_ctx_prioritises_defaults_over_annotations(context: alluka.BasicContext):
+def test_call_with_ctx_prioritises_defaults_over_annotations(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
@@ -113,13 +113,13 @@ def test_execute_with_ctx_prioritises_defaults_over_annotations(context: alluka.
         mock_other_type, mock_other_value
     )
 
-    result = context.execute(callback, 69, bar="rew")
+    result = context.call_with_di(callback, 69, bar="rew")
 
     assert result == "meow"
     mock_callback.assert_called_once_with()
 
 
-def test_execute_with_ctx_with_type_dependency_and_callback(context: alluka.BasicContext):
+def test_call_with_ctx_with_type_dependency_and_callback(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
@@ -144,13 +144,13 @@ def test_execute_with_ctx_with_type_dependency_and_callback(context: alluka.Basi
         mock_other_type, mock_other_value
     )
 
-    result = context.execute(callback, 69, bar="rew")
+    result = context.call_with_di(callback, 69, bar="rew")
 
     assert result == "meow"
     mock_callback.assert_called_once_with()
 
 
-def test_execute_with_ctx_with_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_type_dependency(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
@@ -169,12 +169,12 @@ def test_execute_with_ctx_with_type_dependency(context: alluka.BasicContext):
         mock_other_type, mock_other_value
     )
 
-    result = context.execute(callback, 69, bar="rew")
+    result = context.call_with_di(callback, 69, bar="rew")
 
     assert result == "meow"
 
 
-def test_execute_with_ctx_with_type_dependency_inferred_from_type(context: alluka.BasicContext):
+def test_call_with_ctx_with_type_dependency_inferred_from_type(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_other_value = GlobalOtherStubType()
 
@@ -191,12 +191,12 @@ def test_execute_with_ctx_with_type_dependency_inferred_from_type(context: alluk
         GlobalOtherStubType, mock_other_value
     )
 
-    result = context.execute(callback, "5412", meow=34123)
+    result = context.call_with_di(callback, "5412", meow=34123)
 
     assert result == "heeee"
 
 
-def test_execute_with_ctx_with_type_dependency_inferred_from_annotated_type(context: alluka.BasicContext):
+def test_call_with_ctx_with_type_dependency_inferred_from_annotated_type(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_other_value = GlobalOtherStubType()
 
@@ -216,23 +216,23 @@ def test_execute_with_ctx_with_type_dependency_inferred_from_annotated_type(cont
         GlobalOtherStubType, mock_other_value
     )
 
-    result = context.execute(callback, "5412", meow=34123)
+    result = context.call_with_di(callback, "5412", meow=34123)
 
     assert result == "heeee"
 
 
 @pytest.mark.anyio()
-def test_execute_with_ctx_async_with_type_dependency_inferred_from_missing_type(context: alluka.BasicContext):
+def test_call_with_ctx_with_type_dependency_inferred_from_missing_type(context: alluka.BasicContext):
     def callback(
         nyaa: str, meow: int, baz: GlobalStubType = alluka.inject(), bat=alluka.inject()  # type: ignore
     ) -> str:
         raise NotImplementedError
 
     with pytest.raises(ValueError, match="Could not resolve type for parameter 'bat' with no annotation"):
-        context.execute(callback, "5412", meow=34123)
+        context.call_with_di(callback, "5412", meow=34123)
 
 
-def test_execute_with_ctx_with_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
@@ -245,13 +245,13 @@ def test_execute_with_ctx_with_type_dependency_not_found(context: alluka.BasicCo
     context.injection_client.set_type_dependency(mock_type, mock_value)
 
     with pytest.raises(alluka.MissingDependencyError) as exc:
-        context.execute(callback, 69, bar="rew")
+        context.call_with_di(callback, 69, bar="rew")
 
     assert exc.value.message == f"Couldn't resolve injected type(s) {mock_other_type} to actual value"
     assert exc.value.dependency_type is mock_other_type
 
 
-def test_execute_with_ctx_with_defaulting_type_dependency(context: alluka.BasicContext):  # TODO: THIS
+def test_call_with_ctx_with_defaulting_type_dependency(context: alluka.BasicContext):  # TODO: THIS
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
 
@@ -263,12 +263,12 @@ def test_execute_with_ctx_with_defaulting_type_dependency(context: alluka.BasicC
 
     context.injection_client.set_type_dependency(mock_type, mock_value)
 
-    result = context.execute(callback, 69, bar="rew")
+    result = context.call_with_di(callback, 69, bar="rew")
 
     assert result == "meow"
 
 
-def test_execute_with_ctx_with_defaulting_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_defaulting_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
 
     def callback(
@@ -279,7 +279,7 @@ def test_execute_with_ctx_with_defaulting_type_dependency_not_found(context: all
         assert bat is None
         return "yeet"
 
-    result = context.execute(callback, 420, raw="uwu")
+    result = context.call_with_di(callback, 420, raw="uwu")
 
     assert result == "yeet"
 
@@ -287,7 +287,7 @@ def test_execute_with_ctx_with_defaulting_type_dependency_not_found(context: all
 # These tests covers syntax which was introduced in 3.10
 if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for |?
 
-    def test_execute_with_ctx_with_3_10_union_type_dependency(context: alluka.BasicContext):
+    def test_call_with_ctx_with_3_10_union_type_dependency(context: alluka.BasicContext):
         class StubType:
             ...
 
@@ -304,11 +304,11 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             assert cope is mock_value
             return 451.123
 
-        result = context.execute(callback, 123, "ok")
+        result = context.call_with_di(callback, 123, "ok")
 
         assert result == 451.123
 
-    def test_execute_with_ctx_with_3_10_union_type_dependency_not_found(context: alluka.BasicContext):
+    def test_call_with_ctx_with_3_10_union_type_dependency_not_found(context: alluka.BasicContext):
         class StubType:
             ...
 
@@ -319,13 +319,13 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             raise NotImplementedError
 
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
-            context.execute(callback, 123, "ok")
+            context.call_with_di(callback, 123, "ok")
 
         assert exc_info.value.dependency_type == StubOtherType | StubType
         # 3.10.1/2+ and 3.11 may re-order the | union types while resolving them from a string
         # future annotation so we can't reliably assert these.
 
-    def test_execute_with_ctx_with_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
+    def test_call_with_ctx_with_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
         class StubType:
             ...
 
@@ -342,11 +342,11 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             assert cope is mock_value
             return 451.123
 
-        result = context.execute(callback, 123, "ok")
+        result = context.call_with_di(callback, 123, "ok")
 
         assert result == 451.123
 
-    def test_execute_with_ctx_with_3_10_union_type_dependency_defaulting_not_found(context: alluka.BasicContext):
+    def test_call_with_ctx_with_3_10_union_type_dependency_defaulting_not_found(context: alluka.BasicContext):
         class StubType:
             ...
 
@@ -359,12 +359,12 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             assert cope is None
             return 451.123
 
-        result = context.execute(callback, 123, "ok")
+        result = context.call_with_di(callback, 123, "ok")
 
         assert result == 451.123
 
 
-def test_execute_with_ctx_with_union_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_union_type_dependency(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
@@ -376,12 +376,12 @@ def test_execute_with_ctx_with_union_type_dependency(context: alluka.BasicContex
         assert cope is mock_value
         return 243.234
 
-    result = context.execute(callback, 123, "ok")
+    result = context.call_with_di(callback, 123, "ok")
 
     assert result == 243.234
 
 
-def test_execute_with_ctx_with_union_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_union_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
 
@@ -389,14 +389,14 @@ def test_execute_with_ctx_with_union_type_dependency_not_found(context: alluka.B
         raise NotImplementedError
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
-        context.execute(callback, 123, "ok")
+        context.call_with_di(callback, 123, "ok")
 
     assert exc_info.value.dependency_type == typing.Union[mock_type, mock_other_type]
     # On 3.10.1/2+ typing.Unions are converted to | while resolving future annotations so we can't consistently
     # assert the message.
 
 
-def test_execute_with_ctx_with_defaulting_union_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_defaulting_union_type_dependency(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
@@ -410,12 +410,12 @@ def test_execute_with_ctx_with_defaulting_union_type_dependency(context: alluka.
         assert cope is mock_value
         return 243.234
 
-    result = context.execute(callback, 123, "ok")
+    result = context.call_with_di(callback, 123, "ok")
 
     assert result == 243.234
 
 
-def test_execute_with_ctx_with_defaulting_union_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_defaulting_union_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
 
     def callback(
@@ -426,12 +426,12 @@ def test_execute_with_ctx_with_defaulting_union_type_dependency_not_found(contex
         assert cope is None
         return 321.123
 
-    result = context.execute(callback, 123.321, 543)
+    result = context.call_with_di(callback, 123.321, 543)
 
     assert result == 321.123
 
 
-def test_execute_with_ctx_with_annotated_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType
     mock_other_value = GlobalOtherStubType
 
@@ -451,12 +451,12 @@ def test_execute_with_ctx_with_annotated_type_dependency(context: alluka.BasicCo
         GlobalOtherStubType, mock_other_value
     )
 
-    result = context.execute(callback, rawr=69, xd="rew")
+    result = context.call_with_di(callback, rawr=69, xd="rew")
 
     assert result == "meow"
 
 
-def test_execute_with_ctx_with_annotated_type_dependency_inferred_from_type(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_type_dependency_inferred_from_type(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_other_value = GlobalOtherStubType()
 
@@ -476,12 +476,12 @@ def test_execute_with_ctx_with_annotated_type_dependency_inferred_from_type(cont
         GlobalOtherStubType, mock_other_value
     )
 
-    result = context.execute(callback, meow=2222, nyaa="xxxxx")
+    result = context.call_with_di(callback, meow=2222, nyaa="xxxxx")
 
     assert result == "wewewewew"
 
 
-def test_execute_with_ctx_with_annotated_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_type_dependency_not_found(context: alluka.BasicContext):
     mock_other_value = GlobalOtherStubType()
 
     def callback(
@@ -495,7 +495,7 @@ def test_execute_with_ctx_with_annotated_type_dependency_not_found(context: allu
     context.injection_client.set_type_dependency(GlobalOtherStubType, mock_other_value)
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
-        context.execute(callback, meow=2222, nyaa="xxxxx")
+        context.call_with_di(callback, meow=2222, nyaa="xxxxx")
 
     assert exc_info.value.dependency_type is GlobalStubType
     assert exc_info.value.message == f"Couldn't resolve injected type(s) {GlobalStubType} to actual value"
@@ -504,7 +504,7 @@ def test_execute_with_ctx_with_annotated_type_dependency_not_found(context: allu
 # These tests covers syntax which was introduced in 3.10
 if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for |?
 
-    def test_execute_with_ctx_with_annotated_3_10_union_type_dependency(context: alluka.BasicContext):
+    def test_call_with_ctx_with_annotated_3_10_union_type_dependency(context: alluka.BasicContext):
         mock_value = GlobalStubType()
 
         def callback(
@@ -519,24 +519,24 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
         context.injection_client.set_type_dependency(GlobalOtherStubType, mock_value)
 
-        result = context.execute(callback, yeee="yeee", nyaa=True)
+        result = context.call_with_di(callback, yeee="yeee", nyaa=True)
 
         assert result == "hey"
 
-    def test_execute_with_ctx_with_annotated_3_10_union_type_dependency_not_found(context: alluka.BasicContext):
+    def test_call_with_ctx_with_annotated_3_10_union_type_dependency_not_found(context: alluka.BasicContext):
         def callback(
             bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=GlobalOtherStubType | GlobalStubType)]
         ) -> float:
             raise NotImplementedError
 
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
-            context.execute(callback, 123, "ok")
+            context.call_with_di(callback, 123, "ok")
 
         assert exc_info.value.dependency_type == GlobalOtherStubType | GlobalStubType
         # 3.10.1/2+ and 3.11 may re-order the | union types while resolving them from a string
         # future annotation so we can't reliably assert these.
 
-    def test_execute_with_ctx_with_annotated_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
+    def test_call_with_ctx_with_annotated_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
         mock_value = GlobalStubType()
 
         context.injection_client.set_type_dependency(GlobalStubType, mock_value)
@@ -551,11 +551,11 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             assert cope is mock_value
             return 451.123
 
-        result = context.execute(callback, 123, "ok")
+        result = context.call_with_di(callback, 123, "ok")
 
         assert result == 451.123
 
-    def test_execute_with_ctx_with_annotated_3_10_union_type_dependency_defaulting_not_found(
+    def test_call_with_ctx_with_annotated_3_10_union_type_dependency_defaulting_not_found(
         context: alluka.BasicContext,
     ):
         def callback(
@@ -568,11 +568,11 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             assert cope is None
             return 451.123
 
-        result = context.execute(callback, 123, "ok")
+        result = context.call_with_di(callback, 123, "ok")
 
         assert result == 451.123
 
-    def test_execute_with_ctx_with_annotated_3_10_union_type_dependency_natural_defaulting(
+    def test_call_with_ctx_with_annotated_3_10_union_type_dependency_natural_defaulting(
         context: alluka.BasicContext,
     ):
         mock_value = GlobalStubType()
@@ -589,11 +589,11 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             assert cope is mock_value
             return 451.123
 
-        result = context.execute(callback, 123, "ok")
+        result = context.call_with_di(callback, 123, "ok")
 
         assert result == 451.123
 
-    def test_execute_with_ctx_with_annotated_3_10_union_type_dependency_natural_defaulting_not_found(
+    def test_call_with_ctx_with_annotated_3_10_union_type_dependency_natural_defaulting_not_found(
         context: alluka.BasicContext,
     ):
         def callback(
@@ -606,12 +606,12 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             assert cope == 43123
             return 451.123
 
-        result = context.execute(callback, 123, "ok")
+        result = context.call_with_di(callback, 123, "ok")
 
         assert result == 451.123
 
 
-def test_execute_with_ctx_with_annotated_union_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_union_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalOtherStubType()
 
     def callback(
@@ -624,12 +624,12 @@ def test_execute_with_ctx_with_annotated_union_type_dependency(context: alluka.B
 
     context.injection_client.set_type_dependency(GlobalOtherStubType, mock_value)
 
-    result = context.execute(callback, 1233212)
+    result = context.call_with_di(callback, 1233212)
 
     assert result == "yay"
 
 
-def test_execute_with_ctx_with_annotated_union_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_union_type_dependency_not_found(context: alluka.BasicContext):
     def callback(
         yeee: str,
         nyaa: bool,
@@ -638,14 +638,14 @@ def test_execute_with_ctx_with_annotated_union_type_dependency_not_found(context
         raise NotImplementedError
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
-        context.execute(callback, yeee="yeee", nyaa=True)
+        context.call_with_di(callback, yeee="yeee", nyaa=True)
 
     assert exc_info.value.dependency_type == typing.Union[GlobalStubType, GlobalOtherStubType]
     # On 3.10.1/2+ typing.Unions are converted to | while resolving future annotations so we can't consistently
     # assert the message.
 
 
-def test_execute_with_ctx_with_annotated_defaulting_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_defaulting_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     context.injection_client.set_type_dependency(GlobalStubType, mock_value)
 
@@ -659,12 +659,12 @@ def test_execute_with_ctx_with_annotated_defaulting_type_dependency(context: all
         assert yeet is mock_value
         return "aaaaa"
 
-    result = context.execute(callback, "easd", nyaa=False)
+    result = context.call_with_di(callback, "easd", nyaa=False)
 
     assert result == "aaaaa"
 
 
-def test_execute_with_ctx_with_annotated_defaulting_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_defaulting_type_dependency_not_found(context: alluka.BasicContext):
     def callback(
         eaaaa: str,
         nyaa: bool,
@@ -675,12 +675,12 @@ def test_execute_with_ctx_with_annotated_defaulting_type_dependency_not_found(co
         assert yeet is None
         return "aaaaa"
 
-    result = context.execute(callback, "easd", nyaa=False)
+    result = context.call_with_di(callback, "easd", nyaa=False)
 
     assert result == "aaaaa"
 
 
-def test_execute_with_ctx_with_annotated_natural_defaulting_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_natural_defaulting_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     context.injection_client.set_type_dependency(GlobalStubType, mock_value)
 
@@ -694,12 +694,12 @@ def test_execute_with_ctx_with_annotated_natural_defaulting_type_dependency(cont
         assert yeet is mock_value
         return "aaaaa"
 
-    result = context.execute(callback, "easd", nyaa=False)
+    result = context.call_with_di(callback, "easd", nyaa=False)
 
     assert result == "aaaaa"
 
 
-def test_execute_with_ctx_with_annotated_natural_defaulting_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_natural_defaulting_type_dependency_not_found(context: alluka.BasicContext):
     def callback(
         eaaaa: str,
         nyaa: bool,
@@ -710,12 +710,12 @@ def test_execute_with_ctx_with_annotated_natural_defaulting_type_dependency_not_
         assert yeet == 123
         return "aaaaa"
 
-    result = context.execute(callback, "easd", nyaa=False)
+    result = context.call_with_di(callback, "easd", nyaa=False)
 
     assert result == "aaaaa"
 
 
-def test_execute_with_ctx_with_annotated_defaulting_union_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_defaulting_union_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalOtherStubType()
     context.injection_client.set_type_dependency(GlobalOtherStubType, mock_value)
 
@@ -727,12 +727,12 @@ def test_execute_with_ctx_with_annotated_defaulting_union_type_dependency(contex
         assert value is mock_value
         return "ea sports"
 
-    result = context.execute(callback, 123)
+    result = context.call_with_di(callback, 123)
 
     assert result == "ea sports"
 
 
-def test_execute_with_ctx_with_annotated_defaulting_union_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_defaulting_union_type_dependency_not_found(context: alluka.BasicContext):
     def callback(
         vvvvv: int,
         value: typing.Annotated[str, alluka.inject(type=typing.Optional[GlobalStubType])],
@@ -741,12 +741,12 @@ def test_execute_with_ctx_with_annotated_defaulting_union_type_dependency_not_fo
         assert value is None
         return "yeeee"
 
-    result = context.execute(callback, 123)
+    result = context.call_with_di(callback, 123)
 
     assert result == "yeeee"
 
 
-def test_execute_with_ctx_with_annotated_natural_defaulting_union_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_natural_defaulting_union_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalOtherStubType()
     context.injection_client.set_type_dependency(GlobalOtherStubType, mock_value)
 
@@ -758,12 +758,12 @@ def test_execute_with_ctx_with_annotated_natural_defaulting_union_type_dependenc
         assert value is mock_value
         return "ea sports"
 
-    result = context.execute(callback, 123)
+    result = context.call_with_di(callback, 123)
 
     assert result == "ea sports"
 
 
-def test_execute_with_ctx_with_annotated_natural_defaulting_union_type_dependency_not_found(
+def test_call_with_ctx_with_annotated_natural_defaulting_union_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
     def callback(
@@ -776,12 +776,12 @@ def test_execute_with_ctx_with_annotated_natural_defaulting_union_type_dependenc
         assert value == "default 2"
         return "yeeee"
 
-    result = context.execute(callback, 123)
+    result = context.call_with_di(callback, 123)
 
     assert result == "yeeee"
 
 
-def test_execute_with_ctx_with_shorthand_annotated_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_shorthand_annotated_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_other_value = GlobalOtherStubType()
 
@@ -798,12 +798,12 @@ def test_execute_with_ctx_with_shorthand_annotated_type_dependency(context: allu
         GlobalOtherStubType, mock_other_value
     )
 
-    result = context.execute(callback, 1233212, xd="seee")
+    result = context.call_with_di(callback, 1233212, xd="seee")
 
     assert result == "eeesss"
 
 
-def test_execute_with_ctx_with_shorthand_annotated_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_shorthand_annotated_type_dependency_not_found(context: alluka.BasicContext):
     mock_other_value = GlobalOtherStubType()
 
     def callback(
@@ -817,7 +817,7 @@ def test_execute_with_ctx_with_shorthand_annotated_type_dependency_not_found(con
     context.injection_client.set_type_dependency(GlobalOtherStubType, mock_other_value)
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
-        context.execute(callback, meow=2222, nyaa="xxxxx")
+        context.call_with_di(callback, meow=2222, nyaa="xxxxx")
 
     assert exc_info.value.dependency_type is GlobalStubType
     assert exc_info.value.message == f"Couldn't resolve injected type(s) {GlobalStubType} to actual value"
@@ -826,7 +826,7 @@ def test_execute_with_ctx_with_shorthand_annotated_type_dependency_not_found(con
 # These tests covers syntax which was introduced in 3.10
 if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for |?
 
-    def test_execute_with_ctx_with_shorthand_annotated_3_10_union_type_dependency(context: alluka.BasicContext):
+    def test_call_with_ctx_with_shorthand_annotated_3_10_union_type_dependency(context: alluka.BasicContext):
         mock_value = GlobalOtherStubType()
 
         def callback(
@@ -841,24 +841,24 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
         context.injection_client.set_type_dependency(GlobalStubType, mock_value)
 
-        result = context.execute(callback, yeee="yeee", nyaa=True)
+        result = context.call_with_di(callback, yeee="yeee", nyaa=True)
 
         assert result == "hey"
 
-    def test_execute_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_not_found(
+    def test_call_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_not_found(
         context: alluka.BasicContext,
     ):
         def callback(bar: int, baz: str, cope: alluka.Injected[GlobalOtherStubType | GlobalStubType]) -> float:
             raise NotImplementedError
 
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
-            context.execute(callback, 123, "ok")
+            context.call_with_di(callback, 123, "ok")
 
         assert exc_info.value.dependency_type == GlobalOtherStubType | GlobalStubType
         # 3.10.1/2+ and 3.11 may re-order the | union types while resolving them from a string
         # future annotation so we can't reliably assert these.
 
-    def test_execute_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_defaulting(
+    def test_call_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_defaulting(
         context: alluka.BasicContext,
     ):
         mock_value = GlobalStubType()
@@ -871,11 +871,11 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             assert cope is mock_value
             return 451.123
 
-        result = context.execute(callback, 123, "ok")
+        result = context.call_with_di(callback, 123, "ok")
 
         assert result == 451.123
 
-    def test_execute_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_defaulting_not_found(
+    def test_(
         context: alluka.BasicContext,
     ):
         def callback(bar: int, baz: str, cope: alluka.Injected[GlobalOtherStubType | GlobalStubType | None]) -> float:
@@ -884,11 +884,11 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             assert cope is None
             return 451.123
 
-        result = context.execute(callback, 123, "ok")
+        result = context.call_with_di(callback, 123, "ok")
 
         assert result == 451.123
 
-    def test_execute_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_natural_defaulting(
+    def test_call_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_natural_defaulting(
         context: alluka.BasicContext,
     ):
         mock_value = GlobalStubType()
@@ -905,11 +905,11 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             assert cope is mock_value
             return 451.123
 
-        result = context.execute(callback, 123, "ok")
+        result = context.call_with_di(callback, 123, "ok")
 
         assert result == 451.123
 
-    def test_execute_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_natural_defaulting_not_found(
+    def test_call_with_ctx_with_shorthand_annotated_3_10_union_type_dependency_natural_defaulting_not_found(
         context: alluka.BasicContext,
     ):
         mock_default = mock.Mock()
@@ -922,12 +922,12 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             assert cope is mock_default
             return 451.123
 
-        result = context.execute(callback, 123, "ok")
+        result = context.call_with_di(callback, 123, "ok")
 
         assert result == 451.123
 
 
-def test_execute_with_ctx_with_shorthand_annotated_union_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_shorthand_annotated_union_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalOtherStubType()
 
     def callback(
@@ -940,12 +940,12 @@ def test_execute_with_ctx_with_shorthand_annotated_union_type_dependency(context
 
     context.injection_client.set_type_dependency(GlobalOtherStubType, mock_value)
 
-    result = context.execute(callback, 1233212)
+    result = context.call_with_di(callback, 1233212)
 
     assert result == "yay"
 
 
-def test_execute_with_ctx_with_shorthand_annotated_union_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_shorthand_annotated_union_type_dependency_not_found(context: alluka.BasicContext):
     def callback(
         yeee: str,
         nyaa: bool,
@@ -954,14 +954,14 @@ def test_execute_with_ctx_with_shorthand_annotated_union_type_dependency_not_fou
         raise NotImplementedError
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
-        context.execute(callback, yeee="yeee", nyaa=True)
+        context.call_with_di(callback, yeee="yeee", nyaa=True)
 
     assert exc_info.value.dependency_type == typing.Union[GlobalStubType, GlobalOtherStubType]
     # On 3.10.1/2+ typing.Unions are converted to | while resolving future annotations so we can't consistently
     # assert the message.
 
 
-def test_execute_with_ctx_with_shorthand_annotated_defaulting_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_shorthand_annotated_defaulting_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     context.injection_client.set_type_dependency(GlobalStubType, mock_value)
 
@@ -975,12 +975,12 @@ def test_execute_with_ctx_with_shorthand_annotated_defaulting_type_dependency(co
         assert yeet is mock_value
         return "aaaaa"
 
-    result = context.execute(callback, "easd", nyaa=False)
+    result = context.call_with_di(callback, "easd", nyaa=False)
 
     assert result == "aaaaa"
 
 
-def test_execute_with_ctx_with_shorthand_annotated_defaulting_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_shorthand_annotated_defaulting_type_dependency_not_found(context: alluka.BasicContext):
     def callback(
         eaaaa: str,
         nyaa: bool,
@@ -991,12 +991,12 @@ def test_execute_with_ctx_with_shorthand_annotated_defaulting_type_dependency_no
         assert yeet is None
         return "aaaaa"
 
-    result = context.execute(callback, "easd", nyaa=False)
+    result = context.call_with_di(callback, "easd", nyaa=False)
 
     assert result == "aaaaa"
 
 
-def test_execute_with_ctx_with_shorthand_annotated_natural_defaulting_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_shorthand_annotated_natural_defaulting_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     context.injection_client.set_type_dependency(GlobalStubType, mock_value)
 
@@ -1010,12 +1010,12 @@ def test_execute_with_ctx_with_shorthand_annotated_natural_defaulting_type_depen
         assert yeet is mock_value
         return "aaaaa"
 
-    result = context.execute(callback, "easd", nyaa=False)
+    result = context.call_with_di(callback, "easd", nyaa=False)
 
     assert result == "aaaaa"
 
 
-def test_execute_with_ctx_with_shorthand_annotated_natural_defaulting_type_dependency_not_found(
+def test_call_with_ctx_with_shorthand_annotated_natural_defaulting_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
     mock_default = GlobalStubType()
@@ -1030,12 +1030,12 @@ def test_execute_with_ctx_with_shorthand_annotated_natural_defaulting_type_depen
         assert yeet is mock_default
         return "aaaaa"
 
-    result = context.execute(callback, "easd", nyaa=False)
+    result = context.call_with_di(callback, "easd", nyaa=False)
 
     assert result == "aaaaa"
 
 
-def test_execute_with_ctx_with_shorthand_annotated_defaulting_union_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_shorthand_annotated_defaulting_union_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalOtherStubType()
     context.injection_client.set_type_dependency(GlobalOtherStubType, mock_value)
 
@@ -1047,12 +1047,12 @@ def test_execute_with_ctx_with_shorthand_annotated_defaulting_union_type_depende
         assert value is mock_value
         return "ea sports"
 
-    result = context.execute(callback, 123)
+    result = context.call_with_di(callback, 123)
 
     assert result == "ea sports"
 
 
-def test_execute_with_ctx_with_shorthand_annotated_defaulting_union_type_dependency_not_found(
+def test_call_with_ctx_with_shorthand_annotated_defaulting_union_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
     def callback(
@@ -1063,12 +1063,12 @@ def test_execute_with_ctx_with_shorthand_annotated_defaulting_union_type_depende
         assert value is None
         return "yeeee"
 
-    result = context.execute(callback, 123)
+    result = context.call_with_di(callback, 123)
 
     assert result == "yeeee"
 
 
-def test_execute_with_ctx_with_shorthand_annotated_natural_defaulting_union_type_dependency(
+def test_call_with_ctx_with_shorthand_annotated_natural_defaulting_union_type_dependency(
     context: alluka.BasicContext,
 ):
     mock_value = GlobalOtherStubType()
@@ -1082,12 +1082,12 @@ def test_execute_with_ctx_with_shorthand_annotated_natural_defaulting_union_type
         assert value is mock_value
         return "ea sports"
 
-    result = context.execute(callback, 123)
+    result = context.call_with_di(callback, 123)
 
     assert result == "ea sports"
 
 
-def test_execute_with_ctx_with_shorthand_annotated_natural_defaulting_union_type_dependency_not_found(
+def test_call_with_ctx_with_shorthand_annotated_natural_defaulting_union_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
     mock_default = GlobalStubType()
@@ -1100,12 +1100,12 @@ def test_execute_with_ctx_with_shorthand_annotated_natural_defaulting_union_type
         assert value is mock_default
         return "yeeee"
 
-    result = context.execute(callback, 123)
+    result = context.call_with_di(callback, 123)
 
     assert result == "yeeee"
 
 
-def test_execute_with_ctx_with_callback_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_callback_dependency(context: alluka.BasicContext):
     mock_callback = mock.Mock()
 
     def callback(foo: int, result: int = alluka.inject(callback=mock_callback)) -> int:
@@ -1113,12 +1113,12 @@ def test_execute_with_ctx_with_callback_dependency(context: alluka.BasicContext)
         assert result is mock_callback.return_value
         return 43123
 
-    result = context.execute(callback, 123)
+    result = context.call_with_di(callback, 123)
 
     assert result == 43123
 
 
-def test_execute_with_ctx_with_sub_callback_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_sub_callback_dependency(context: alluka.BasicContext):
     mock_callback = mock.Mock()
 
     def dependency(result: int = alluka.inject(callback=mock_callback)) -> int:
@@ -1130,12 +1130,12 @@ def test_execute_with_ctx_with_sub_callback_dependency(context: alluka.BasicCont
         assert result == 541232
         return "43123"
 
-    result = context.execute(callback, 123)
+    result = context.call_with_di(callback, 123)
 
     assert result == "43123"
 
 
-def test_execute_with_ctx_with_annotated_callback_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_callback_dependency(context: alluka.BasicContext):
     global mock_callback
     mock_callback = mock.Mock()
 
@@ -1144,13 +1144,13 @@ def test_execute_with_ctx_with_annotated_callback_dependency(context: alluka.Bas
         assert result is mock_callback.return_value
         return 43123
 
-    result = context.execute(callback, 123)
+    result = context.call_with_di(callback, 123)
 
     assert result == 43123
     mock_callback.assert_called_once_with()
 
 
-def test_execute_with_ctx_with_annotated_sub_callback_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_sub_callback_dependency(context: alluka.BasicContext):
     global mock_callback
     global dependency_1
     mock_callback = mock.Mock()
@@ -1164,12 +1164,12 @@ def test_execute_with_ctx_with_annotated_sub_callback_dependency(context: alluka
         assert result == 541232
         return "43123"
 
-    result = context.execute(callback, 123)
+    result = context.call_with_di(callback, 123)
 
     assert result == "43123"
 
 
-def test_execute_with_ctx_with_sub_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_sub_type_dependency(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
     context.injection_client.set_type_dependency(mock_type, mock_value)
@@ -1183,12 +1183,12 @@ def test_execute_with_ctx_with_sub_type_dependency(context: alluka.BasicContext)
         assert result == 123321
         return "asddsa"
 
-    result = context.execute(callback, 54123)
+    result = context.call_with_di(callback, 54123)
 
     assert result == "asddsa"
 
 
-def test_execute_with_ctx_with_sub_type_dependency_not_found(context: alluka.BasicContext):
+def test_call_with_ctx_with_sub_type_dependency_not_found(context: alluka.BasicContext):
     global dependency
 
     def dependency_2(result: typing.Annotated[int, alluka.inject(type=GlobalStubType)]) -> int:
@@ -1198,13 +1198,13 @@ def test_execute_with_ctx_with_sub_type_dependency_not_found(context: alluka.Bas
         raise NotImplementedError
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
-        context.execute(callback, 54123)
+        context.call_with_di(callback, 54123)
 
     assert exc_info.value.dependency_type is GlobalStubType
     assert exc_info.value.message == (f"Couldn't resolve injected type(s) {GlobalStubType} to actual value")
 
 
-def test_execute_with_ctx_when_async_callback(context: alluka.BasicContext):
+def test_call_with_ctx_when_async_callback(context: alluka.BasicContext):
     async def callback() -> None:
         raise NotImplementedError
 
@@ -1212,10 +1212,10 @@ def test_execute_with_ctx_when_async_callback(context: alluka.BasicContext):
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
         with pytest.raises(alluka.AsyncOnlyError):
-            context.execute(callback)
+            context.call_with_di(callback)
 
 
-def test_execute_with_ctx_with_async_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_async_dependency(context: alluka.BasicContext):
     async def async_dependency() -> None:
         raise NotImplementedError
 
@@ -1226,10 +1226,10 @@ def test_execute_with_ctx_with_async_dependency(context: alluka.BasicContext):
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
         with pytest.raises(alluka.AsyncOnlyError):
-            context.execute(callback)
+            context.call_with_di(callback)
 
 
-def test_execute_with_ctx_with_overridden_async_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_overridden_async_dependency(context: alluka.BasicContext):
     async def override() -> None:
         raise NotImplementedError
 
@@ -1245,10 +1245,10 @@ def test_execute_with_ctx_with_overridden_async_dependency(context: alluka.Basic
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
         with pytest.raises(alluka.AsyncOnlyError):
-            context.execute(callback)
+            context.call_with_di(callback)
 
 
-def test_execute_with_ctx_with_sub_async_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_sub_async_dependency(context: alluka.BasicContext):
     async def async_sub_dependency() -> None:
         raise NotImplementedError
 
@@ -1262,10 +1262,10 @@ def test_execute_with_ctx_with_sub_async_dependency(context: alluka.BasicContext
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
         with pytest.raises(alluka.AsyncOnlyError):
-            context.execute(callback)
+            context.call_with_di(callback)
 
 
-def test_execute_with_ctx_with_overridden_sub_async_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_overridden_sub_async_dependency(context: alluka.BasicContext):
     async def override() -> None:
         raise NotImplementedError
 
@@ -1284,10 +1284,10 @@ def test_execute_with_ctx_with_overridden_sub_async_dependency(context: alluka.B
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
         with pytest.raises(alluka.AsyncOnlyError):
-            context.execute(callback)
+            context.call_with_di(callback)
 
 
-def test_execute_with_ctx_with_annotated_async_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_async_dependency(context: alluka.BasicContext):
     global async_dependency
 
     async def async_dependency() -> None:
@@ -1300,10 +1300,10 @@ def test_execute_with_ctx_with_annotated_async_dependency(context: alluka.BasicC
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
         with pytest.raises(alluka.AsyncOnlyError):
-            context.execute(callback)
+            context.call_with_di(callback)
 
 
-def test_execute_with_ctx_with_overridden_annotated_async_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_overridden_annotated_async_dependency(context: alluka.BasicContext):
     async def override() -> None:
         raise NotImplementedError
 
@@ -1319,10 +1319,10 @@ def test_execute_with_ctx_with_overridden_annotated_async_dependency(context: al
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
         with pytest.raises(alluka.AsyncOnlyError):
-            context.execute(callback)
+            context.call_with_di(callback)
 
 
-def test_execute_with_ctx_with_annotated_sub_async_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_annotated_sub_async_dependency(context: alluka.BasicContext):
     global async_sub_dependency
     global dependency_3
 
@@ -1339,10 +1339,10 @@ def test_execute_with_ctx_with_annotated_sub_async_dependency(context: alluka.Ba
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
         with pytest.raises(alluka.AsyncOnlyError):
-            context.execute(callback)
+            context.call_with_di(callback)
 
 
-def test_execute_with_ctx_with_overridden_annotated_sub_async_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_overridden_annotated_sub_async_dependency(context: alluka.BasicContext):
     global sub_dependency
     global dependency
 
@@ -1364,7 +1364,7 @@ def test_execute_with_ctx_with_overridden_annotated_sub_async_dependency(context
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
         with pytest.raises(alluka.AsyncOnlyError):
-            context.execute(callback)
+            context.call_with_di(callback)
 
 
 ################################
@@ -1372,15 +1372,15 @@ def test_execute_with_ctx_with_overridden_annotated_sub_async_dependency(context
 ################################
 
 
-def test_execute_with_ctx_with_positional_only_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_positional_only_type_dependency(context: alluka.BasicContext):
     def callback(foo: int, bar: str = alluka.inject(type=float), /, baz: float = alluka.inject(type=float)) -> None:
         raise NotImplementedError
 
     with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
-        context.execute(callback)
+        context.call_with_di(callback)
 
 
-def test_execute_with_ctx_with_positional_only_callback_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_positional_only_callback_dependency(context: alluka.BasicContext):
     mock_dependency = mock.Mock()
 
     def callback(
@@ -1389,10 +1389,10 @@ def test_execute_with_ctx_with_positional_only_callback_dependency(context: allu
         raise NotImplementedError
 
     with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
-        context.execute(callback)
+        context.call_with_di(callback)
 
 
-def test_execute_with_ctx_with_sub_positional_only_callback_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_sub_positional_only_callback_dependency(context: alluka.BasicContext):
     sub_dependency = mock.Mock()
 
     def dependency(baz: str = alluka.inject(callback=sub_dependency), /) -> str:
@@ -1404,10 +1404,10 @@ def test_execute_with_ctx_with_sub_positional_only_callback_dependency(context: 
         raise NotImplementedError
 
     with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
-        context.execute(callback)
+        context.call_with_di(callback)
 
 
-def test_execute_with_ctx_with_sub_positional_only_type_dependency(context: alluka.BasicContext):
+def test_call_with_ctx_with_sub_positional_only_type_dependency(context: alluka.BasicContext):
     def dependency(baz: str = alluka.inject(type=int), /) -> str:
         raise NotImplementedError
 
@@ -1417,4 +1417,4 @@ def test_execute_with_ctx_with_sub_positional_only_type_dependency(context: allu
         raise NotImplementedError
 
     with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
-        context.execute(callback)
+        context.call_with_di(callback)

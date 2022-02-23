@@ -81,7 +81,7 @@ class InjectedCallback:
             the context's client.
         """
         callback = ctx.injection_client.get_callback_override(self.callback) or self.callback
-        return ctx.injection_client.execute_with_ctx(ctx, callback)
+        return ctx.injection_client.call_with_ctx(ctx, callback)
 
     def resolve_async(self, ctx: abc.Context) -> collections.Coroutine[typing.Any, typing.Any, typing.Any]:
         """Asynchronously resolve the callback.
@@ -98,7 +98,7 @@ class InjectedCallback:
             the context's client.
         """
         callback = ctx.injection_client.get_callback_override(self.callback) or self.callback
-        return ctx.injection_client.execute_with_ctx_async(ctx, callback)
+        return ctx.injection_client.call_with_ctx_async(ctx, callback)
 
 
 class InjectedType:
@@ -221,7 +221,7 @@ class InjectedDescriptor(typing.Generic[_T]):
 
             If this callback has no type dependencies then this will still work
             without an injection context but this can be overridden using
-            [alluka.Client.set_callback_override][].
+            [alluka.abc.Client.set_callback_override][].
         type
             The type of the dependency to resolve.
 
