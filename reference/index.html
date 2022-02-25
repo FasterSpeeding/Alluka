@@ -1,0 +1,1687 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.1">
+    
+    
+      
+        <title>alluka - Alluka docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.e8d9bf0c.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="cyan" data-md-color-accent="">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#alluka_1" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Alluka docs" class="md-header__button md-logo" aria-label="Alluka docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Alluka docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              alluka
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="cyan" data-md-color-accent=""  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1z"/></svg>
+            </label>
+          
+        
+          
+          
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent=""  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Alluka docs" class="md-nav__button md-logo" aria-label="Alluka docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Alluka docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        Usage
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          alluka
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        alluka
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#alluka" class="md-nav__link">
+    alluka
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.Injected" class="md-nav__link">
+    Injected
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.AllukaError" class="md-nav__link">
+    AllukaError
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.AsyncOnlyError" class="md-nav__link">
+    AsyncOnlyError
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.AsyncSelfInjecting" class="md-nav__link">
+    AsyncSelfInjecting
+  </a>
+  
+    <nav class="md-nav" aria-label="AsyncSelfInjecting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alluka._self_injecting.AsyncSelfInjecting.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.BasicContext" class="md-nav__link">
+    BasicContext
+  </a>
+  
+    <nav class="md-nav" aria-label="BasicContext">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alluka._client.BasicContext.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.Client" class="md-nav__link">
+    Client
+  </a>
+  
+    <nav class="md-nav" aria-label="Client">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alluka._client.Client.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.InjectedDescriptor" class="md-nav__link">
+    InjectedDescriptor
+  </a>
+  
+    <nav class="md-nav" aria-label="InjectedDescriptor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alluka._types.InjectedDescriptor.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.MissingDependencyError" class="md-nav__link">
+    MissingDependencyError
+  </a>
+  
+    <nav class="md-nav" aria-label="MissingDependencyError">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alluka._errors.MissingDependencyError.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.SelfInjecting" class="md-nav__link">
+    SelfInjecting
+  </a>
+  
+    <nav class="md-nav" aria-label="SelfInjecting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alluka._self_injecting.SelfInjecting.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.inject" class="md-nav__link">
+    inject()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="abc/" class="md-nav__link">
+        alluka.abc
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#alluka" class="md-nav__link">
+    alluka
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.Injected" class="md-nav__link">
+    Injected
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.AllukaError" class="md-nav__link">
+    AllukaError
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.AsyncOnlyError" class="md-nav__link">
+    AsyncOnlyError
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.AsyncSelfInjecting" class="md-nav__link">
+    AsyncSelfInjecting
+  </a>
+  
+    <nav class="md-nav" aria-label="AsyncSelfInjecting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alluka._self_injecting.AsyncSelfInjecting.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.BasicContext" class="md-nav__link">
+    BasicContext
+  </a>
+  
+    <nav class="md-nav" aria-label="BasicContext">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alluka._client.BasicContext.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.Client" class="md-nav__link">
+    Client
+  </a>
+  
+    <nav class="md-nav" aria-label="Client">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alluka._client.Client.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.InjectedDescriptor" class="md-nav__link">
+    InjectedDescriptor
+  </a>
+  
+    <nav class="md-nav" aria-label="InjectedDescriptor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alluka._types.InjectedDescriptor.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.MissingDependencyError" class="md-nav__link">
+    MissingDependencyError
+  </a>
+  
+    <nav class="md-nav" aria-label="MissingDependencyError">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alluka._errors.MissingDependencyError.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.SelfInjecting" class="md-nav__link">
+    SelfInjecting
+  </a>
+  
+    <nav class="md-nav" aria-label="SelfInjecting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alluka._self_injecting.SelfInjecting.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alluka.inject" class="md-nav__link">
+    inject()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+
+
+<h1 id="alluka_1">alluka</h1>
+
+
+  <div class="doc doc-object doc-module">
+
+<a id="alluka"></a>
+    <div class="doc doc-contents first">
+
+      <p>A type based dependency injection framework for Python 3.9+.</p>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="alluka.Injected" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">Injected</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">Annotated</span><span class="p">[</span><span class="n">_T</span><span class="p">,</span> <span class="n">InjectedTypes</span><span class="o">.</span><span class="n">TYPE</span><span class="p">]</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Type alias used to declare a keyword argument as requiring an injected type.</p>
+<p>If a union (e.g. <code>typing.Union[A, B]</code>, <code>A | B</code>, <code>typing.Optional[A]</code>)
+is passed then each type in the union will be tried separately rather than
+the literal type, allowing for resolving <code>A | B</code> to the value set by
+<code>set_type_dependency(B, ...)</code>.</p>
+<p>If a union has <code>None</code> as one of its types (including <code>Optional[T]</code>)
+then <code>None</code> will be passed for the parameter if none of the types could
+be resolved using the linked client.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is a <a href="https://docs.python.org/3.9/library/typing.html#typing.Annotated">typing.Annotated</a> alias and the behaviour for nested
+Annotated types may be found at the docs for it <a href="https://docs.python.org/3.9/library/typing.html#typing.Annotated">typing.Annotated</a>.</p>
+</div>
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="alluka.AllukaError" class="doc doc-heading">
+          <code>AllukaError</code>
+
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+        <p class="doc doc-class-bases">
+          Bases: <code><a href="https://docs.python.org/3.9/library/exceptions.html#Exception">Exception</a></code></p>
+
+
+      <p>Base clases for the custom errirs raised by Alluka.</p>
+
+
+
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="alluka.AsyncOnlyError" class="doc doc-heading">
+          <code>AsyncOnlyError</code>
+
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+        <p class="doc doc-class-bases">
+          Bases: <code><a title="alluka._errors.AllukaError" href="#alluka.AllukaError">AllukaError</a></code></p>
+
+
+      <p>Error raised when trying to execute async DI in a sync context.</p>
+
+
+
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="alluka.AsyncSelfInjecting" class="doc doc-heading">
+          <code>AsyncSelfInjecting</code>
+
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+        <p class="doc doc-class-bases">
+          Bases: <code><a title="alluka.abc" href="abc/#alluka.abc">abc</a>.<a title="alluka.abc.AsyncSelfInjecting" href="abc/#alluka.abc.AsyncSelfInjecting">AsyncSelfInjecting</a>[<span title="alluka._self_injecting._CallbackSigT">_CallbackSigT</span>]</code></p>
+
+
+      <p>Class used to link a sync function to a client to make it self-injecting.</p>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">database</span><span class="p">:</span> <span class="n">Database</span> <span class="o">=</span> <span class="n">alluka</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">Database</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">database</span><span class="o">.</span><span class="n">do_something</span><span class="p">()</span>
+<span class="o">...</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">alluka</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
+<span class="n">injecting_callback</span> <span class="o">=</span> <span class="n">alluka</span><span class="o">.</span><span class="n">AsyncSelfInjecting</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">client</span><span class="p">)</span>
+<span class="k">await</span> <span class="n">injecting_callback</span><span class="p">()</span>
+</code></pre></div>
+<p>Alternatively <a href="abc/#alluka.abc.Client.as_async_self_injecting">alluka.abc.Client.as_async_self_injecting</a> may be used:</p>
+<div class="highlight"><pre><span></span><code><span class="n">client</span> <span class="o">=</span> <span class="n">alluka</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
+
+<span class="nd">@client</span><span class="o">.</span><span class="n">as_async_self_injecting</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">database</span><span class="p">:</span> <span class="n">Database</span> <span class="o">=</span> <span class="n">alluka</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">Database</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+</code></pre></div>
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="alluka._self_injecting.AsyncSelfInjecting.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="o">/</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span></code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Initialise a self injecting callback.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>client</code></td>
+          <td>
+                <code><a title="alluka.abc" href="abc/#alluka.abc">abc</a>.<a title="alluka.abc.Client" href="abc/#alluka.abc.Client">Client</a></code>
+          </td>
+          <td><p>The injection client to use to resolve dependencies.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback</code></td>
+          <td>
+                <code>alluka.abc.CallbackSig</code>
+          </td>
+          <td><p>The callback to make self-injecting.</p>
+<p>This may be sync or async.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td><p>If <code>callback</code> has any injected arguments which can only be passed
+positionally.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="alluka.BasicContext" class="doc doc-heading">
+          <code>BasicContext</code>
+
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+        <p class="doc doc-class-bases">
+          Bases: <code><a title="alluka.abc" href="abc/#alluka.abc">abc</a>.<a title="alluka.abc.Context" href="abc/#alluka.abc.Context">Context</a></code></p>
+
+
+      <p>Basic implementation of <a href="abc/#alluka.abc.Context">alluka.abc.Context</a>.</p>
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="alluka._client.BasicContext.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="o">/</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">)</span></code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Initialise a basic injection context.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>client</code></td>
+          <td>
+                <code><a title="alluka.abc" href="abc/#alluka.abc">abc</a>.<a title="alluka.abc.Client" href="abc/#alluka.abc.Client">Client</a></code>
+          </td>
+          <td><p>The injection client this context is bound to.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="alluka.Client" class="doc doc-heading">
+          <code>Client</code>
+
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+        <p class="doc doc-class-bases">
+          Bases: <code><a title="alluka.abc" href="abc/#alluka.abc">abc</a>.<a title="alluka.abc.Client" href="abc/#alluka.abc.Client">Client</a></code></p>
+
+
+      <p>Standard implementation of a dependency injection client.</p>
+<p>This is used to track type dependencies and execute callbacks.</p>
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="alluka._client.Client.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">introspect_annotations</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Initialise an injector client.</p>
+
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="alluka.InjectedDescriptor" class="doc doc-heading">
+          <code>InjectedDescriptor</code>
+
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+        <p class="doc doc-class-bases">
+          Bases: <code><a href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a title="typing.Generic" href="https://docs.python.org/3.9/library/typing.html#typing.Generic">Generic</a>[<span title="alluka._types._T">_T</span>]</code></p>
+
+
+      <p>Descriptor used to a declare keyword-argument as requiring an injected dependency.</p>
+<p>This is the type returned by <a href="#alluka.inject">alluka.inject</a>.</p>
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="alluka._types.InjectedDescriptor.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Initialise an injection default descriptor.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If neither <code>type</code> or <code>callback</code> is provided, an injected type
+will be inferred from the argument's annotation.</p>
+</div>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>callback</code></td>
+          <td>
+                <code><a href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a title="alluka.abc" href="abc/#alluka.abc">abc</a>.<a title="alluka.abc.CallbackSig" href="abc/#alluka.abc.CallbackSig">CallbackSig</a>[<span title="alluka._types._T">_T</span>]]</code>
+          </td>
+          <td><p>The callback to use to resolve the dependency.</p>
+<p>If this callback has no type dependencies then this will still work
+without an injection context but this can be overridden using
+<a href="abc/#alluka.abc.Client.set_callback_override">alluka.abc.Client.set_callback_override</a>.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>type</code></td>
+          <td>
+                <code><a href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<span title="alluka._types._TypeT">_TypeT</span>[<span title="alluka._types._T">_T</span>]]</code>
+          </td>
+          <td><p>The type of the dependency to resolve.</p>
+<p>If a union (e.g. <code>typing.Union[A, B]</code>, <code>A | B</code>, <code>typing.Optional[A]</code>)
+is passed for <code>type</code> then each type in the union will be tried
+separately after the litarl union type is tried, allowing for resolving
+<code>A | B</code> to the value set by <code>set_type_dependency(B, ...)</code>.</p>
+<p>If a union has <code>None</code> as one of its types (including <code>Optional[T]</code>)
+then <code>None</code> will be passed for the parameter if none of the types could
+be resolved using the linked client.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td><p>If both <code>callback</code> and <code>type</code> are provided.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="alluka.MissingDependencyError" class="doc doc-heading">
+          <code>MissingDependencyError</code>
+
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+        <p class="doc doc-class-bases">
+          Bases: <code><a title="alluka._errors.AllukaError" href="../#alluka.AllukaError">AllukaError</a></code></p>
+
+
+      <p>Error raised when a dependency couldn't be found.</p>
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="alluka._errors.MissingDependencyError.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="o">/</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">dependency_type</span><span class="p">)</span></code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Initialise a missing dependency error.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>message</code></td>
+          <td>
+                <code><a href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a></code>
+          </td>
+          <td><p>The error message.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="alluka.SelfInjecting" class="doc doc-heading">
+          <code>SelfInjecting</code>
+
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+        <p class="doc doc-class-bases">
+          Bases: <code><a title="alluka.abc" href="abc/#alluka.abc">abc</a>.<a title="alluka.abc.SelfInjecting" href="abc/#alluka.abc.SelfInjecting">SelfInjecting</a>[<span title="alluka._self_injecting._SyncCallbackT">_SyncCallbackT</span>]</code></p>
+
+
+      <p>Class used to link a sync function to a client to make it self-injecting.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This executes the callback synchronously and therefore will error if
+any of the callback's dependencies are async.</p>
+</div>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">database</span><span class="p">:</span> <span class="n">Database</span> <span class="o">=</span> <span class="n">alluka</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">Database</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">database</span><span class="o">.</span><span class="n">do_something</span><span class="p">()</span>
+<span class="o">...</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">alluka</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
+<span class="n">injecting_callback</span> <span class="o">=</span> <span class="n">alluka</span><span class="o">.</span><span class="n">SelfInjecting</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">client</span><span class="p">)</span>
+<span class="k">await</span> <span class="n">injecting_callback</span><span class="p">()</span>
+</code></pre></div>
+<p>Alternatively <a href="abc/#alluka.abc.Client.as_self_injecting">alluka.abc.Client.as_self_injecting</a> may be used:</p>
+<div class="highlight"><pre><span></span><code><span class="n">client</span> <span class="o">=</span> <span class="n">alluka</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
+
+<span class="nd">@client</span><span class="o">.</span><span class="n">as_self_injecting</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">database</span><span class="p">:</span> <span class="n">Database</span> <span class="o">=</span> <span class="n">alluka</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">Database</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+</code></pre></div>
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="alluka._self_injecting.SelfInjecting.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="o">/</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span></code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Initialise a sync self injecting callback.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>client</code></td>
+          <td>
+                <code><a title="alluka.abc" href="abc/#alluka.abc">abc</a>.<a title="alluka.abc.Client" href="abc/#alluka.abc.Client">Client</a></code>
+          </td>
+          <td><p>The injection client to use to resolve dependencies.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback</code></td>
+          <td>
+                <code>collections.abc.Callable</code>
+          </td>
+          <td><p>The callback to make self-injecting.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td><p>If <code>callback</code> has any injected arguments which can only be passed
+positionally.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="alluka.inject" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">inject</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Decare a keyword-argument as requiring an injected dependency.</p>
+<p>This may be assigned to an arugment's default value to declare injection
+or as a part of its Annotated metadata.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If neither <code>type</code> nor <code>callback</code> is provided, an injected type
+will be inferred from the argument's annotation.</p>
+</div>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span>
+    <span class="c1"># Here we require an implementation of the type `Component` to be</span>
+    <span class="c1"># injected.</span>
+    <span class="n">injected_type</span><span class="p">:</span> <span class="n">Component</span> <span class="o">=</span> <span class="n">alluka</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">Component</span><span class="p">)</span>
+    <span class="c1"># Here we inject an out-of-scope callback which itself is taking</span>
+    <span class="c1"># advantage of type injectioallukan.</span>
+    <span class="n">callback_result</span><span class="p">:</span> <span class="n">ResultT</span> <span class="o">=</span> <span class="n">alluka</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">callback</span><span class="o">=</span><span class="n">injected_callback</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+<span class="o">...</span>
+<span class="c1"># where client is an `alluka.Client` instance.</span>
+<span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">call_with_async_di</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+</code></pre></div>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>callback</code></td>
+          <td>
+                <code><a href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a title="alluka.abc" href="abc/#alluka.abc">abc</a>.<a title="alluka.abc.CallbackSig" href="abc/#alluka.abc.CallbackSig">CallbackSig</a>[<span title="alluka._client._T">_T</span>]]</code>
+          </td>
+          <td><p>The callback to use to resolve the dependency.</p>
+<p>If this callback has no type dependencies then this will still work
+without an injection context but this can be overridden using
+<code>alluka.abc.Client.set_callback_override</code>.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>type</code></td>
+          <td>
+                <code><a href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a></code>
+          </td>
+          <td><p>The type of the dependency to resolve.</p>
+<p>If a union (e.g. <code>typing.Union[A, B]</code>, <code>A | B</code>, <code>typing.Optional[A]</code>)
+is passed for <code>type</code> then each type in the union will be tried
+separately rather than the literal type, allowing for resolving
+<code>A | B</code> to the value set by <code>set_type_dependency(B, ...)</code>.</p>
+<p>If a union has <code>None</code> as one of its types (including <code>Optional[T]</code>)
+then <code>None</code> will be passed for the parameter if none of the types could
+be resolved using the linked client.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td><p>If both <code>type</code> and <code>callback</code> are provided.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../usage/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Usage" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Usage
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="abc/" class="md-footer__link md-footer__link--next" aria-label="Next: alluka.abc" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              alluka.abc
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.bd0b6b67.min.js"}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.8aa65030.min.js"></script>
+      
+    
+  </body>
+</html>
