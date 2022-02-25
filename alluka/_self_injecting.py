@@ -158,8 +158,6 @@ class SelfInjecting(abc.SelfInjecting[_SyncCallbackT]):
         callback : collections.abc.Callable
             The callback to make self-injecting.
 
-            This must be sync.
-
         Raises
         ------
         ValueError

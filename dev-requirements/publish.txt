@@ -10,10 +10,12 @@ charset-normalizer==2.0.12
     # via requests
 click==8.0.4
     # via pip-tools
+colorama==0.4.4
+    # via click
 docutils==0.18.1
     # via flit
 flit==3.7.1
-    # via -r dev-requirements/publish.in
+    # via -r dev-requirements\publish.in
 flit-core==3.7.1
     # via flit
 idna==3.3
@@ -21,7 +23,7 @@ idna==3.3
 pep517==0.12.0
     # via pip-tools
 pip-tools==6.5.1
-    # via -r dev-requirements/publish.in
+    # via -r dev-requirements\publish.in
 requests==2.27.1
     # via flit
 tomli==2.0.1
