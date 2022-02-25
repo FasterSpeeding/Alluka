@@ -2,6 +2,10 @@
 
 A type based dependency injection framework for Python 3.9+.
 
+# Usage
+
+For how to get started with this library, see the [documentation](https://alluka.cursed.solutions/usage).
+
 # Installation
 
 You can install Alluka from PyPI using the following command in any Python 3.9 or above environment.
