@@ -35,7 +35,6 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
   - markdown_include.include:
-      base_path: .\
 
 plugins:
   - search

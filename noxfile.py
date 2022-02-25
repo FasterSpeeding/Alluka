@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import itertools
 import pathlib
+import shutil
 import tempfile
 from collections import abc as collections
 
@@ -134,6 +135,8 @@ def generate_docs(session: nox.Session) -> None:
     install_requirements(session, *_dev_dep("docs"))
     output_directory = _try_find_option(session, "-o", "--output") or "./site"
     session.run("mkdocs", "build", "-d", output_directory)
+    for path in ("./CHANGELOG.md", "./README.md"):
+        shutil.copy(path, pathlib.Path(output_directory) / path)
 
 
 @nox.session(reuse_venv=True)
