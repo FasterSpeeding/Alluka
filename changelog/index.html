@@ -63,6 +63,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#changelog" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -221,10 +226,77 @@
       <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
       
       
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Changelog
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
         Changelog
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#unreleased" class="md-nav__link">
+    Unreleased
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-2020-02-25" class="md-nav__link">
+    0.1.0 - 2020-02-25
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.0 - 2020-02-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    Removed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -314,6 +386,73 @@
               </div>
             
             
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#unreleased" class="md-nav__link">
+    Unreleased
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-2020-02-25" class="md-nav__link">
+    0.1.0 - 2020-02-25
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.0 - 2020-02-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    Added
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    Changed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    Removed
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content" data-md-component="content">
             <article class="md-content__inner md-typeset">
@@ -321,9 +460,37 @@
                 
 
 
-  <h1>Changelog</h1>
-
-
+<h1 id="changelog">Changelog</h1>
+<p>All notable changes to this project will be documented in this file.</p>
+<p>The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>,
+and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<h2 id="unreleased"><a href="https://github.com/FasterSpeeding/Alluka/compare/v0.1.0...HEAD">Unreleased</a></h2>
+<h2 id="010-2020-02-25"><a href="https://github.com/FasterSpeeding/Alluka/compare/ed0567142b8e11f98408735495dbc4f771dc8643...v0.1.0">0.1.0</a> - 2020-02-25</h2>
+<p>All of the <code>0.1.0</code> entries are relative to the feature set exposed while this was a
+part of Tanjun.</p>
+<h3 id="added">Added</h3>
+<ul>
+<li>Support for synchronous dependency injection (this comes with <code>AsyncOnlyError</code>)</li>
+<li>Abstract interface for the client with limited functionality.</li>
+<li><code>call_with_di</code> and <code>call_with_async_di</code> to <code>alluka.abc.Context</code> as a shorthand for
+  executing a callback with that context.</li>
+<li><code>call_with_di</code>, <code>call_with_async_di</code>, <code>call_with_ctx</code> and <code>call_with_ctx_async</code>
+  methods to the injection client for executing callbacks with DI.</li>
+<li>Support for inferring the type of a parameter from its type hint
+  when no <code>type</code> or <code>callback</code> is explicitly provided.</li>
+<li>Support for using <code>typing.Annotated</code> to declare parameter DI. This takes two forms:</li>
+<li><code>parameter: alluka.Inject[Type]</code> to infer specifically a type dependency.</li>
+<li><code>parameter: typing.Annotated(Type, alluka.inject(type=.../callback=...))</code>.</li>
+</ul>
+<h3 id="changed">Changed</h3>
+<ul>
+<li>Passed keyword arguments are now prioritised over dependency injection.</li>
+</ul>
+<h3 id="removed">Removed</h3>
+<ul>
+<li>The public <code>CallackDescriptor</code> and <code>TypeDescriptor</code> classes as callbacks
+  are now processed within the client and any necessary caching is kept internal.</li>
+</ul>
 
               
             </article>
