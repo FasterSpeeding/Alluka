@@ -6,13 +6,13 @@
 #
 click==8.0.4
     # via mkdocs
+colorama==0.4.4
+    # via click
 ghp-import==2.0.2
     # via mkdocs
-griffe @ git+https://github.com/FasterSpeeding/griffe.git@bugfix/numpy-examples
-    # via
-    #   -r dev-requirements/docs.in
-    #   mkdocstrings-python
-importlib-metadata==4.11.1
+griffe==0.13.2
+    # via mkdocstrings-python
+importlib-metadata==4.11.2
     # via mkdocs
 jinja2==3.0.3
     # via
@@ -28,7 +28,7 @@ markdown==3.3.6
     #   mkdocstrings
     #   pymdown-extensions
 markdown-include==0.6.0
-    # via -r dev-requirements/docs.in
+    # via -r dev-requirements\docs.in
 markupsafe==2.1.0
     # via
     #   jinja2
@@ -37,19 +37,19 @@ mergedeep==1.3.4
     # via mkdocs
 mkdocs==1.2.3
     # via
-    #   -r dev-requirements/docs.in
+    #   -r dev-requirements\docs.in
     #   mkdocs-autorefs
     #   mkdocs-material
     #   mkdocstrings
 mkdocs-autorefs==0.3.1
     # via mkdocstrings
 mkdocs-material==8.2.3
-    # via -r dev-requirements/docs.in
+    # via -r dev-requirements\docs.in
 mkdocs-material-extensions==1.0.3
     # via mkdocs-material
 mkdocstrings[python]==0.18.0
     # via
-    #   -r dev-requirements/docs.in
+    #   -r dev-requirements\docs.in
     #   mkdocstrings-python
     #   mkdocstrings-python-legacy
 mkdocstrings-python==0.6.5
