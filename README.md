@@ -14,11 +14,6 @@ You can install Alluka from PyPI using the following command in any Python 3.9 o
 python -m pip install -U alluka
 ```
 
-# Support
-
-A support channel can be found for this repository under the "Tanjun & Tomadachi" category in
-the following guild [invite](https://discord.gg/Jx4cNGG).
-
 # Contributing
 
 Before contributing you should read through the
