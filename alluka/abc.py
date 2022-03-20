@@ -46,6 +46,8 @@ import abc
 import typing
 from collections import abc as collections
 
+# pyright: reportOverlappingOverload=warning
+
 _AnyCoro = collections.Coroutine[typing.Any, typing.Any, typing.Any]
 _CallbackT = typing.TypeVar("_CallbackT", bound="CallbackSig[typing.Any]")
 _OtherT = typing.TypeVar("_OtherT")

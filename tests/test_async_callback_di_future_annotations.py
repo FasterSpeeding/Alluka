@@ -72,7 +72,7 @@ def context(client: alluka.Client) -> alluka.BasicContext:
 # TODO: test cases for type scoped dependencies
 # TODO: test cases for cached callback results
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_when_no_di(context: alluka.BasicContext):
+async def test_call_with_async_di_when_no_di(context: alluka.BasicContext):
     async def callback(x: int, bar: str) -> str:
         assert x == 42
         assert bar == "ok"
@@ -84,7 +84,7 @@ async def test_call_with_ctx_async_when_no_di(context: alluka.BasicContext):
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_prioritises_defaults_over_annotations(context: alluka.BasicContext):
+async def test_call_with_async_di_prioritises_defaults_over_annotations(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
@@ -122,7 +122,7 @@ async def test_call_with_ctx_async_prioritises_defaults_over_annotations(context
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_type_dependency_and_callback(context: alluka.BasicContext):
+async def test_call_with_async_di_with_type_dependency_and_callback(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
@@ -154,7 +154,7 @@ async def test_call_with_ctx_async_with_type_dependency_and_callback(context: al
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_type_dependency(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
@@ -179,7 +179,7 @@ async def test_call_with_ctx_async_with_type_dependency(context: alluka.BasicCon
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_type_dependency_inferred_from_type(context: alluka.BasicContext):
+async def test_call_with_async_di_with_type_dependency_inferred_from_type(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_other_value = GlobalOtherStubType()
 
@@ -202,7 +202,7 @@ async def test_call_with_ctx_async_with_type_dependency_inferred_from_type(conte
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_type_dependency_inferred_from_annotated_type(context: alluka.BasicContext):
+async def test_call_with_async_di_with_type_dependency_inferred_from_annotated_type(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_other_value = GlobalOtherStubType()
 
@@ -228,7 +228,7 @@ async def test_call_with_ctx_async_with_type_dependency_inferred_from_annotated_
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_type_dependency_inferred_from_missing_type(context: alluka.BasicContext):
+async def test_call_with_async_di_with_type_dependency_inferred_from_missing_type(context: alluka.BasicContext):
     async def callback(
         nyaa: str, meow: int, baz: GlobalStubType = alluka.inject(), bat=alluka.inject()  # type: ignore
     ) -> str:
@@ -239,7 +239,7 @@ async def test_call_with_ctx_async_with_type_dependency_inferred_from_missing_ty
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_type_dependency_not_found(context: alluka.BasicContext):
+async def test_call_with_async_di_with_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
@@ -259,7 +259,7 @@ async def test_call_with_ctx_async_with_type_dependency_not_found(context: alluk
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_defaulting_type_dependency(context: alluka.BasicContext):  # TODO: THIS
+async def test_call_with_async_di_with_defaulting_type_dependency(context: alluka.BasicContext):  # TODO: THIS
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
 
@@ -279,7 +279,7 @@ async def test_call_with_ctx_async_with_defaulting_type_dependency(context: allu
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_defaulting_type_dependency_not_found(context: alluka.BasicContext):
+async def test_call_with_async_di_with_defaulting_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
 
     async def callback(
@@ -299,7 +299,7 @@ async def test_call_with_ctx_async_with_defaulting_type_dependency_not_found(con
 if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for |?
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_3_10_union_type_dependency(context: alluka.BasicContext):
+    async def test_call_with_async_di_with_3_10_union_type_dependency(context: alluka.BasicContext):
         class StubType:
             ...
 
@@ -321,7 +321,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         assert result == 451.123
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_3_10_union_type_dependency_not_found(context: alluka.BasicContext):
+    async def test_call_with_async_di_with_3_10_union_type_dependency_not_found(context: alluka.BasicContext):
         class StubType:
             ...
 
@@ -339,7 +339,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         # future annotation so we can't reliably assert these.
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
+    async def test_call_with_async_di_with_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
         class StubType:
             ...
 
@@ -363,7 +363,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         assert result == 451.123
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_3_10_union_type_dependency_defaulting_not_found(
+    async def test_call_with_async_di_with_3_10_union_type_dependency_defaulting_not_found(
         context: alluka.BasicContext,
     ):
         class StubType:
@@ -386,7 +386,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_union_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_union_type_dependency(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
@@ -406,7 +406,7 @@ async def test_call_with_ctx_async_with_union_type_dependency(context: alluka.Ba
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_union_type_dependency_not_found(context: alluka.BasicContext):
+async def test_call_with_async_di_with_union_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
 
@@ -424,7 +424,7 @@ async def test_call_with_ctx_async_with_union_type_dependency_not_found(context:
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_defaulting_union_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_defaulting_union_type_dependency(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_other_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
@@ -444,7 +444,7 @@ async def test_call_with_ctx_async_with_defaulting_union_type_dependency(context
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_defaulting_union_type_dependency_not_found(context: alluka.BasicContext):
+async def test_call_with_async_di_with_defaulting_union_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
 
     async def callback(
@@ -461,7 +461,7 @@ async def test_call_with_ctx_async_with_defaulting_union_type_dependency_not_fou
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_other_value = GlobalOtherStubType()
 
@@ -487,7 +487,7 @@ async def test_call_with_ctx_async_with_annotated_type_dependency(context: alluk
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_type_dependency_inferred_from_type(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_type_dependency_inferred_from_type(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_other_value = GlobalOtherStubType()
 
@@ -513,7 +513,7 @@ async def test_call_with_ctx_async_with_annotated_type_dependency_inferred_from_
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_type_dependency_not_found(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_type_dependency_not_found(context: alluka.BasicContext):
     mock_other_value = GlobalOtherStubType()
 
     async def callback(
@@ -537,7 +537,7 @@ async def test_call_with_ctx_async_with_annotated_type_dependency_not_found(cont
 if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for |?
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_annotated_3_10_union_type_dependency(context: alluka.BasicContext):
+    async def test_call_with_async_di_with_annotated_3_10_union_type_dependency(context: alluka.BasicContext):
         mock_value = GlobalOtherStubType()
 
         async def callback(
@@ -557,7 +557,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         assert result == "hey"
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_annotated_3_10_union_type_dependency_not_found(
+    async def test_call_with_async_di_with_annotated_3_10_union_type_dependency_not_found(
         context: alluka.BasicContext,
     ):
         async def callback(
@@ -573,7 +573,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         # future annotation so we can't reliably assert these.
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_annotated_3_10_union_type_dependency_defaulting(
+    async def test_call_with_async_di_with_annotated_3_10_union_type_dependency_defaulting(
         context: alluka.BasicContext,
     ):
         mock_value = GlobalStubType()
@@ -595,7 +595,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         assert result == 451.123
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_annotated_3_10_union_type_dependency_defaulting_not_found(
+    async def test_call_with_async_di_with_annotated_3_10_union_type_dependency_defaulting_not_found(
         context: alluka.BasicContext,
     ):
         async def callback(
@@ -613,7 +613,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         assert result == 451.123
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_annotated_3_10_union_type_dependency_natural_defaulting(
+    async def test_call_with_async_di_with_annotated_3_10_union_type_dependency_natural_defaulting(
         context: alluka.BasicContext,
     ):
         mock_value = GlobalStubType()
@@ -635,7 +635,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         assert result == 451.123
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_annotated_3_10_union_type_dependency_natural_defaulting_not_found(
+    async def test_call_with_async_di_with_annotated_3_10_union_type_dependency_natural_defaulting_not_found(
         context: alluka.BasicContext,
     ):
         async def callback(
@@ -652,7 +652,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_union_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_union_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalOtherStubType()
 
     async def callback(
@@ -671,7 +671,7 @@ async def test_call_with_ctx_async_with_annotated_union_type_dependency(context:
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_union_type_dependency_not_found(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_union_type_dependency_not_found(context: alluka.BasicContext):
     async def callback(
         yeee: str,
         nyaa: bool,
@@ -688,7 +688,7 @@ async def test_call_with_ctx_async_with_annotated_union_type_dependency_not_foun
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_defaulting_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_defaulting_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     context.injection_client.set_type_dependency(GlobalStubType, mock_value)
 
@@ -708,7 +708,7 @@ async def test_call_with_ctx_async_with_annotated_defaulting_type_dependency(con
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_defaulting_type_dependency_not_found(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_defaulting_type_dependency_not_found(context: alluka.BasicContext):
     async def callback(
         eaaaa: str,
         nyaa: bool,
@@ -725,7 +725,7 @@ async def test_call_with_ctx_async_with_annotated_defaulting_type_dependency_not
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_natural_defaulting_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_natural_defaulting_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     context.injection_client.set_type_dependency(GlobalStubType, mock_value)
 
@@ -745,7 +745,7 @@ async def test_call_with_ctx_async_with_annotated_natural_defaulting_type_depend
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_natural_defaulting_type_dependency_not_found(
+async def test_call_with_async_di_with_annotated_natural_defaulting_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
     async def callback(
@@ -764,7 +764,7 @@ async def test_call_with_ctx_async_with_annotated_natural_defaulting_type_depend
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_defaulting_union_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_defaulting_union_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalOtherStubType()
     context.injection_client.set_type_dependency(GlobalOtherStubType, mock_value)
 
@@ -782,7 +782,7 @@ async def test_call_with_ctx_async_with_annotated_defaulting_union_type_dependen
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_defaulting_union_type_dependency_not_found(
+async def test_call_with_async_di_with_annotated_defaulting_union_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
     async def callback(
@@ -799,7 +799,7 @@ async def test_call_with_ctx_async_with_annotated_defaulting_union_type_dependen
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_natural_defaulting_union_type_dependency(
+async def test_call_with_async_di_with_annotated_natural_defaulting_union_type_dependency(
     context: alluka.BasicContext,
 ):
     mock_value = GlobalOtherStubType()
@@ -819,7 +819,7 @@ async def test_call_with_ctx_async_with_annotated_natural_defaulting_union_type_
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_natural_defaulting_union_type_dependency_not_found(
+async def test_call_with_async_di_with_annotated_natural_defaulting_union_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
     async def callback(
@@ -838,7 +838,7 @@ async def test_call_with_ctx_async_with_annotated_natural_defaulting_union_type_
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_shorthand_annotated_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_shorthand_annotated_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_other_value = GlobalOtherStubType()
 
@@ -861,7 +861,7 @@ async def test_call_with_ctx_async_with_shorthand_annotated_type_dependency(cont
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_shorthand_annotated_type_dependency_not_found(context: alluka.BasicContext):
+async def test_call_with_async_di_with_shorthand_annotated_type_dependency_not_found(context: alluka.BasicContext):
     mock_other_value = GlobalOtherStubType()
 
     async def callback(
@@ -885,7 +885,7 @@ async def test_call_with_ctx_async_with_shorthand_annotated_type_dependency_not_
 if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for |?
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_shorthand_annotated_3_10_union_type_dependency(
+    async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency(
         context: alluka.BasicContext,
     ):
         mock_value = GlobalOtherStubType()
@@ -907,7 +907,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         assert result == "hey"
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_shorthand_annotated_3_10_union_type_dependency_not_found(
+    async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency_not_found(
         context: alluka.BasicContext,
     ):
         async def callback(bar: int, baz: str, cope: alluka.Injected[GlobalOtherStubType | GlobalStubType]) -> float:
@@ -921,7 +921,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         # future annotation so we can't reliably assert these.
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_shorthand_annotated_3_10_union_type_dependency_defaulting(
+    async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency_defaulting(
         context: alluka.BasicContext,
     ):
         mock_value = GlobalStubType()
@@ -941,7 +941,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         assert result == 451.123
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_shorthand_annotated_3_10_union_type_dependency_defaulting_not_found(
+    async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency_defaulting_not_found(
         context: alluka.BasicContext,
     ):
         async def callback(
@@ -957,7 +957,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         assert result == 451.123
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_shorthand_annotated_3_10_union_type_dependency_natural_defaulting(
+    async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency_natural_defaulting(
         context: alluka.BasicContext,
     ):
         mock_value = GlobalStubType()
@@ -977,7 +977,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         assert result == 451.123
 
     @pytest.mark.anyio()
-    async def test_call_with_ctx_async_with_shorthand_annotated_3_10_union_type_dependency_natural_defaulting_not_found(
+    async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency_natural_defaulting_not_found(
         context: alluka.BasicContext,
     ):
         mock_default = GlobalOtherStubType()
@@ -996,7 +996,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_shorthand_annotated_union_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_shorthand_annotated_union_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalOtherStubType()
 
     async def callback(
@@ -1015,7 +1015,7 @@ async def test_call_with_ctx_async_with_shorthand_annotated_union_type_dependenc
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_shorthand_annotated_union_type_dependency_not_found(
+async def test_call_with_async_di_with_shorthand_annotated_union_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
     async def callback(
@@ -1034,7 +1034,7 @@ async def test_call_with_ctx_async_with_shorthand_annotated_union_type_dependenc
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_shorthand_annotated_defaulting_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_shorthand_annotated_defaulting_type_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     context.injection_client.set_type_dependency(GlobalStubType, mock_value)
 
@@ -1054,7 +1054,7 @@ async def test_call_with_ctx_async_with_shorthand_annotated_defaulting_type_depe
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_shorthand_annotated_defaulting_type_dependency_not_found(
+async def test_call_with_async_di_with_shorthand_annotated_defaulting_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
     async def callback(
@@ -1073,7 +1073,7 @@ async def test_call_with_ctx_async_with_shorthand_annotated_defaulting_type_depe
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_shorthand_annotated_natural_defaulting_type_dependency(
+async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_type_dependency(
     context: alluka.BasicContext,
 ):
     mock_value = GlobalStubType()
@@ -1095,7 +1095,7 @@ async def test_call_with_ctx_async_with_shorthand_annotated_natural_defaulting_t
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_shorthand_annotated_natural_defaulting_type_dependency_not_found(
+async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
     mock_default = GlobalStubType()
@@ -1116,7 +1116,7 @@ async def test_call_with_ctx_async_with_shorthand_annotated_natural_defaulting_t
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_shorthand_annotated_defaulting_union_type_dependency(
+async def test_call_with_async_di_with_shorthand_annotated_defaulting_union_type_dependency(
     context: alluka.BasicContext,
 ):
     mock_value = GlobalOtherStubType()
@@ -1136,7 +1136,7 @@ async def test_call_with_ctx_async_with_shorthand_annotated_defaulting_union_typ
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_shorthand_annotated_defaulting_union_type_dependency_not_found(
+async def test_call_with_async_di_with_shorthand_annotated_defaulting_union_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
     async def callback(
@@ -1153,7 +1153,7 @@ async def test_call_with_ctx_async_with_shorthand_annotated_defaulting_union_typ
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_shorthand_annotated_natural_defaulting_union_type_dependency(
+async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_union_type_dependency(
     context: alluka.BasicContext,
 ):
     mock_value = GlobalOtherStubType()
@@ -1173,7 +1173,7 @@ async def test_call_with_ctx_async_with_shorthand_annotated_natural_defaulting_u
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_shorthand_annotated_natural_defaulting_union_type_dependency_not_found(
+async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_union_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
     mock_default = GlobalOtherStubType()
@@ -1192,7 +1192,7 @@ async def test_call_with_ctx_async_with_shorthand_annotated_natural_defaulting_u
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_callback_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_callback_dependency(context: alluka.BasicContext):
     mock_callback = mock.AsyncMock()
 
     async def callback(foo: int, result: int = alluka.inject(callback=mock_callback)) -> int:
@@ -1207,7 +1207,7 @@ async def test_call_with_ctx_async_with_callback_dependency(context: alluka.Basi
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_sub_callback_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_sub_callback_dependency(context: alluka.BasicContext):
     mock_callback = mock.Mock()
 
     async def dependency(result: int = alluka.inject(callback=mock_callback)) -> int:
@@ -1226,7 +1226,7 @@ async def test_call_with_ctx_async_with_sub_callback_dependency(context: alluka.
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_callback_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_callback_dependency(context: alluka.BasicContext):
     global mock_callback
     mock_callback = mock.AsyncMock()
 
@@ -1242,7 +1242,7 @@ async def test_call_with_ctx_async_with_annotated_callback_dependency(context: a
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_sub_callback_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_sub_callback_dependency(context: alluka.BasicContext):
     global mock_callback
     mock_callback = mock.AsyncMock()
     global dependency_3
@@ -1263,7 +1263,7 @@ async def test_call_with_ctx_async_with_annotated_sub_callback_dependency(contex
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_sub_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_sub_type_dependency(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
     context.injection_client.set_type_dependency(mock_type, mock_value)
@@ -1283,7 +1283,7 @@ async def test_call_with_ctx_async_with_sub_type_dependency(context: alluka.Basi
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_sub_type_dependency_not_found(context: alluka.BasicContext):
+async def test_call_with_async_di_with_sub_type_dependency_not_found(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
 
     async def dependency(result: int = alluka.inject(type=mock_type)) -> int:
@@ -1300,7 +1300,7 @@ async def test_call_with_ctx_async_with_sub_type_dependency_not_found(context: a
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_when_sync_callback(context: alluka.BasicContext):
+async def test_call_with_async_di_when_sync_callback(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_callback = mock.AsyncMock()
     context.injection_client.set_type_dependency(GlobalStubType, mock_value)
@@ -1325,7 +1325,7 @@ async def test_call_with_ctx_async_when_sync_callback(context: alluka.BasicConte
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_sync_dependency_callback(context: alluka.BasicContext):
+async def test_call_with_async_di_with_sync_dependency_callback(context: alluka.BasicContext):
     mock_value_1 = GlobalStubType()
     mock_value_2 = GlobalOtherStubType()
     context.injection_client.set_type_dependency(GlobalStubType, mock_value_1).set_type_dependency(
@@ -1347,7 +1347,7 @@ async def test_call_with_ctx_async_with_sync_dependency_callback(context: alluka
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_overridden_sync_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_overridden_sync_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_callback = mock.AsyncMock()
     mock_override = mock.Mock()
@@ -1367,7 +1367,7 @@ async def test_call_with_ctx_async_with_overridden_sync_dependency(context: allu
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_sub_sync_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_sub_sync_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_callback = mock.AsyncMock()
     context.injection_client.set_type_dependency(GlobalStubType, mock_value)
@@ -1388,7 +1388,7 @@ async def test_call_with_ctx_async_with_sub_sync_dependency(context: alluka.Basi
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_overridden_sub_sync_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_overridden_sub_sync_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     global mock_callback
     mock_callback = mock.AsyncMock()
@@ -1413,7 +1413,7 @@ async def test_call_with_ctx_async_with_overridden_sub_sync_dependency(context: 
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_sync_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_sync_dependency(context: alluka.BasicContext):
     mock_value_1 = GlobalStubType()
     mock_value_2 = GlobalOtherStubType()
     context.injection_client.set_type_dependency(GlobalStubType, mock_value_1).set_type_dependency(
@@ -1438,7 +1438,7 @@ async def test_call_with_ctx_async_with_annotated_sync_dependency(context: alluk
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_overridden_annotated_sync_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_overridden_annotated_sync_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     global mock_callback
     mock_callback = mock.AsyncMock()
@@ -1461,7 +1461,7 @@ async def test_call_with_ctx_async_with_overridden_annotated_sync_dependency(con
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_annotated_sub_sync_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_annotated_sub_sync_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     mock_callback = mock.AsyncMock()
     context.injection_client.set_type_dependency(GlobalStubType, mock_value)
@@ -1486,7 +1486,7 @@ async def test_call_with_ctx_async_with_annotated_sub_sync_dependency(context: a
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_overridden_annotated_sub_sync_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_overridden_annotated_sub_sync_dependency(context: alluka.BasicContext):
     mock_value = GlobalStubType()
     global mock_callback
     mock_callback = mock.AsyncMock()
@@ -1519,7 +1519,7 @@ async def test_call_with_ctx_async_with_overridden_annotated_sub_sync_dependency
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_positional_only_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_positional_only_type_dependency(context: alluka.BasicContext):
     async def callback(
         foo: int, bar: str = alluka.inject(type=float), /, baz: float = alluka.inject(type=float)
     ) -> None:
@@ -1530,7 +1530,7 @@ async def test_call_with_ctx_async_with_positional_only_type_dependency(context:
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_positional_only_callback_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_positional_only_callback_dependency(context: alluka.BasicContext):
     mock_dependency = mock.Mock()
 
     async def callback(
@@ -1543,7 +1543,7 @@ async def test_call_with_ctx_async_with_positional_only_callback_dependency(cont
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_sub_positional_only_callback_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_sub_positional_only_callback_dependency(context: alluka.BasicContext):
     sub_dependency = mock.Mock()
 
     async def dependency(baz: str = alluka.inject(callback=sub_dependency), /) -> str:
@@ -1559,7 +1559,7 @@ async def test_call_with_ctx_async_with_sub_positional_only_callback_dependency(
 
 
 @pytest.mark.anyio()
-async def test_call_with_ctx_async_with_sub_positional_only_type_dependency(context: alluka.BasicContext):
+async def test_call_with_async_di_with_sub_positional_only_type_dependency(context: alluka.BasicContext):
     async def dependency(baz: str = alluka.inject(type=int), /) -> str:
         raise NotImplementedError
 
@@ -1577,16 +1577,18 @@ async def test_call_with_ctx_async_with_sub_positional_only_type_dependency(cont
 ############################
 
 
-def test_call_with_ctx_with_signature_less_callback(context: alluka.BasicContext):
+@pytest.mark.anyio()
+async def test_call_with_async_di_with_signature_less_callback(context: alluka.BasicContext):
     with pytest.raises(ValueError, match="no signature found for builtin type <class 'str'>"):
         inspect.signature(str)
 
-    result = context.call_with_di(str, b"ok")
+    result = await context.call_with_async_di(str, b"ok")
 
     assert result == "b'ok'"
 
 
-def test_call_with_ctx_with_signature_less_callback_dependency(context: alluka.BasicContext):
+@pytest.mark.anyio()
+async def test_call_with_async_dix_with_signature_less_callback_dependency(context: alluka.BasicContext):
     with pytest.raises(ValueError, match="no signature found for builtin type <class 'int'>"):
         inspect.signature(int)
 
@@ -1594,6 +1596,6 @@ def test_call_with_ctx_with_signature_less_callback_dependency(context: alluka.B
         assert value == 0
         return 222
 
-    result = context.call_with_di(callback)
+    result = await context.call_with_async_di(callback)
 
     assert result == 222

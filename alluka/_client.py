@@ -45,6 +45,8 @@ from . import _types
 from . import _visitor
 from . import abc
 
+# pyright: reportOverlappingOverload=warning
+
 _T = typing.TypeVar("_T")
 
 
