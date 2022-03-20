@@ -85,16 +85,23 @@ class Callback:
     def __init__(self, callback: collections.Callable[..., typing.Any], /) -> None:
         self._callback: collections.Callable[..., typing.Any] = callback
         self._resolved = False
-        self._signature = inspect.signature(callback)
+        try:
+            self._signature: typing.Optional[inspect.Signature] = inspect.signature(callback)
+        except ValueError:  # If we can't inspect it then we have to assume this is a NO
+            # As a note, this fails on some "signature-less" builtin functions/types like str.
+            self._signature = None
 
     @property
     def parameters(self) -> collections.Mapping[str, inspect.Parameter]:
-        return self._signature.parameters
+        return self._signature.parameters if self._signature else {}
 
     def accept(self, visitor: ParameterVisitor, /) -> dict[str, _types.InjectedTuple]:
         return visitor.visit_callback(self)
 
     def resolve_annotation(self, name: str, /) -> _types.UndefinedOr[typing.Any]:
+        if self._signature is None:
+            return alluka_abc.UNDEFINED
+
         parameter = self._signature.parameters[name]
         if parameter.annotation is inspect.Parameter.empty:
             return alluka_abc.UNDEFINED

@@ -37,6 +37,7 @@ from unittest import mock
 import pytest
 
 import alluka
+from alluka._vendor import inspect
 
 # pyright: reportUnknownMemberType=none
 # pyright: reportPrivateUsage=none
@@ -1672,3 +1673,30 @@ async def test_call_with_ctx_async_with_sub_positional_only_type_dependency(cont
 
     with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
         await context.call_with_async_di(callback)
+
+
+############################
+# Signature-less callbacks #
+############################
+
+
+def test_call_with_ctx_with_signature_less_callback(context: alluka.BasicContext):
+    with pytest.raises(ValueError, match="no signature found for builtin type <class 'str'>"):
+        inspect.signature(str)
+
+    result = context.call_with_di(str, b"ok")
+
+    assert result == "b'ok'"
+
+
+def test_call_with_ctx_with_signature_less_callback_dependency(context: alluka.BasicContext):
+    with pytest.raises(ValueError, match="no signature found for builtin type <class 'int'>"):
+        inspect.signature(int)
+
+    def callback(value: int = alluka.inject(callback=int)) -> int:
+        assert value == 0
+        return 222
+
+    result = context.call_with_di(callback)
+
+    assert result == 222
