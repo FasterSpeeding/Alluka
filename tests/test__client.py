@@ -184,7 +184,7 @@ class TestClient:
         result = client.remove_callback_override(mock_callback)
 
         assert result is client
-        client.get_callback_override(mock_callback) is None
+        assert client.get_callback_override(mock_callback) is None
 
     def test_remove_callback_override_when_not_set(self):
         mock_callback = mock.Mock()
