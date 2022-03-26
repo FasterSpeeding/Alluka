@@ -73,6 +73,17 @@ def test_call_with_di_when_no_di(context: alluka.BasicContext):
     assert result == "nyaa"
 
 
+def test_call_with_async_di_with_missing_annotations(context: alluka.BasicContext):
+    def callback(x, bar) -> str:  # type: ignore
+        assert x == 543123
+        assert bar == "sdasd"
+        return "meow"
+
+    result = context.call_with_di(callback, 543123, bar="sdasd")  # type: ignore
+
+    assert result == "meow"
+
+
 def test_call_with_di_prioritises_defaults_over_annotations(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()

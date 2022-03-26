@@ -84,6 +84,18 @@ async def test_call_with_async_di_when_no_di(context: alluka.BasicContext):
 
 
 @pytest.mark.anyio()
+async def test_call_with_async_di_with_missing_annotations(context: alluka.BasicContext):
+    async def callback(x, bar) -> str:  # type: ignore
+        assert x == 543123
+        assert bar == "sdasd"
+        return "meow"
+
+    result = await context.call_with_async_di(callback, 543123, bar="sdasd")  # type: ignore
+
+    assert result == "meow"
+
+
+@pytest.mark.anyio()
 async def test_call_with_async_di_prioritises_defaults_over_annotations(context: alluka.BasicContext):
     mock_type: typing.Any = mock.Mock()
     mock_value = mock.Mock()
