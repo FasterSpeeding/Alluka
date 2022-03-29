@@ -43,11 +43,11 @@ from . import abc as alluka_abc
 from ._vendor import inspect
 
 if sys.version_info >= (3, 10):
-    _UnionTypes = {typing.Union, types.UnionType}
+    _UnionTypes = frozenset((typing.Union, types.UnionType))
     _NoneType = types.NoneType
 
 else:
-    _UnionTypes = {typing.Union}
+    _UnionTypes = frozenset((typing.Union))
     _NoneType = type(None)
 
 
