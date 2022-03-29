@@ -47,7 +47,7 @@ if sys.version_info >= (3, 10):
     _NoneType = types.NoneType
 
 else:
-    _UnionTypes = frozenset((typing.Union))
+    _UnionTypes = frozenset((typing.Union,))
     _NoneType = type(None)
 
 
