@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file=dev-requirements/nox.txt dev-requirements/nox.in
 #
-anyio==3.5.0
+anyio==3.6.1
     # via httpcore
 argcomplete==1.12.3
     # via nox

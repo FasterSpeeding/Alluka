@@ -1,5 +1,5 @@
 # Comes with a builtin pytest plugin.
-anyio==3.5.0
+anyio==3.6.1
 pytest==7.1.2
 pytest-cov==3
 pytest-xdist==2.5
