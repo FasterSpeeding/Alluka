@@ -51,32 +51,17 @@ from collections import abc as collections
 _T = typing.TypeVar("_T")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 _CallbackT = typing.TypeVar("_CallbackT", bound="CallbackSig[typing.Any]")
+_DefaultT = typing.TypeVar("_DefaultT")
 _OtherT = typing.TypeVar("_OtherT")
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
 
 
-class Undefined:
-    """Class/type of [UNDEFINED][alluka.abc.UNDEFINED]."""
+Undefined = type(None)
+"""Deprecated alias for [types.NoneType][]"""
 
-    __slots__ = ()
-    __instance: Undefined
+UNDEFINED: typing.Final[Undefined] = None
+"""Deprecated alias for [None][]"""
 
-    def __bool__(self) -> typing.Literal[False]:
-        return False
-
-    def __new__(cls) -> Undefined:
-        try:
-            return cls.__instance
-
-        except AttributeError:
-            new = super().__new__(cls)
-            assert isinstance(new, Undefined)
-            cls.__instance = new
-            return cls.__instance
-
-
-UNDEFINED: typing.Final[Undefined] = Undefined()
-"""Singleton value used within dependency injection to indicate that a value is undefined."""
 _UndefinedOr = typing.Union[Undefined, _T]
 
 
@@ -312,8 +297,20 @@ class Client:
             The client instance to allow chaining.
         """
 
+    @typing.overload
     @abc.abstractmethod
     def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+        ...
+
+    @typing.overload
+    @abc.abstractmethod
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
+        ...
+
+    @abc.abstractmethod
+    def get_type_dependency(
+        self, type_: type[_T], /, *, default: _DefaultT = UNDEFINED
+    ) -> typing.Union[_T, Undefined, _DefaultT]:
         """Get the implementation for an injected type.
 
         Parameters
@@ -490,8 +487,20 @@ class Context(abc.ABC):
             by the client.
         """
 
+    @typing.overload
     @abc.abstractmethod
     def get_cached_result(self, callback: CallbackSig[_T], /) -> _UndefinedOr[_T]:
+        ...
+
+    @typing.overload
+    @abc.abstractmethod
+    def get_cached_result(self, callback: CallbackSig[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
+        ...
+
+    @abc.abstractmethod
+    def get_cached_result(
+        self, callback: CallbackSig[_T], /, *, default: _DefaultT = UNDEFINED
+    ) -> typing.Union[_T, Undefined, _DefaultT]:
         """Get the cached result of a callback.
 
         Parameters
@@ -507,8 +516,20 @@ class Context(abc.ABC):
             caching isn't implemented.
         """
 
+    @typing.overload
     @abc.abstractmethod
     def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+        ...
+
+    @typing.overload
+    @abc.abstractmethod
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
+        ...
+
+    @abc.abstractmethod
+    def get_type_dependency(
+        self, type_: type[_T], /, *, default: _DefaultT = UNDEFINED
+    ) -> typing.Union[_T, _DefaultT, Undefined]:
         """Get the implementation for an injected type.
 
         !!! note

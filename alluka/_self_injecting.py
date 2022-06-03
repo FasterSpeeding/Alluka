@@ -36,15 +36,15 @@ __all__: list[str] = ["AsyncSelfInjecting", "SelfInjecting"]
 import typing
 from collections import abc as collections
 
-from . import abc
+from . import abc as alluka
 
-_CallbackSigT = typing.TypeVar("_CallbackSigT", bound=abc.CallbackSig[typing.Any])
+_CallbackSigT = typing.TypeVar("_CallbackSigT", bound=alluka.CallbackSig[typing.Any])
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
 _T = typing.TypeVar("_T")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
 
-class AsyncSelfInjecting(abc.AsyncSelfInjecting[_CallbackSigT]):
+class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
     """Class used to link a sync function to a client to make it self-injecting.
 
     Examples
@@ -72,7 +72,7 @@ class AsyncSelfInjecting(abc.AsyncSelfInjecting[_CallbackSigT]):
 
     __slots__ = ("_callback", "_client")
 
-    def __init__(self, client: abc.Client, callback: _CallbackSigT, /) -> None:
+    def __init__(self, client: alluka.Client, callback: _CallbackSigT, /) -> None:
         """Initialise a self injecting callback.
 
         Parameters
@@ -123,7 +123,7 @@ class AsyncSelfInjecting(abc.AsyncSelfInjecting[_CallbackSigT]):
         return self._callback
 
 
-class SelfInjecting(abc.SelfInjecting[_SyncCallbackT]):
+class SelfInjecting(alluka.SelfInjecting[_SyncCallbackT]):
     """Class used to link a sync function to a client to make it self-injecting.
 
     !!! note
@@ -155,7 +155,7 @@ class SelfInjecting(abc.SelfInjecting[_SyncCallbackT]):
 
     __slots__ = ("_callback", "_client")
 
-    def __init__(self, client: abc.Client, callback: _SyncCallbackT, /) -> None:
+    def __init__(self, client: alluka.Client, callback: _SyncCallbackT, /) -> None:
         """Initialise a sync self injecting callback.
 
         Parameters

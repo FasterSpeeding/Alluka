@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Deprecated
+- `alluka.abc.Undefined` and `alluka.abc.UNDEFINED` as these are now aliases for
+  `types.NoneType` and `None`.
+- `get_type_dependency` and `get_cached_result` returning `UNDEFINED` as the default
+  when no default is passed has been deprecated and marked to be replaced by a
+  `KeyError` raise.
 
 ## [0.1.1] - 2020-03-20
 ### Fixed
