@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [0.1.1] - 2020-03-20
-# Fixed
+### Fixed
 - Regression around handling of "signature-less" builtin functions.
   A ValueError will no longer be raised in these cases.
 
