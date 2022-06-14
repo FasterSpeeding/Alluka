@@ -62,10 +62,9 @@ Undefined = type(None)
 UNDEFINED: typing.Final[Undefined] = None
 """Deprecated alias for [None][]"""
 
-_UndefinedOr = typing.Union[Undefined, _T]
-
-
-CallbackSig = typing.Union[collections.Callable[..., _CoroT[_T]], collections.Callable[..., _T]]
+CallbackSig = typing.Union[
+    collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, _T]], collections.Callable[..., _T]
+]
 """Type-hint of a injector callback.
 
 !!! note
@@ -299,7 +298,7 @@ class Client:
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> typing.Optional[_T]:
         ...
 
     @typing.overload
@@ -309,8 +308,8 @@ class Client:
 
     @abc.abstractmethod
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: _DefaultT = UNDEFINED
-    ) -> typing.Union[_T, Undefined, _DefaultT]:
+        self, type_: type[_T], /, *, default: typing.Optional[_DefaultT] = None
+    ) -> typing.Union[_T, _DefaultT, None]:
         """Get the implementation for an injected type.
 
         Parameters
@@ -489,7 +488,7 @@ class Context(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_cached_result(self, callback: CallbackSig[_T], /) -> _UndefinedOr[_T]:
+    def get_cached_result(self, callback: CallbackSig[_T], /) -> typing.Optional[_T]:
         ...
 
     @typing.overload
@@ -499,7 +498,7 @@ class Context(abc.ABC):
 
     @abc.abstractmethod
     def get_cached_result(
-        self, callback: CallbackSig[_T], /, *, default: _DefaultT = UNDEFINED
+        self, callback: CallbackSig[_T], /, *, default: typing.Optional[_DefaultT] = None
     ) -> typing.Union[_T, Undefined, _DefaultT]:
         """Get the cached result of a callback.
 
@@ -518,7 +517,7 @@ class Context(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> typing.Optional[_T]:
         ...
 
     @typing.overload
@@ -528,8 +527,8 @@ class Context(abc.ABC):
 
     @abc.abstractmethod
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: _DefaultT = UNDEFINED
-    ) -> typing.Union[_T, _DefaultT, Undefined]:
+        self, type_: type[_T], /, *, default: typing.Optional[_DefaultT] = None
+    ) -> typing.Union[_T, _DefaultT, None]:
         """Get the implementation for an injected type.
 
         !!! note

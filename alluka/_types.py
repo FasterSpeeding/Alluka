@@ -42,7 +42,16 @@ from . import _errors
 from . import abc as alluka
 
 _T = typing.TypeVar("_T")
-UndefinedOr = typing.Union[alluka.Undefined, _T]
+
+
+class _UndefinedEnum(enum.Enum):
+    UNDEFINED = object()
+
+
+UNDEFINED = _UndefinedEnum.UNDEFINED
+"""Singleton used internally to indicate that a value is undefined."""
+UndefinedOr = typing.Union[_T, typing.Literal[_UndefinedEnum.UNDEFINED]]
+"""Union for a value which may be undefined."""
 
 
 class InjectedCallback:
@@ -112,7 +121,7 @@ class InjectedType:
         types: collections.Sequence[type[typing.Any]],
         /,
         *,
-        default: UndefinedOr[typing.Any] = alluka.UNDEFINED,
+        default: UndefinedOr[typing.Any] = UNDEFINED,
     ) -> None:
         """Initialize the type descriptor.
 
@@ -144,10 +153,10 @@ class InjectedType:
             The resolved type.
         """
         for cls in self.types:
-            if (result := ctx.get_type_dependency(cls)) is not alluka.UNDEFINED:
+            if (result := ctx.get_type_dependency(cls, default=UNDEFINED)) is not UNDEFINED:
                 return result
 
-        if self.default is not alluka.UNDEFINED:
+        if self.default is not UNDEFINED:
             return self.default
 
         raise _errors.MissingDependencyError(

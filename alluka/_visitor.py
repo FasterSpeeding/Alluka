@@ -39,7 +39,6 @@ import typing
 from collections import abc as collections
 
 from . import _types
-from . import abc as alluka
 from ._vendor import inspect
 
 if sys.version_info >= (3, 10):
@@ -100,11 +99,11 @@ class Callback:
 
     def resolve_annotation(self, name: str, /) -> _types.UndefinedOr[typing.Any]:
         if self._signature is None:
-            return alluka.UNDEFINED
+            return _types.UNDEFINED
 
         parameter = self._signature.parameters[name]
         if parameter.annotation is inspect.Parameter.empty:
-            return alluka.UNDEFINED
+            return _types.UNDEFINED
 
         # TODO: do we want to return UNDEFINED if it was resolved to a string?
         if isinstance(parameter.annotation, str) and not self._resolved:
@@ -145,7 +144,7 @@ class Default(Node):
 
 def _or_undefined(value: typing.Any) -> _types.UndefinedOr[typing.Any]:
     if value is inspect.Parameter.empty:
-        return alluka.UNDEFINED
+        return _types.UNDEFINED
 
     return value
 
@@ -156,7 +155,7 @@ class ParameterVisitor:
     _NODES: list[collections.Callable[[Callback, str], Node]] = [Default, Annotation]
 
     def parse_type(
-        self, type_: typing.Any, *, other_default: _types.UndefinedOr[typing.Any] = alluka.UNDEFINED
+        self, type_: typing.Any, *, other_default: _types.UndefinedOr[typing.Any] = _types.UNDEFINED
     ) -> tuple[list[typing.Any], _types.UndefinedOr[None]]:
         if typing.get_origin(type_) not in _UnionTypes:
             return ([type_], other_default)
@@ -167,7 +166,7 @@ class ParameterVisitor:
         except ValueError:
             return (sub_types, other_default)
 
-        if other_default is not alluka.UNDEFINED:
+        if other_default is not _types.UNDEFINED:
             # Explicitly defined defaults take priority over implicit defaults.
             return (sub_types, other_default)
 
@@ -239,9 +238,8 @@ class ParameterVisitor:
             union, default = self.parse_type(descriptor.type)
             return (_types.InjectedTypes.TYPE, _types.InjectedType(descriptor.type, union, default=default))
 
-        if (annotation := value.callback.resolve_annotation(value.name)) is alluka.UNDEFINED:
+        if (annotation := value.callback.resolve_annotation(value.name)) is _types.UNDEFINED:
             raise ValueError(f"Could not resolve type for parameter {value.name!r} with no annotation")
 
-        assert not isinstance(annotation, alluka.Undefined)
         union, default = self.parse_type(self._annotation_to_type(annotation))
         return (_types.InjectedTypes.TYPE, _types.InjectedType(annotation, union, default=default))

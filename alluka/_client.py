@@ -249,7 +249,7 @@ class Client(alluka.Client):
         return self
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /) -> _types.UndefinedOr[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> typing.Optional[_T]:
         ...
 
     @typing.overload
@@ -257,8 +257,8 @@ class Client(alluka.Client):
         ...
 
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: _DefaultT = alluka.UNDEFINED
-    ) -> typing.Union[_T, alluka.Undefined, _DefaultT]:
+        self, type_: type[_T], /, *, default: typing.Optional[_DefaultT] = None
+    ) -> typing.Union[_T, _DefaultT, None]:
         # <<inherited docstring from alluka.abc.Client>>.
         return self._type_dependencies.get(type_, default)
 
@@ -332,7 +332,7 @@ class BasicContext(alluka.Context):
         return await self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs)
 
     @typing.overload
-    def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> _types.UndefinedOr[_T]:
+    def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> typing.Optional[_T]:
         ...
 
     @typing.overload
@@ -342,13 +342,13 @@ class BasicContext(alluka.Context):
         ...
 
     def get_cached_result(
-        self, callback: alluka.CallbackSig[_T], /, *, default: _DefaultT = alluka.UNDEFINED
-    ) -> typing.Union[_T, alluka.Undefined, _DefaultT]:
+        self, callback: alluka.CallbackSig[_T], /, *, default: typing.Optional[_DefaultT] = None
+    ) -> typing.Union[_T, _DefaultT, None]:
         # <<inherited docstring from alluka.abc.Context>>.
         return self._result_cache.get(callback, default) if self._result_cache else default
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /) -> _types.UndefinedOr[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> typing.Optional[_T]:
         ...
 
     @typing.overload
@@ -356,8 +356,8 @@ class BasicContext(alluka.Context):
         ...
 
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: _DefaultT = alluka.UNDEFINED
-    ) -> typing.Union[_T, alluka.Undefined, _DefaultT]:
+        self, type_: type[_T], /, *, default: typing.Optional[_DefaultT] = None
+    ) -> typing.Union[_T, _DefaultT, None]:
         # <<inherited docstring from alluka.abc.Context>>.
         if self._special_case_types and (value := self._special_case_types.get(type_, default)) is not default:
             return typing.cast(_T, value)
