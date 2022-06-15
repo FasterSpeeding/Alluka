@@ -981,9 +981,9 @@ async def test_call_with_async_di_with_shorthand_annotated_union_type_dependency
         await context.call_with_async_di(callback, yeee="yeee", nyaa=True)
 
     assert exc_info.value.dependency_type == typing.Union[MockType, MockOtherType]
-    assert  exc_info.value.message == (
-        "Couldn't resolve injected type(s) tests.test_async_callback_di.MockType"
-        " | tests.test_async_callback_di.MockOtherType to actual value"
+    assert exc_info.value.message == (
+        "Couldn't resolve injected type(s) tests.test_async_callback_di.MockOtherType"
+        " | tests.test_async_callback_di.MockType to actual value"
     )
 
 
