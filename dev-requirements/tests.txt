@@ -13,7 +13,7 @@ attrs==21.4.0
     #   outcome
     #   pytest
     #   trio
-coverage[toml]==6.3.2
+coverage[toml]==6.4.1
     # via pytest-cov
 execnet==1.9.0
     # via pytest-xdist
@@ -23,7 +23,7 @@ idna==3.3
     #   trio
 iniconfig==1.1.1
     # via pytest
-outcome==1.1.0
+outcome==1.2.0
     # via trio
 packaging==21.3
     # via pytest
@@ -33,7 +33,7 @@ py==1.11.0
     # via
     #   pytest
     #   pytest-forked
-pyparsing==3.0.8
+pyparsing==3.0.9
     # via packaging
 pytest==7.1.2
     # via
