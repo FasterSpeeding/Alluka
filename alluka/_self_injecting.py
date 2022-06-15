@@ -41,6 +41,7 @@ from . import abc
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=abc.CallbackSig[typing.Any])
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
 _T = typing.TypeVar("_T")
+_CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
 
 class AsyncSelfInjecting(abc.AsyncSelfInjecting[_CallbackSigT]):
@@ -94,7 +95,7 @@ class AsyncSelfInjecting(abc.AsyncSelfInjecting[_CallbackSigT]):
 
     @typing.overload
     async def __call__(
-        self: AsyncSelfInjecting[collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, _T]]],
+        self: AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]],
         *args: typing.Any,
         **kwargs: typing.Any,
     ) -> _T:
@@ -106,7 +107,13 @@ class AsyncSelfInjecting(abc.AsyncSelfInjecting[_CallbackSigT]):
     ) -> _T:
         ...
 
-    async def __call__(self: AsyncSelfInjecting[abc.CallbackSig[_T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    async def __call__(
+        self: typing.Union[
+            AsyncSelfInjecting[collections.Callable[..., _T]], AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]]
+        ],
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> _T:
         # <<inherited docstring from alluka.abc.AsyncSelfInjecting>>.
         return await self._client.call_with_async_di(self._callback, *args, **kwargs)
 
