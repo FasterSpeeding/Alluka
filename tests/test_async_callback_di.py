@@ -876,7 +876,8 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
             await context.call_with_async_di(callback, 123, "ok")
 
         assert exc_info.value.dependency_type == MockOtherType | MockType
-        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockOtherType | MockType} to actual value"
+        # For whatever reason the order and format of the union in message's repr
+        # isn't consistent here so it isn't tested.
 
     @pytest.mark.anyio()
     async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency_defaulting(
