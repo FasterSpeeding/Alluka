@@ -800,14 +800,14 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
     def test_call_with_di_with_shorthand_annotated_3_10_union_type_dependency_not_found(
         context: alluka.BasicContext,
     ):
-        def callback(bar: int, baz: str, cope: alluka.Injected[MockOtherType | MockType]) -> float:
+        def callback(bar: int, baz: str, cope: alluka.Injected[MockType | MockOtherType]) -> float:
             raise NotImplementedError
 
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             context.call_with_di(callback, 123, "ok")
 
-        assert exc_info.value.dependency_type == MockOtherType | MockType
-        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockOtherType | MockType} to actual value"
+        assert exc_info.value.dependency_type == MockType | MockOtherType
+        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockType | MockOtherType} to actual value"
 
     def test_call_with_di_with_shorthand_annotated_3_10_union_type_dependency_defaulting(
         context: alluka.BasicContext,

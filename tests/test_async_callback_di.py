@@ -973,17 +973,17 @@ async def test_call_with_async_di_with_shorthand_annotated_union_type_dependency
     async def callback(
         yeee: str,
         nyaa: bool,
-        yeet: alluka.Injected[typing.Union[MockType, MockOtherType]],
+        yeet: alluka.Injected[typing.Union[MockOtherType, MockType]],
     ) -> str:
         raise NotImplementedError
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
         await context.call_with_async_di(callback, yeee="yeee", nyaa=True)
 
-    assert exc_info.value.dependency_type == typing.Union[MockType, MockOtherType]
+    assert exc_info.value.dependency_type == typing.Union[MockOtherType, MockType]
     assert (
         exc_info.value.message
-        == f"Couldn't resolve injected type(s) {typing.Union[MockType, MockOtherType]} to actual value"
+        == f"Couldn't resolve injected type(s) {typing.Union[MockOtherType,MockType]} to actual value"
     )
 
 
@@ -1133,7 +1133,7 @@ async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_un
         value: alluka.Injected[typing.Union[MockType, MockOtherType, None]] = MockType(54123123),
     ) -> str:
         assert vvvvv == 123
-        assert value == "default 2"
+        assert value == 54123123
         return "yeeee"
 
     result = await context.call_with_async_di(callback, 123)
