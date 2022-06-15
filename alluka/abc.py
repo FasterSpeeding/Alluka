@@ -62,9 +62,7 @@ Undefined = type(None)
 UNDEFINED: typing.Final[Undefined] = None
 """Deprecated alias for [None][]"""
 
-CallbackSig = typing.Union[
-    collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, _T]], collections.Callable[..., _T]
-]
+CallbackSig = typing.Union[collections.Callable[..., _CoroT[_T]], collections.Callable[..., _T]]
 """Type-hint of a injector callback.
 
 !!! note
