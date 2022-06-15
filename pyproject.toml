@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "alluka"
 readme = "README.md"
-requires-python = ">=3.9.0,<3.12"
+requires-python = ">=3.9.0,<3.13"
 license = {file = "LICENSE"}
 authors = [ {name = "Faster Speeding", email="lucina@lmbyrne.dev"} ]
 keywords = ["DI", "injection"]
@@ -21,6 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
