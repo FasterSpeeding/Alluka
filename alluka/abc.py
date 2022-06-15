@@ -60,7 +60,7 @@ class Undefined:
     """Deprecated type of the [UNDEFINED][alluka.abc.UNDEFINED] constant.
 
     !!! warning "deprecated"
-        This will be removed in v0.2.0.
+        This will be removed in `v0.2.0`.
     """
 
     __slots__ = ()
@@ -84,7 +84,7 @@ UNDEFINED: typing.Final[Undefined] = Undefined()
 """Deprecated singleton value used to indicate that a value is undefined
 
 !!! warning "deprecated"
-    This will be removedin v0.2.0.
+    This will be removedin `v0.2.0`.
 """
 _UndefinedOr = typing.Union[Undefined, _T]
 
@@ -339,7 +339,7 @@ class Client(abc.ABC):
 
         !!! warning "deprecated"
             Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
-            replaced by a [KeyError][] raise in v0.2.0.
+            replaced by a [KeyError][] raise in `v0.2.0`.
 
         Parameters
         ----------
@@ -538,7 +538,7 @@ class Context(abc.ABC):
 
         !!! warning "deprecated"
             Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
-            replaced by a [KeyError][] raise in v0.2.0.
+            replaced by a [KeyError][] raise in `v0.2.0`.
 
         Parameters
         ----------
@@ -578,7 +578,7 @@ class Context(abc.ABC):
 
         !!! warning "deprecated"
             Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
-            replaced by a [KeyError][] raise in v0.2.0.
+            replaced by a [KeyError][] raise in `v0.2.0`.
 
         Parameters
         ----------
