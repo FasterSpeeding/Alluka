@@ -51,12 +51,17 @@ from collections import abc as collections
 _T = typing.TypeVar("_T")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 _CallbackT = typing.TypeVar("_CallbackT", bound="CallbackSig[typing.Any]")
+_DefaultT = typing.TypeVar("_DefaultT")
 _OtherT = typing.TypeVar("_OtherT")
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
 
 
 class Undefined:
-    """Class/type of [UNDEFINED][alluka.abc.UNDEFINED]."""
+    """Deprecated type of the [UNDEFINED][alluka.abc.UNDEFINED] constant.
+
+    !!! warning "deprecated"
+        This will be removed in `v0.2.0`.
+    """
 
     __slots__ = ()
     __instance: Undefined
@@ -76,7 +81,11 @@ class Undefined:
 
 
 UNDEFINED: typing.Final[Undefined] = Undefined()
-"""Singleton value used within dependency injection to indicate that a value is undefined."""
+"""Deprecated singleton value used to indicate that a value is undefined
+
+!!! warning "deprecated"
+    This will be removedin `v0.2.0`.
+"""
 _UndefinedOr = typing.Union[Undefined, _T]
 
 
@@ -96,7 +105,7 @@ Dependent on the context positional arguments may also be proivded.
 """
 
 
-class Client:
+class Client(abc.ABC):
     """Abstract interface of a dependency injection client."""
 
     __slots__ = ()
@@ -312,19 +321,40 @@ class Client:
             The client instance to allow chaining.
         """
 
+    @typing.overload
     @abc.abstractmethod
     def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+        ...
+
+    @typing.overload
+    @abc.abstractmethod
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
+        ...
+
+    @abc.abstractmethod
+    def get_type_dependency(
+        self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = UNDEFINED
+    ) -> typing.Union[_T, _DefaultT, Undefined]:
         """Get the implementation for an injected type.
+
+        !!! warning "deprecated"
+            Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
+            replaced by a [KeyError][] raise in `v0.2.0`.
 
         Parameters
         ----------
         type_
             The associated type.
+        default
+            The default value to return if the type is not implemented.
 
         Returns
         -------
-        _T | Undefined
-            The resolved type if found, else [UNDEFINED][alluka.abc.UNDEFINED].
+        _T | _DefaultT | alluka.abc.UNDEFINED
+            The resolved type if found.
+
+            If the type isn't implemented then the value of `default`
+            will be returned if it is provided, else [alluka.abc.UNDEFINED][].
         """
 
     @abc.abstractmethod
@@ -490,40 +520,80 @@ class Context(abc.ABC):
             by the client.
         """
 
+    @typing.overload
     @abc.abstractmethod
     def get_cached_result(self, callback: CallbackSig[_T], /) -> _UndefinedOr[_T]:
+        ...
+
+    @typing.overload
+    @abc.abstractmethod
+    def get_cached_result(self, callback: CallbackSig[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
+        ...
+
+    @abc.abstractmethod
+    def get_cached_result(
+        self, callback: CallbackSig[_T], /, *, default: _UndefinedOr[_DefaultT] = UNDEFINED
+    ) -> typing.Union[_T, _DefaultT, Undefined]:
         """Get the cached result of a callback.
+
+        !!! warning "deprecated"
+            Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
+            replaced by a [KeyError][] raise in `v0.2.0`.
 
         Parameters
         ----------
         callback
             The callback to get the cached result of.
+        default
+            The default value to return if the callback is not cached.
 
         Returns
         -------
-        _T | Undefined
-            The cached result of the callback, or [UNDEFINED][alluka.abc.UNDEFINED]
-            if the callback has not been cached within this context or
-            caching isn't implemented.
+        _T | _DefaultT | alluka.abc.UNDEFINED
+            The cached result of the callback if found.
+
+            If the callback's result hasn't been cached or caching isn't
+            implementing then this will return the value of `default` if it
+            is provided, else [alluka.abc.UNDEFINED][].
         """
 
+    @typing.overload
     @abc.abstractmethod
     def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+        ...
+
+    @typing.overload
+    @abc.abstractmethod
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
+        ...
+
+    @abc.abstractmethod
+    def get_type_dependency(
+        self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = UNDEFINED
+    ) -> typing.Union[_T, _DefaultT, Undefined]:
         """Get the implementation for an injected type.
 
-        !!! note
-            Unlike [Client.get_type_dependency][alluka.abc.Client.get_type_dependency],
-            this method may also return context specific implementations of a type.
+        Unlike [Client.get_type_dependency][alluka.abc.Client.get_type_dependency],
+        this method may also return context specific implementations of a type.
+
+        !!! warning "deprecated"
+            Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
+            replaced by a [KeyError][] raise in `v0.2.0`.
 
         Parameters
         ----------
         type_
             The associated type.
+        default
+            The default value to return if the type is not implemented.
 
         Returns
         -------
-        _T | Undefined
-            The resolved type if found, else [UNDEFINED][alluka.abc.UNDEFINED].
+        _T | _DefaultT | alluka.abc.UNDEFINED
+            The resolved type if found.
+
+            If the type isn't implemented then the value of `default`
+            will be returned if it is provided, else [alluka.abc.UNDEFINED][].
         """
 
 

@@ -39,10 +39,19 @@ import typing
 from collections import abc as collections
 
 from . import _errors
-from . import abc
+from . import abc as alluka
 
 _T = typing.TypeVar("_T")
-UndefinedOr = typing.Union[abc.Undefined, _T]
+
+
+class _UndefinedEnum(enum.Enum):
+    UNDEFINED = object()
+
+
+UNDEFINED = _UndefinedEnum.UNDEFINED
+"""Singleton used internally to indicate that a value is undefined."""
+UndefinedOr = typing.Union[_T, typing.Literal[_UndefinedEnum.UNDEFINED]]
+"""Union for a value which may be undefined."""
 
 
 class InjectedCallback:
@@ -50,7 +59,7 @@ class InjectedCallback:
 
     __slots__ = ("callback",)
 
-    def __init__(self, callback: abc.CallbackSig[typing.Any], /) -> None:
+    def __init__(self, callback: alluka.CallbackSig[typing.Any], /) -> None:
         """Initialize the callback descriptor.
 
         Parameters
@@ -60,7 +69,7 @@ class InjectedCallback:
         """
         self.callback = callback
 
-    def resolve(self, ctx: abc.Context) -> typing.Any:
+    def resolve(self, ctx: alluka.Context) -> typing.Any:
         """Synchronously resolve the callback.
 
         !!! warning
@@ -83,7 +92,7 @@ class InjectedCallback:
         callback = ctx.injection_client.get_callback_override(self.callback) or self.callback
         return ctx.injection_client.call_with_ctx(ctx, callback)
 
-    def resolve_async(self, ctx: abc.Context) -> collections.Coroutine[typing.Any, typing.Any, typing.Any]:
+    def resolve_async(self, ctx: alluka.Context) -> collections.Coroutine[typing.Any, typing.Any, typing.Any]:
         """Asynchronously resolve the callback.
 
         Parameters
@@ -112,7 +121,7 @@ class InjectedType:
         types: collections.Sequence[type[typing.Any]],
         /,
         *,
-        default: UndefinedOr[typing.Any] = abc.UNDEFINED,
+        default: UndefinedOr[typing.Any] = UNDEFINED,
     ) -> None:
         """Initialize the type descriptor.
 
@@ -130,7 +139,7 @@ class InjectedType:
         self.repr_type = repr_type
         self.types = types
 
-    def resolve(self, ctx: abc.Context) -> typing.Any:
+    def resolve(self, ctx: alluka.Context) -> typing.Any:
         """Resolve the type.
 
         Parameters
@@ -144,10 +153,10 @@ class InjectedType:
             The resolved type.
         """
         for cls in self.types:
-            if (result := ctx.get_type_dependency(cls)) is not abc.UNDEFINED:
+            if (result := ctx.get_type_dependency(cls, default=UNDEFINED)) is not UNDEFINED:
                 return result
 
-        if self.default is not abc.UNDEFINED:
+        if self.default is not UNDEFINED:
             return self.default
 
         raise _errors.MissingDependencyError(
@@ -189,7 +198,7 @@ class InjectedDescriptor(typing.Generic[_T]):
 
     __slots__ = ("callback", "type")
 
-    callback: typing.Optional[abc.CallbackSig[_T]]
+    callback: typing.Optional[alluka.CallbackSig[_T]]
     """The callback to use to resolve the parameter's value.
 
     If this is `None` then this is a type dependency.
@@ -205,7 +214,7 @@ class InjectedDescriptor(typing.Generic[_T]):
     def __init__(
         self,
         *,
-        callback: typing.Optional[abc.CallbackSig[_T]] = None,
+        callback: typing.Optional[alluka.CallbackSig[_T]] = None,
         type: typing.Optional[_TypeT[_T]] = None,  # noqa: A002
     ) -> None:  # TODO: add default/factory to this?
         """Initialise an injection default descriptor.
