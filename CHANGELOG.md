@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- The optional `introspect_annotations` arg for `alluka.Client.__init__` is now keyword only.
+- `tanjun.abc.Client` is now a real `abc.ABC`.
+
 ### Deprecated
 - `alluka.abc.Undefined` and `alluka.abc.UNDEFINED` as these are now aliases for
   `types.NoneType` and `None`.
