@@ -56,11 +56,38 @@ _OtherT = typing.TypeVar("_OtherT")
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
 
 
-Undefined = type(None)
-"""Deprecated alias for [types.NoneType][]"""
+class Undefined:
+    """Deprecated type of the [UNDEFINED][alluka.abc.UNDEFINED] constant.
 
-UNDEFINED: typing.Final[Undefined] = None
-"""Deprecated alias for [None][]"""
+    !!! warning "deprecated"
+        This will be removed in v0.2.0.
+    """
+
+    __slots__ = ()
+    __instance: Undefined
+
+    def __bool__(self) -> typing.Literal[False]:
+        return False
+
+    def __new__(cls) -> Undefined:
+        try:
+            return cls.__instance
+
+        except AttributeError:
+            new = super().__new__(cls)
+            assert isinstance(new, Undefined)
+            cls.__instance = new
+            return cls.__instance
+
+
+_UndefinedOr = typing.Union[Undefined, _T]
+
+UNDEFINED: typing.Final[Undefined] = Undefined()
+"""Deprecated alias for [None][].
+
+!!! warning "deprecated"
+    This will be removedin v0.2.0.
+"""
 
 CallbackSig = typing.Union[collections.Callable[..., _CoroT[_T]], collections.Callable[..., _T]]
 """Type-hint of a injector callback.
@@ -296,7 +323,7 @@ class Client(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /) -> typing.Optional[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
         ...
 
     @typing.overload
@@ -306,19 +333,28 @@ class Client(abc.ABC):
 
     @abc.abstractmethod
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: typing.Optional[_DefaultT] = None
-    ) -> typing.Union[_T, _DefaultT, None]:
+        self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = UNDEFINED
+    ) -> typing.Union[_T, _DefaultT, Undefined]:
         """Get the implementation for an injected type.
+
+        !!! warning "deprecated"
+            Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
+            replaced by a [KeyError][] raise in v0.2.0.
 
         Parameters
         ----------
         type_
             The associated type.
+        default
+            The default value to return if the type is not implemented.
 
         Returns
         -------
-        _T | Undefined
-            The resolved type if found, else [UNDEFINED][alluka.abc.UNDEFINED].
+        _T | _DefaultT | alluka.abc.UNDEFINED
+            The resolved type if found.
+
+            If the type isn't implemented then the value of `default`
+            will be returned if it is provided, else [alluka.abc.UNDEFINED][].
         """
 
     @abc.abstractmethod
@@ -486,7 +522,7 @@ class Context(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_cached_result(self, callback: CallbackSig[_T], /) -> typing.Optional[_T]:
+    def get_cached_result(self, callback: CallbackSig[_T], /) -> _UndefinedOr[_T]:
         ...
 
     @typing.overload
@@ -496,26 +532,34 @@ class Context(abc.ABC):
 
     @abc.abstractmethod
     def get_cached_result(
-        self, callback: CallbackSig[_T], /, *, default: typing.Optional[_DefaultT] = None
-    ) -> typing.Union[_T, Undefined, _DefaultT]:
+        self, callback: CallbackSig[_T], /, *, default: _UndefinedOr[_DefaultT] = UNDEFINED
+    ) -> typing.Union[_T, _DefaultT, Undefined]:
         """Get the cached result of a callback.
+
+        !!! warning "deprecated"
+            Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
+            replaced by a [KeyError][] raise in v0.2.0.
 
         Parameters
         ----------
         callback
             The callback to get the cached result of.
+        default
+            The default value to return if the callback is not cached.
 
         Returns
         -------
-        _T | Undefined
-            The cached result of the callback, or [UNDEFINED][alluka.abc.UNDEFINED]
-            if the callback has not been cached within this context or
-            caching isn't implemented.
+        _T | _DefaultT | alluka.abc.UNDEFINED
+            The cached result of the callback if found.
+
+            If the callback's result hasn't been cached or caching isn't
+            implementing then this will return the value of `default` if it
+            is provided, else [alluka.abc.UNDEFINED][].
         """
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /) -> typing.Optional[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
         ...
 
     @typing.overload
@@ -525,23 +569,31 @@ class Context(abc.ABC):
 
     @abc.abstractmethod
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: typing.Optional[_DefaultT] = None
-    ) -> typing.Union[_T, _DefaultT, None]:
+        self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = UNDEFINED
+    ) -> typing.Union[_T, _DefaultT, Undefined]:
         """Get the implementation for an injected type.
 
-        !!! note
-            Unlike [Client.get_type_dependency][alluka.abc.Client.get_type_dependency],
-            this method may also return context specific implementations of a type.
+        Unlike [Client.get_type_dependency][alluka.abc.Client.get_type_dependency],
+        this method may also return context specific implementations of a type.
+
+        !!! warning "deprecated"
+            Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
+            replaced by a [KeyError][] raise in v0.2.0.
 
         Parameters
         ----------
         type_
             The associated type.
+        default
+            The default value to return if the type is not implemented.
 
         Returns
         -------
-        _T | Undefined
-            The resolved type if found, else [UNDEFINED][alluka.abc.UNDEFINED].
+        _T | _DefaultT | alluka.abc.UNDEFINED
+            The resolved type if found.
+
+            If the type isn't implemented then the value of `default`
+            will be returned if it is provided, else [alluka.abc.UNDEFINED][].
         """
 
 

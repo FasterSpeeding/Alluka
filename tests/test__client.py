@@ -250,7 +250,7 @@ class TestBasicContext:
         result = ctx.get_type_dependency(mock_type)
 
         assert result is mock_client.get_type_dependency.return_value
-        mock_client.get_type_dependency.assert_called_once_with(mock_type, default=None)
+        mock_client.get_type_dependency.assert_called_once_with(mock_type, default=alluka.abc.UNDEFINED)
 
     def test_get_type_dependency_with_default(self):
         mock_client = mock.Mock()
