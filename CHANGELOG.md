@@ -7,15 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - The optional `introspect_annotations` parameter for `alluka.Client.__init__`
-is now keyword only.
+  is now keyword only.
 - `tanjun.abc.Client` is now a real `abc.ABC`.
 
 ### Deprecated
 - `alluka.abc.Undefined` and `alluka.abc.UNDEFINED` for removal in `v0.2.0` as
-   these are now aliases for `types.NoneType` and `None`.
+   these will no-longer be used.
 - `get_type_dependency` and `get_cached_result` returning `UNDEFINED` as the
-  default when no default is passed has been deprecated and marked to be replaced
-  by a `KeyError` raise in `v0.2.0`.
+  default when no default is passed will be replaced by a `KeyError` raise in
+  `v0.2.0`.
 
 ## [0.1.1] - 2020-03-20
 ### Fixed

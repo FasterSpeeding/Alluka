@@ -80,14 +80,14 @@ class Undefined:
             return cls.__instance
 
 
-_UndefinedOr = typing.Union[Undefined, _T]
-
 UNDEFINED: typing.Final[Undefined] = Undefined()
-"""Deprecated alias for [None][].
+"""Deprecated singleton value used to indicate that a value is undefined
 
 !!! warning "deprecated"
     This will be removedin v0.2.0.
 """
+_UndefinedOr = typing.Union[Undefined, _T]
+
 
 CallbackSig = typing.Union[collections.Callable[..., _CoroT[_T]], collections.Callable[..., _T]]
 """Type-hint of a injector callback.
