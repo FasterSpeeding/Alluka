@@ -1042,7 +1042,7 @@ def test_call_with_di_with_shorthand_annotated_natural_defaulting_union_type_dep
         value: alluka.Injected[typing.Union[MockType, MockOtherType, None]] = MockType(54123123),
     ) -> str:
         assert vvvvv == 123
-        assert value == "default 2"
+        assert value == 54123123
         return "yeeee"
 
     result = context.call_with_di(callback, 123)
