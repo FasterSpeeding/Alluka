@@ -973,17 +973,17 @@ async def test_call_with_async_di_with_shorthand_annotated_union_type_dependency
     async def callback(
         yeee: str,
         nyaa: bool,
-        yeet: alluka.Injected[typing.Union[MockOtherType, MockType]],
+        yeet: alluka.Injected[typing.Union[MockType, MockOtherType]],
     ) -> str:
         raise NotImplementedError
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
         await context.call_with_async_di(callback, yeee="yeee", nyaa=True)
 
-    assert exc_info.value.dependency_type == typing.Union[MockOtherType, MockType]
-    assert (
-        exc_info.value.message
-        == f"Couldn't resolve injected type(s) {typing.Union[MockOtherType,MockType]} to actual value"
+    assert exc_info.value.dependency_type == typing.Union[MockType, MockOtherType]
+    assert  exc_info.value.message == (
+        "Couldn't resolve injected type(s) tests.test_async_callback_di.MockType"
+        " | tests.test_async_callback_di.MockOtherType to actual value"
     )
 
 
