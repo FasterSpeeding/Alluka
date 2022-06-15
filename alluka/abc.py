@@ -48,11 +48,11 @@ from collections import abc as collections
 
 # pyright: reportOverlappingOverload=warning
 
-_AnyCoro = collections.Coroutine[typing.Any, typing.Any, typing.Any]
+_T = typing.TypeVar("_T")
+_CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 _CallbackT = typing.TypeVar("_CallbackT", bound="CallbackSig[typing.Any]")
 _OtherT = typing.TypeVar("_OtherT")
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
-_T = typing.TypeVar("_T")
 
 
 class Undefined:
@@ -80,9 +80,7 @@ UNDEFINED: typing.Final[Undefined] = Undefined()
 _UndefinedOr = typing.Union[Undefined, _T]
 
 
-CallbackSig = typing.Union[
-    collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, _T]], collections.Callable[..., _T]
-]
+CallbackSig = typing.Union[collections.Callable[..., _CoroT[_T]], collections.Callable[..., _T]]
 """Type-hint of a injector callback.
 
 !!! note
@@ -144,7 +142,7 @@ class Client:
     @typing.overload
     @abc.abstractmethod
     def call_with_di(
-        self, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
+        self, callback: collections.Callable[..., _CoroT[typing.Any]], *args: typing.Any, **kwargs: typing.Any
     ) -> typing.NoReturn:
         ...
 
@@ -185,7 +183,11 @@ class Client:
     @typing.overload
     @abc.abstractmethod
     def call_with_ctx(
-        self, ctx: Context, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
+        self,
+        ctx: Context,
+        callback: collections.Callable[..., _CoroT[typing.Any]],
+        *args: typing.Any,
+        **kwargs: typing.Any,
     ) -> typing.NoReturn:
         ...
 
@@ -423,7 +425,7 @@ class Context(abc.ABC):
     @typing.overload
     @abc.abstractmethod
     def call_with_di(
-        self, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
+        self, callback: collections.Callable[..., _CoroT[typing.Any]], *args: typing.Any, **kwargs: typing.Any
     ) -> typing.NoReturn:
         ...
 
@@ -549,7 +551,7 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
     @typing.overload
     @abc.abstractmethod
     async def __call__(
-        self: AsyncSelfInjecting[collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, _T]]],
+        self: AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]],
         *args: typing.Any,
         **kwargs: typing.Any,
     ) -> _T:
@@ -563,7 +565,13 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
         ...
 
     @abc.abstractmethod
-    async def __call__(self: AsyncSelfInjecting[CallbackSig[_T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    async def __call__(
+        self: typing.Union[
+            AsyncSelfInjecting[collections.Callable[..., _T]], AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]]
+        ],
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> _T:
         """Call this with the provided arguments and any injected arguments.
 
         Parameters
