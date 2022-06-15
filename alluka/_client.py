@@ -143,7 +143,7 @@ class Client(alluka.Client):
 
     __slots__ = ("_callback_overrides", "_descriptors", "_introspect_annotations", "_type_dependencies")
 
-    def __init__(self, introspect_annotations: bool = True) -> None:
+    def __init__(self, *, introspect_annotations: bool = True) -> None:
         """Initialise an injector client."""
         self._callback_overrides: dict[alluka.CallbackSig[typing.Any], alluka.CallbackSig[typing.Any]] = {}
         # TODO: this forces objects to have a __weakref__ attribute,

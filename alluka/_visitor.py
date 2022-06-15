@@ -142,19 +142,12 @@ class Default(Node):
         return visitor.visit_default(self)
 
 
-def _or_undefined(value: typing.Any) -> _types.UndefinedOr[typing.Any]:
-    if value is inspect.Parameter.empty:
-        return _types.UNDEFINED
-
-    return value
-
-
 class ParameterVisitor:
     __slots__ = ()
 
     _NODES: list[collections.Callable[[Callback, str], Node]] = [Default, Annotation]
 
-    def parse_type(
+    def _parse_type(
         self, type_: typing.Any, *, other_default: _types.UndefinedOr[typing.Any] = _types.UNDEFINED
     ) -> tuple[list[typing.Any], _types.UndefinedOr[None]]:
         if typing.get_origin(type_) not in _UnionTypes:
@@ -183,7 +176,9 @@ class ParameterVisitor:
 
     def visit_annotation(self, annotation: Annotation, /) -> typing.Optional[_types.InjectedTuple]:
         value = annotation.callback.resolve_annotation(annotation.name)
-        default = _or_undefined(annotation.callback.parameters[annotation.name].default)
+        default = annotation.callback.parameters[annotation.name].default
+        if default is inspect.Parameter.empty:
+            default = _types.UNDEFINED
 
         if typing.get_origin(value) is not typing.Annotated:
             return None
@@ -191,7 +186,7 @@ class ParameterVisitor:
         args = typing.get_args(value)
         if _types.InjectedTypes.TYPE in args:
             type_ = self._annotation_to_type(args[0])
-            union, default = self.parse_type(type_, other_default=default)
+            union, default = self._parse_type(type_, other_default=default)
             return (_types.InjectedTypes.TYPE, _types.InjectedType(type_, union, default=default))
 
         arg: typing.Union[_types.InjectedDescriptor[typing.Any], typing.Any]
@@ -203,11 +198,11 @@ class ParameterVisitor:
                 return (_types.InjectedTypes.CALLBACK, _types.InjectedCallback(arg.callback))
 
             if arg.type:
-                union, default = self.parse_type(arg.type, other_default=default)
+                union, default = self._parse_type(arg.type, other_default=default)
                 return (_types.InjectedTypes.TYPE, _types.InjectedType(arg.type, union, default=default))
 
             type_ = self._annotation_to_type(args[0])
-            union, default = self.parse_type(type_, other_default=default)
+            union, default = self._parse_type(type_, other_default=default)
             return (_types.InjectedTypes.TYPE, _types.InjectedType(type_, union, default=default))
 
     def visit_callback(self, callback: Callback, /) -> dict[str, _types.InjectedTuple]:
@@ -235,11 +230,11 @@ class ParameterVisitor:
             return (_types.InjectedTypes.CALLBACK, _types.InjectedCallback(descriptor.callback))
 
         if descriptor.type is not None:
-            union, default = self.parse_type(descriptor.type)
+            union, default = self._parse_type(descriptor.type)
             return (_types.InjectedTypes.TYPE, _types.InjectedType(descriptor.type, union, default=default))
 
         if (annotation := value.callback.resolve_annotation(value.name)) is _types.UNDEFINED:
             raise ValueError(f"Could not resolve type for parameter {value.name!r} with no annotation")
 
-        union, default = self.parse_type(self._annotation_to_type(annotation))
+        union, default = self._parse_type(self._annotation_to_type(annotation))
         return (_types.InjectedTypes.TYPE, _types.InjectedType(annotation, union, default=default))

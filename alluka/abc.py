@@ -80,7 +80,7 @@ Dependent on the context positional arguments may also be proivded.
 """
 
 
-class Client:
+class Client(abc.ABC):
     """Abstract interface of a dependency injection client."""
 
     __slots__ = ()
