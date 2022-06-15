@@ -70,3 +70,20 @@ __issue_tracker__: typing.Final[str] = "https://github.com/FasterSpeeding/Alluka
 __license__: typing.Final[str] = "BSD"
 __url__: typing.Final[str] = "https://github.com/FasterSpeeding/Alluka"
 __version__: typing.Final[str] = "0.1.1"
+
+try:
+    import _alluka  # type: ignore
+
+    if _alluka.__version__ == __version__:  # type: ignore
+        from _alluka import *  # type: ignore  # noqa: F401,F403
+
+    else:
+        import sys
+
+        sys.stderr.write(
+            f"Alluka: Rust version mismatch, expected {__version__} but got {_alluka.__version__}\n",  # type: ignore
+        )
+
+
+except ImportError:
+    pass

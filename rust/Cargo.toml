@@ -1,0 +1,13 @@
+[package]
+name = "alluka_rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "_alluka"
+crate-type = ["cdylib"]
+
+[dependencies.pyo3]
+features = ["extension-module", "serde"]
+version = "0.16.5"
