@@ -106,7 +106,7 @@ class Callback:
             return _types.UNDEFINED
 
         # TODO: do we want to return UNDEFINED if it was resolved to a string?
-        if isinstance(parameter.annotation, str) and not self._resolved:
+        if not self._resolved and isinstance(parameter.annotation, str):
             self._signature = inspect.signature(self._callback, eval_str=True)
             self._resolved = True
             return self.resolve_annotation(name)
