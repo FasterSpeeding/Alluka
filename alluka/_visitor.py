@@ -149,30 +149,30 @@ class ParameterVisitor:
 
     def _parse_type(
         self, type_: typing.Any, *, other_default: _types.UndefinedOr[typing.Any] = _types.UNDEFINED
-    ) -> tuple[list[typing.Any], _types.UndefinedOr[None]]:
+    ) -> _types.InjectedType:
         if typing.get_origin(type_) not in _UnionTypes:
-            return ([type_], other_default)
+            return _types.InjectedType(type_, [type_], default=other_default)
 
         sub_types = list(typing.get_args(type_))
         try:
             sub_types.remove(_NoneType)
         except ValueError:
-            return (sub_types, other_default)
+            return _types.InjectedType(type_, sub_types, default=other_default)
 
         if other_default is not _types.UNDEFINED:
             # Explicitly defined defaults take priority over implicit defaults.
-            return (sub_types, other_default)
+            return _types.InjectedType(type_, sub_types, default=other_default)
 
-        return (sub_types, None)
+        return _types.InjectedType(type_, sub_types, default=None)
 
-    def _annotation_to_type(self, value: typing.Any, /) -> typing.Any:
+    def _annotation_to_type(self, value: typing.Any, /, other_default: _types.UndefinedOr[typing.Any] = _types.UNDEFINED) -> _types.InjectedTuple:
         if typing.get_origin(value) is typing.Annotated:
             args = typing.get_args(value)
             # The first "type" arg of annotated will always be flatterned to a type.
             # so we don't have to deal with Annotated nesting".
-            return args[0]
+            value = args[0]
 
-        return value
+        return (_types.InjectedTypes.TYPE, self._parse_type(value, other_default=other_default))
 
     def visit_annotation(self, annotation: Annotation, /) -> typing.Optional[_types.InjectedTuple]:
         value = annotation.callback.resolve_annotation(annotation.name)
@@ -185,9 +185,7 @@ class ParameterVisitor:
 
         args = typing.get_args(value)
         if _types.InjectedTypes.TYPE in args:
-            type_ = self._annotation_to_type(args[0])
-            union, default = self._parse_type(type_, other_default=default)
-            return (_types.InjectedTypes.TYPE, _types.InjectedType(type_, union, default=default))
+            return self._annotation_to_type(args[0], other_default=default)
 
         arg: typing.Union[_types.InjectedDescriptor[typing.Any], typing.Any]
         for arg in args:
@@ -198,12 +196,9 @@ class ParameterVisitor:
                 return (_types.InjectedTypes.CALLBACK, _types.InjectedCallback(arg.callback))
 
             if arg.type:
-                union, default = self._parse_type(arg.type, other_default=default)
-                return (_types.InjectedTypes.TYPE, _types.InjectedType(arg.type, union, default=default))
+                return (_types.InjectedTypes.TYPE, self._parse_type(arg.type, other_default=default))
 
-            type_ = self._annotation_to_type(args[0])
-            union, default = self._parse_type(type_, other_default=default)
-            return (_types.InjectedTypes.TYPE, _types.InjectedType(type_, union, default=default))
+            return self._annotation_to_type(arg, other_default=default)
 
     def visit_callback(self, callback: Callback, /) -> dict[str, _types.InjectedTuple]:
         results: dict[str, _types.InjectedTuple] = {}
@@ -230,11 +225,9 @@ class ParameterVisitor:
             return (_types.InjectedTypes.CALLBACK, _types.InjectedCallback(descriptor.callback))
 
         if descriptor.type is not None:
-            union, default = self._parse_type(descriptor.type)
-            return (_types.InjectedTypes.TYPE, _types.InjectedType(descriptor.type, union, default=default))
+            return (_types.InjectedTypes.TYPE, self._parse_type(descriptor.type))
 
         if (annotation := value.callback.resolve_annotation(value.name)) is _types.UNDEFINED:
             raise ValueError(f"Could not resolve type for parameter {value.name!r} with no annotation")
 
-        union, default = self._parse_type(self._annotation_to_type(annotation))
-        return (_types.InjectedTypes.TYPE, _types.InjectedType(annotation, union, default=default))
+        return (_types.InjectedTypes.TYPE, self._parse_type(self._annotation_to_type(annotation)))

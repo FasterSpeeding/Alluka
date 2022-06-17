@@ -28,7 +28,7 @@ use std::any::Any;
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 use std::collections::HashMap;
-use std::lazy::Lazy;
+use std::lazy::{Lazy, OnceCell};
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
@@ -41,15 +41,9 @@ use crate::types::{Injected, InjectedCallback, InjectedTuple, InjectedType};
 
 import_exception!(alluka._types, InjectedDescriptor);
 
-const INSPECT: Lazy<PyObject> = Lazy::new(|| {
-    Python::with_gil(|py| {
-        py.import("alluka._internal")
-            .unwrap()
-            .getattr("inspect")
-            .unwrap()
-            .into_py(py)
-    })
-});
+const ALLUKA: Lazy<PyObject> = Lazy::new(|| Python::with_gil(|py| py.import("ALLUKA").unwrap().to_object(py)));
+const INSPECT: Lazy<PyObject> =
+    Lazy::new(|| Python::with_gil(|py| ALLUKA.getattr(py, "_internal").unwrap().getattr(py, "inspect").unwrap()));
 const TYPING: Lazy<PyObject> = Lazy::new(|| Python::with_gil(|py| py.import("typing").unwrap().to_object(py)));
 const UNION_TYPES: Lazy<(PyObject, PyObject)> = Lazy::new(|| {
     Python::with_gil(|py| {
@@ -68,11 +62,14 @@ trait Node {
     fn accept<V: Visitor>(&self, py: Python) -> PyResult<Option<Injected>>;
 }
 
-struct Annotation {}
+struct Annotation {
+    pub callback: Rc<Callback>,
+    pub name: String,
+}
 
 impl Node for Annotation {
     fn new(callback: Rc<Callback>, name: String) -> PyResult<Self> {
-        Ok(Self {})
+        Ok(Self { callback, name })
     }
 
     fn accept<V: Visitor>(&self, py: Python) -> PyResult<Option<Injected>> {
@@ -83,7 +80,7 @@ impl Node for Annotation {
 pub struct Callback {
     callback: PyObject,
     pub empty: PyObject,
-    is_resolved: bool,
+    resolved: OnceCell<()>,
     pub signature: RwLock<Option<HashMap<String, PyObject>>>,
 }
 
@@ -123,7 +120,7 @@ impl Callback {
         Ok(Self {
             callback: callback.clone_ref(py),
             empty,
-            is_resolved: false,
+            resolved: OnceCell::new(),
             signature: RwLock::new(_inspect(py, &callback, false)?),
         })
     }
@@ -132,7 +129,7 @@ impl Callback {
         V::visit_callback(py, Rc::new(self))
     }
 
-    pub fn resolve_annotation(&mut self, py: Python, name: &str) -> PyResult<Option<PyObject>> {
+    pub fn resolve_annotation(&self, py: Python, name: &str) -> PyResult<Option<PyObject>> {
         let parameters = self.signature.read().unwrap();
         if parameters.is_none() {
             return Ok(None);
@@ -149,9 +146,9 @@ impl Callback {
                     return Ok(None);
                 }
 
-                if !self.is_resolved && annotation.as_ref(py).is_instance_of::<PyString>()? {
+                if self.resolved.get().is_none() && annotation.as_ref(py).is_instance_of::<PyString>()? {
                     *self.signature.write().unwrap() = _inspect(py, &self.callback, true)?;
-                    self.is_resolved = true;
+                    self.resolved.set(());
                     drop(parameters);
                     self.resolve_annotation(py, name)
                 } else {
@@ -208,14 +205,10 @@ pub trait Visitor {
 pub struct ParameterVisitor {}
 
 impl ParameterVisitor {
-    fn parse_type(
-        py: Python,
-        type_: PyObject,
-        other_default: Option<PyObject>,
-    ) -> PyResult<(Vec<PyObject>, Option<PyObject>)> {
+    fn parse_type(py: Python, type_: PyObject, other_default: Option<PyObject>) -> PyResult<Injected> {
         let origin = TYPING.call_method1(py, "get_origin", (&type_,))?;
         if !origin.is(&UNION_TYPES.0) && !origin.is(&UNION_TYPES.1) {
-            return Ok((vec![type_], other_default));
+            return Injected::new_type(py, other_default, type_.clone_ref(py), vec![type_]);
         };
 
         let mut sub_types = origin
@@ -228,22 +221,22 @@ impl ParameterVisitor {
         for value in sub_types.iter() {
             if none_type.is(value) {
                 sub_types.retain(|value| !none_type.is(value));
-                return Ok((sub_types, Some(py.None().to_object(py))));
+                return Injected::new_type(py, Some(py.None().to_object(py)), type_, sub_types);
             }
         }
 
-        Ok((sub_types, other_default))
+        Injected::new_type(py, other_default, type_, sub_types)
     }
 
-    fn annotation_to_type(py: Python, annotation: PyObject) -> PyResult<PyObject> {
+    fn annotation_to_type(py: Python, mut annotation: PyObject, default: Option<PyObject>) -> PyResult<Injected> {
         let origin = TYPING.call_method1(py, "get_origin", (&annotation,))?;
         if origin.is(&TYPING.getattr(py, "Annotated")?) {
             // The first "type" arg of annotated will always be flatterned to a type.
             // so we don't have to deal with Annotated nesting".
-            origin.as_ref(py).get_item(0).map(|value| value.to_object(py))
-        } else {
-            Ok(annotation)
+            annotation = origin.as_ref(py).get_item(0).map(|value| value.to_object(py))?;
         }
+
+        Self::parse_type(py, annotation, default)
     }
 }
 fn _accept<N: Node, V: Visitor>(py: Python, callback: Rc<Callback>, name: &String) -> Option<PyResult<Injected>> {
@@ -255,6 +248,64 @@ fn _accept<N: Node, V: Visitor>(py: Python, callback: Rc<Callback>, name: &Strin
 
 impl Visitor for ParameterVisitor {
     fn visit_annotation(py: Python, node: &Annotation) -> PyResult<Option<Injected>> {
+        let value = match node.callback.resolve_annotation(py, &node.name)? {
+            Some(annotation) => annotation,
+            None => return Ok(None),
+        };
+        let default = node
+            .callback
+            .signature
+            .read()
+            .unwrap()
+            .as_ref()
+            .unwrap()
+            .get(&node.name)
+            .ok_or_else(|| PyKeyError::new_err(node.name.clone()))?
+            .getattr(py, "default")?;
+
+        let default = if default.is(&INSPECT.getattr(py, "Parameter")?.getattr(py, "empty")?) {
+            None
+        } else {
+            Some(default)
+        };
+
+        if !TYPING
+            .call_method1(py, "get_origin", (&value,))?
+            .is(&TYPING.getattr(py, "Annotated")?)
+        {
+            return Ok(None);
+        }
+
+        let args_ = TYPING.call_method1(py, "get_args", (&value,))?;
+        let args = args_.as_ref(py);
+        if args.contains(
+            ALLUKA
+                .getattr(py, "_types")?
+                .getattr(py, "InjectedTypes")?
+                .getattr(py, "TYPE")?,
+        )? {
+            return Self::annotation_to_type(py, args.get_item(0)?.to_object(py), default).map(Some);
+        }
+
+        for arg in args.iter()? {
+            let arg = arg?;
+            if !arg.is_instance_of::<InjectedDescriptor>()? {
+                continue;
+            }
+
+            let callback = arg.getattr("callback")?;
+            if !callback.is_none() {
+                return Ok(Some(Injected::new_callback(callback.to_object(py))));
+            }
+
+            let type_ = arg.getattr("type")?;
+            if !type_.is_none() {
+                return Self::parse_type(py, type_.to_object(py), default).map(Some);
+            }
+
+            return Self::annotation_to_type(py, arg.to_object(py), default).map(Some);
+        }
+
         Ok(None)
     }
 
@@ -288,6 +339,22 @@ impl Visitor for ParameterVisitor {
             _ => return Ok(None),
         };
 
-        Ok(None)
+        let callback = default.getattr(py, "callback")?;
+        if !callback.is_none(py) {
+            return Ok(Some(Injected::new_callback(callback)));
+        };
+
+        let type_ = default.getattr(py, "type")?;
+        if !type_.is_none(py) {
+            return Self::parse_type(py, type_, None).map(Some);
+        };
+
+        match node.callback.resolve_annotation(py, &node.name)? {
+            Some(annotaton) => Self::parse_type(py, type_, None).map(Some),
+            None => Err(PyValueError::new_err(format!(
+                "Could not resolve type for parameter {} with no annotation",
+                node.name
+            ))),
+        }
     }
 }
