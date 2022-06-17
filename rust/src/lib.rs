@@ -35,16 +35,17 @@ use std::collections::hash_map::RawEntryMut;
 use std::collections::HashMap;
 use std::convert::AsRef;
 use std::lazy::Lazy;
+use std::sync::Arc;
 
 use pyo3::exceptions::PyKeyError;
 use pyo3::pycell::PyRef;
-use pyo3::types::{PyDict, PyModule, PyTuple, PyType};
+use pyo3::types::{IntoPyDict, PyDict, PyModule, PyTuple, PyType};
 use pyo3::{IntoPy, Py, PyAny, PyObject, PyRefMut, PyResult, Python, ToPyObject};
 
 use crate::visitor::{Callback, ParameterVisitor};
 
 mod types;
-use types::{Injected, InjectedCallback, InjectedType};
+use types::{Injected, InjectedTuple};
 mod visitor;
 
 const SELF_INJECTING: Lazy<Py<PyModule>> =
@@ -53,28 +54,75 @@ const SELF_INJECTING: Lazy<Py<PyModule>> =
 #[pyo3::pyclass(subclass)]
 struct Client {
     callback_overrides: HashMap<isize, PyObject>,
-    descriptors: HashMap<isize, Vec<(String, Injected)>>,
+    descriptors: HashMap<isize, Arc<Box<[InjectedTuple]>>>,
     introspect_annotations: bool,
     type_dependencies: HashMap<isize, PyObject>,
 }
 
 impl Client {
-    fn build_descriptors<'a>(&'a mut self, py: Python, callback: PyObject) -> PyResult<&'a [(String, Injected)]> {
+    fn build_descriptors(&mut self, py: Python, callback: PyObject) -> PyResult<Arc<Box<[InjectedTuple]>>> {
         let key = callback.as_ref(py).hash()?;
         let entry = self.descriptors.raw_entry_mut().from_key(&key);
 
         Ok(match entry {
-            RawEntryMut::Occupied(entry) => entry.into_key_value().1,
-            RawEntryMut::Vacant(entry) => {
-                entry
-                    .insert(key, Callback::new(py, callback)?.accept::<ParameterVisitor>()?)
-                    .1
-            }
+            RawEntryMut::Occupied(entry) => entry.into_key_value().1.clone(),
+            RawEntryMut::Vacant(entry) => entry
+                .insert(
+                    key,
+                    Arc::new(Box::from(Callback::new(py, callback)?.accept::<ParameterVisitor>(py)?)),
+                )
+                .1
+                .clone(),
         })
     }
 
     pub fn get_type_dependency_rust<'a>(&'a self, type_: &isize) -> Option<&'a PyObject> {
         self.type_dependencies.get(type_)
+    }
+}
+
+impl Client {
+    pub fn call_with_ctx_rust<'p>(
+        &mut self,
+        py: Python<'p>,
+        ctx: Py<BasicContext>,
+        callback: PyObject,
+        args: &PyTuple,
+        mut kwargs: Option<&'p PyDict>,
+    ) -> PyResult<PyObject> {
+        let descriptors = self.build_descriptors(py, callback.clone_ref(py))?;
+
+        if !descriptors.is_empty() {
+            let descriptors = descriptors.iter().map(|(key, value)| match value {
+                Injected::Type(type_) => type_.resolve_rust(py, ctx.clone_ref(py)).map(|value| (key, value)),
+                Injected::Callback(callback) => callback
+                    .resolve_rust(py, self, ctx.clone_ref(py))
+                    .map(|value| (key, value)),
+            });
+            if let Some(dict) = kwargs {
+                for entry in descriptors {
+                    let (key, value) = entry?;
+                    dict.set_item(key, value)?;
+                }
+            } else {
+                kwargs = descriptors
+                    .collect::<PyResult<Vec<(&String, PyObject)>>>()
+                    .map(|value| Some(value.into_py_dict(py)))?
+            }
+        }
+
+        callback.call(py, args, kwargs)
+    }
+
+    pub fn call_with_ctx_async_rust<'p>(
+        &mut self,
+        py: Python<'p>,
+        ctx: Py<BasicContext>,
+        callback: PyObject,
+        args: &PyTuple,
+        mut kwargs: Option<&'p PyDict>,
+    ) -> PyResult<PyObject> {
+        unimplemented!()
     }
 }
 
@@ -112,33 +160,25 @@ impl Client {
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
         // TODO: does this work or do we need to slf.clone_ref(py).borrow(py)
-        slf.clone_ref(py)
-            .borrow_mut(py)
-            .call_with_ctx(py, Py::new(py, BasicContext::new(slf))?, callback, args, kwargs)
+        slf.clone_ref(py).borrow_mut(py).call_with_ctx_rust(
+            py,
+            Py::new(py, BasicContext::new(slf))?,
+            callback,
+            args,
+            kwargs,
+        )
     }
 
     #[args(ctx, callback, "/", args = "*", kwargs = "**")]
     pub fn call_with_ctx<'p>(
-        &mut self,
+        slf: Py<Self>,
         py: Python<'p>,
-        ctx: Py<BasicContext>,
+        ctx: PyObject,
         callback: PyObject,
         args: &PyTuple,
         mut kwargs: Option<&'p PyDict>,
     ) -> PyResult<PyObject> {
-        let descriptors = self.build_descriptors(py, callback.clone_ref(py))?;
-
-        if !descriptors.is_empty() {
-            kwargs = Some(kwargs.map_or_else(
-                || {
-                    descriptors.iter().map(|(key, value)| (key, value));
-                    PyDict::new(py)
-                },
-                |dict| dict,
-            ))
-        }
-
-        callback.call(py, args, kwargs)
+        unimplemented!("Custom contexts are not supported yet")
     }
 
     #[args(callback, "/", args = "*", kwargs = "**")]
@@ -149,7 +189,7 @@ impl Client {
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
-        slf.clone_ref(py).borrow(py).call_with_ctx_async(
+        slf.clone_ref(py).borrow_mut(py).call_with_ctx_async_rust(
             py,
             Py::new(py, BasicContext::new(slf))?,
             callback,
@@ -160,14 +200,15 @@ impl Client {
 
     #[args(ctx, callback, "/", args = "*", kwargs = "**")]
     pub fn call_with_ctx_async<'p>(
-        &self,
+        slf: Py<Self>,
         py: Python<'p>,
-        ctx: Py<BasicContext>,
+        ctx: PyObject,
         callback: PyObject,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
-        unimplemented!()
+        ctx.as_ref(py);
+        unimplemented!("Custom contexts arenot supported yet")
     }
 
     #[args(type_, value, "/")]
@@ -248,9 +289,7 @@ pub struct BasicContext {
 
 impl BasicContext {
     pub fn get_type_dependency_rust<'a>(&'a self, type_: &isize) -> Option<&'a PyObject> {
-        self
-            .special_cased_types
-            .get(type_)
+        self.special_cased_types.get(type_)
     }
 }
 
@@ -289,7 +328,7 @@ impl BasicContext {
             .borrow(py)
             .client
             .borrow_mut(py)
-            .call_with_ctx(py, slf, callback, args, kwargs)
+            .call_with_ctx_rust(py, slf, callback, args, kwargs)
     }
 
     #[args(callback, "/", args = "*", kwargs = "**")]
@@ -303,8 +342,8 @@ impl BasicContext {
         slf.clone_ref(py)
             .borrow(py)
             .client
-            .borrow(py)
-            .call_with_ctx_async(py, slf, callback, args, kwargs)
+            .borrow_mut(py)
+            .call_with_ctx_async_rust(py, slf, callback, args, kwargs)
     }
 
     #[args(callback, "/", "*", default)]

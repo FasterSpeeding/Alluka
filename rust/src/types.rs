@@ -28,44 +28,40 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-use std::sync::Arc;
-
 use pyo3::types::PyTuple;
-use pyo3::{Py, PyAny, PyObject, PyResult, Python, PyErr};
+use pyo3::{Py, PyAny, PyErr, PyObject, PyResult, Python};
 
 use crate::{BasicContext, Client};
 
 pyo3::import_exception!(alluka._errors, MissingDependencyError);
 
+pub type InjectedTuple = (String, Injected);
+
 pub struct InjectedCallback {
-    callback: Arc<PyObject>,
+    callback: PyObject,
 }
 
 impl InjectedCallback {
-    fn resolve(
-        &self,
-        py: Python,
-        client: &mut Client,
-        ctx: Py<BasicContext>,
-        callback: PyObject,
-    ) -> PyResult<PyObject> {
-        let callback = client
-            .get_callback_override(py, callback.as_ref(py))?
-            .unwrap_or(callback);
-        client.call_with_ctx(py, ctx, callback, PyTuple::empty(py), None)
+    pub fn resolve(&self, py: Python, client: &mut Client, ctx: Py<BasicContext>) -> PyResult<PyObject> {
+        unimplemented!("Custom contexts are not yet supported")
     }
 
-    fn resolve_async(
-        &self,
-        py: Python,
-        client: &mut Client,
-        ctx: Py<BasicContext>,
-        callback: PyObject,
-    ) -> PyResult<PyObject> {
+    pub fn resolve_rust(&self, py: Python, client: &mut Client, ctx: Py<BasicContext>) -> PyResult<PyObject> {
         let callback = client
-            .get_callback_override(py, callback.as_ref(py))?
-            .unwrap_or(callback);
-        client.call_with_ctx_async(py, ctx, callback, PyTuple::empty(py), None)
+            .get_callback_override(py, self.callback.as_ref(py))?
+            .unwrap_or_else(|| self.callback.clone_ref(py));
+        client.call_with_ctx_rust(py, ctx, callback, PyTuple::empty(py), None)
+    }
+
+    pub fn resolve_async(&self, py: Python, client: &mut Client, ctx: PyObject) -> PyResult<PyObject> {
+        unimplemented!("Custom contexts are not yet supported")
+    }
+
+    pub fn resolve_rust_async(&self, py: Python, client: &mut Client, ctx: Py<BasicContext>) -> PyResult<PyObject> {
+        let callback = client
+            .get_callback_override(py, self.callback.as_ref(py))?
+            .unwrap_or_else(|| self.callback.clone_ref(py));
+        client.call_with_ctx_async_rust(py, ctx, callback, PyTuple::empty(py), None)
     }
 }
 
@@ -73,28 +69,37 @@ impl InjectedCallback {
 pub struct InjectedType {
     default: Option<PyObject>,
     repr_type: String,
-    types: Vec<isize>,
+    types: Vec<PyObject>,
+    type_ids: Vec<isize>,
 }
 
 impl InjectedType {
-    fn resolve<'a>(&'a self, client: &'a Client) -> PyResult<&'a PyObject> {
+    pub fn resolve(&self, py: Python, ctx: &PyObject) -> PyResult<PyObject> {
+        unimplemented!("Custom contexts are not yet supported")
+    }
+
+    pub fn resolve_rust(&self, py: Python, ctx: Py<BasicContext>) -> PyResult<PyObject> {
         if let Some(value) = self
-            .types
+            .type_ids
             .iter()
-            .filter_map(|cls| client.get_type_dependency_rust(cls))
+            .filter_map(|cls| {
+                ctx.borrow(py)
+                    .get_type_dependency_rust(cls)
+                    .map(|value| value.clone_ref(py))
+            })
             .next()
         {
             return Ok(value);
         }
 
-        if let Some(default) = self.default.as_ref() {
-            return Ok(default);
+        if let Some(default) = &self.default {
+            return Ok(default.clone_ref(py));
         }
 
-        Err(PyErr::new::<MissingDependencyError, _>(format!(
+        return Err(PyErr::new::<MissingDependencyError, _>(format!(
             "Couldn't resolve injected type(s) {} to actual value",
             self.repr_type
-        )))
+        )));
     }
 }
 
@@ -106,9 +111,7 @@ pub enum Injected {
 
 impl Injected {
     pub fn new_callback(callback: PyObject) -> Self {
-        Injected::Callback(InjectedCallback {
-            callback: Arc::new(callback),
-        })
+        Injected::Callback(InjectedCallback { callback })
     }
 
     pub fn new_type(
@@ -120,10 +123,11 @@ impl Injected {
         Ok(Injected::Type(InjectedType {
             default,
             repr_type: repr_type.as_ref(py).repr()?.to_string(),
-            types: types
+            type_ids: types
                 .iter()
                 .map(|type_| type_.as_ref(py).hash())
                 .collect::<PyResult<Vec<isize>>>()?,
+            types,
         }))
     }
 }
