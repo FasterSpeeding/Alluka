@@ -1,4 +1,3 @@
-use std::any::Any;
 // BSD 3-Clause License
 //
 // Copyright (c) 2022, Lucina
@@ -30,20 +29,19 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::lazy::{Lazy, OnceCell};
 use std::rc::Rc;
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
-use pyo3::basic::PyObjectReprProtocol;
 use pyo3::exceptions::{PyKeyError, PyValueError};
-use pyo3::types::{IntoPyDict, PyMapping, PyModule, PyString, PyTuple};
-use pyo3::{import_exception, FromPyObject, IntoPy, Py, PyAny, PyErr, PyObject, PyResult, Python, ToPyObject};
+use pyo3::types::{IntoPyDict, PyMapping, PyString, PyTuple};
+use pyo3::{import_exception, FromPyObject, IntoPy, PyErr, PyObject, PyResult, Python, ToPyObject};
 
-use crate::types::{Injected, InjectedCallback, InjectedTuple, InjectedType};
+use crate::types::{Injected, InjectedTuple};
 
 import_exception!(alluka._types, InjectedDescriptor);
 
-const ALLUKA: Lazy<PyObject> = Lazy::new(|| Python::with_gil(|py| py.import("ALLUKA").unwrap().to_object(py)));
+const ALLUKA: Lazy<PyObject> = Lazy::new(|| Python::with_gil(|py| py.import("alluka").unwrap().to_object(py)));
 const INSPECT: Lazy<PyObject> =
-    Lazy::new(|| Python::with_gil(|py| ALLUKA.getattr(py, "_internal").unwrap().getattr(py, "inspect").unwrap()));
+    Lazy::new(|| Python::with_gil(|py| ALLUKA.getattr(py, "_vendor").unwrap().getattr(py, "inspect").unwrap()));
 const TYPING: Lazy<PyObject> = Lazy::new(|| Python::with_gil(|py| py.import("typing").unwrap().to_object(py)));
 const UNION_TYPES: Lazy<(PyObject, PyObject)> = Lazy::new(|| {
     Python::with_gil(|py| {
@@ -94,6 +92,7 @@ fn _inspect(py: Python, callback: &PyObject, eval_str: bool) -> PyResult<Option<
         )
         .and_then(|signature| {
             signature
+                .getattr(py, "parameters")?
                 .cast_as::<PyMapping>(py)
                 .map_err(PyErr::from)?
                 .items()?
@@ -148,7 +147,7 @@ impl Callback {
 
                 if self.resolved.get().is_none() && annotation.as_ref(py).is_instance_of::<PyString>()? {
                     *self.signature.write().unwrap() = _inspect(py, &self.callback, true)?;
-                    self.resolved.set(());
+                    self.resolved.set(()).unwrap();
                     drop(parameters);
                     self.resolve_annotation(py, name)
                 } else {
@@ -211,7 +210,8 @@ impl ParameterVisitor {
             return Injected::new_type(py, other_default, type_.clone_ref(py), vec![type_]);
         };
 
-        let mut sub_types = origin
+        let mut sub_types = TYPING
+            .call_method1(py, "get_args", (&type_,))?
             .as_ref(py)
             .iter()?
             .map(|entry| entry.map(|value| value.to_object(py)))

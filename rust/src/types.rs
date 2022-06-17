@@ -68,7 +68,7 @@ impl InjectedCallback {
 
 pub struct InjectedType {
     default: Option<PyObject>,
-    repr_type: String,
+    repr_type: PyObject,
     types: Vec<PyObject>,
     type_ids: Vec<isize>,
 }
@@ -96,10 +96,13 @@ impl InjectedType {
             return Ok(default.clone_ref(py));
         }
 
-        return Err(PyErr::new::<MissingDependencyError, _>(format!(
-            "Couldn't resolve injected type(s) {} to actual value",
-            self.repr_type
-        )));
+        Err(PyErr::new::<MissingDependencyError, _>((
+            format!(
+                "Couldn't resolve injected type(s) {} to actual value",
+                self.repr_type.as_ref(py).repr()?.to_str()?
+            ),
+            self.repr_type.clone_ref(py),
+        )))
     }
 }
 
@@ -122,7 +125,7 @@ impl Injected {
     ) -> PyResult<Self> {
         Ok(Injected::Type(InjectedType {
             default,
-            repr_type: repr_type.as_ref(py).repr()?.to_string(),
+            repr_type,
             type_ids: types
                 .iter()
                 .map(|type_| type_.as_ref(py).hash())
