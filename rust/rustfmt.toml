@@ -1,6 +1,6 @@
 # https://rust-lang.github.io/rustfmt/?version=v1.4.36&search=#normalize_doc_attributes
 blank_lines_lower_bound         = 0
-blank_lines_upper_bound         = 2  # Don't think i like the behaviour this intorudces 
+blank_lines_upper_bound         = 2  # Don't think i like the behaviour this intorudces
 brace_style                     = "PreferSameLine"
 condense_wildcard_suffixes      = true
 control_brace_style             = "AlwaysSameLine"
@@ -39,6 +39,6 @@ match_block_trailing_comma      = false
 trailing_semicolon              = true
 type_punctuation_density        = "Wide"
 unstable_features               = true
-use_field_init_shorthand        = true # As a note, this mixes the short-hand with normal 
+use_field_init_shorthand        = true # As a note, this mixes the short-hand with normal
 wrap_comments                   = true
 overflow_delimited_expr         = true

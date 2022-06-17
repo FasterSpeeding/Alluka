@@ -4,5 +4,3 @@ build-backend = "maturin"
 
 [project]
 name = "alluka_rust"
-
-
