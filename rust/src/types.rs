@@ -47,10 +47,12 @@ impl InjectedCallback {
     }
 
     pub fn resolve_rust(&self, py: Python, client: &mut Client, ctx: Py<BasicContext>) -> PyResult<PyObject> {
-        let callback = client
-            .get_callback_override(py, self.callback.as_ref(py))?
-            .unwrap_or_else(|| self.callback.clone_ref(py));
-        client.call_with_ctx_rust(py, ctx, callback.as_ref(py), PyTuple::empty(py), None)
+        let mut callback = self.callback.as_ref(py);
+        if let Some(callback) = client.get_callback_override(callback)?.map(|value| value.clone_ref(py)) {
+            client.call_with_ctx_rust(py, ctx, callback.as_ref(py), PyTuple::empty(py), None)
+        } else {
+            client.call_with_ctx_rust(py, ctx, callback, PyTuple::empty(py), None)
+        }
     }
 
     pub fn resolve_async(&self, py: Python, client: &mut Client, ctx: &PyAny) -> PyResult<PyObject> {
@@ -58,10 +60,12 @@ impl InjectedCallback {
     }
 
     pub fn resolve_rust_async(&self, py: Python, client: &mut Client, ctx: Py<BasicContext>) -> PyResult<PyObject> {
-        let callback = client
-            .get_callback_override(py, self.callback.as_ref(py))?
-            .unwrap_or_else(|| self.callback.clone_ref(py));
-        client.call_with_ctx_async_rust(py, ctx, callback.as_ref(py), PyTuple::empty(py), None)
+        let mut callback = self.callback.as_ref(py);
+        if let Some(callback) = client.get_callback_override(callback)?.map(|value| value.clone_ref(py)) {
+            client.call_with_ctx_async_rust(py, ctx, callback.as_ref(py), PyTuple::empty(py), None)
+        } else {
+            client.call_with_ctx_async_rust(py, ctx, callback, PyTuple::empty(py), None)
+        }
     }
 }
 

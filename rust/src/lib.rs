@@ -262,11 +262,8 @@ impl Client {
     }
 
     #[args(callback, "/")]
-    fn get_callback_override(&self, py: Python, callback: &PyAny) -> PyResult<Option<PyObject>> {
-        Ok(self
-            .callback_overrides
-            .get(&callback.hash()?)
-            .map(|value| value.clone_ref(py)))
+    fn get_callback_override(&self, callback: &PyAny) -> PyResult<Option<&PyObject>> {
+        Ok(self.callback_overrides.get(&callback.hash()?))
     }
 
     #[args(callback, "/")]
