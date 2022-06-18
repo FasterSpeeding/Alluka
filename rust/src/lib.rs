@@ -35,7 +35,7 @@ use std::collections::hash_map::RawEntryMut;
 use std::collections::HashMap;
 use std::convert::AsRef;
 use std::lazy::SyncOnceCell;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use pyo3::exceptions::PyKeyError;
 use pyo3::pycell::PyRef;
@@ -59,16 +59,21 @@ fn import_self_injecting(py: Python) -> PyResult<&PyAny> {
 #[pyo3::pyclass(subclass)]
 pub struct Client {
     callback_overrides: HashMap<isize, PyObject>,
-    descriptors: HashMap<isize, Arc<Box<[InjectedTuple]>>>,
+    descriptors: RwLock<HashMap<isize, Arc<Box<[InjectedTuple]>>>>,
     introspect_annotations: bool,
     type_dependencies: HashMap<isize, PyObject>,
 }
 
 impl Client {
-    fn build_descriptors(&mut self, py: Python, callback: &PyAny) -> PyResult<Arc<Box<[InjectedTuple]>>> {
+    fn build_descriptors(&self, py: Python, callback: &PyAny) -> PyResult<Arc<Box<[InjectedTuple]>>> {
         let key = callback.hash()?;
-        let entry = self.descriptors.raw_entry_mut().from_key(&key);
+        // Avoid a write lock if we already have the descriptors.
+        if let Some(descriptors) = self.descriptors.read().unwrap().get(&key).map(Arc::clone) {
+            return Ok(descriptors);
+        }
 
+        let mut descriptors = self.descriptors.write().unwrap();
+        let mut entry = descriptors.raw_entry_mut().from_key(&key);
         Ok(match entry {
             RawEntryMut::Occupied(entry) => entry.into_key_value().1.clone(),
             RawEntryMut::Vacant(entry) => entry
@@ -81,14 +86,14 @@ impl Client {
         })
     }
 
-    pub fn get_type_dependency_rust<'a>(&'a self, py: Python, type_: &isize) -> Option<&'a PyObject> {
+    pub fn get_type_dependency_rust<'a>(&'a self, type_: &isize) -> Option<&'a PyObject> {
         self.type_dependencies.get(type_)
     }
 }
 
 impl Client {
     pub fn call_with_ctx_rust<'p>(
-        &mut self,
+        &self,
         py: Python<'p>,
         ctx: Py<BasicContext>,
         callback: &PyAny,
@@ -120,7 +125,7 @@ impl Client {
     }
 
     pub fn call_with_ctx_async_rust(
-        &mut self,
+        &self,
         py: Python,
         ctx: Py<BasicContext>,
         callback: &PyAny,
@@ -138,7 +143,7 @@ impl Client {
     fn new(introspect_annotations: bool) -> Self {
         Self {
             callback_overrides: HashMap::new(),
-            descriptors: HashMap::new(),
+            descriptors: RwLock::new(HashMap::new()),
             introspect_annotations,
             type_dependencies: HashMap::new(),
         }
@@ -167,7 +172,7 @@ impl Client {
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
         // TODO: does this work or do we need to slf.clone_ref(py).borrow(py)
-        slf.clone_ref(py).borrow_mut(py).call_with_ctx_rust(
+        slf.clone_ref(py).borrow(py).call_with_ctx_rust(
             py,
             Py::new(py, BasicContext::new(slf))?,
             callback,
@@ -196,7 +201,7 @@ impl Client {
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
-        slf.clone_ref(py).borrow_mut(py).call_with_ctx_async_rust(
+        slf.clone_ref(py).borrow(py).call_with_ctx_async_rust(
             py,
             Py::new(py, BasicContext::new(slf))?,
             callback,
@@ -330,7 +335,7 @@ impl BasicContext {
         slf.clone_ref(py)
             .borrow(py)
             .client
-            .borrow_mut(py)
+            .borrow(py)
             .call_with_ctx_rust(py, slf, callback, args, kwargs)
     }
 
@@ -345,7 +350,7 @@ impl BasicContext {
         slf.clone_ref(py)
             .borrow(py)
             .client
-            .borrow_mut(py)
+            .borrow(py)
             .call_with_ctx_async_rust(py, slf, callback, args, kwargs)
     }
 

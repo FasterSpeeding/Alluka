@@ -46,7 +46,7 @@ impl InjectedCallback {
         unimplemented!("Custom contexts are not yet supported")
     }
 
-    pub fn resolve_rust(&self, py: Python, client: &mut Client, ctx: Py<BasicContext>) -> PyResult<PyObject> {
+    pub fn resolve_rust(&self, py: Python, client: &Client, ctx: Py<BasicContext>) -> PyResult<PyObject> {
         let mut callback = self.callback.as_ref(py);
         if let Some(callback) = client.get_callback_override(callback)?.map(|value| value.clone_ref(py)) {
             client.call_with_ctx_rust(py, ctx, callback.as_ref(py), PyTuple::empty(py), None)
@@ -90,7 +90,7 @@ impl InjectedType {
             .iter()
             .filter_map(|cls| {
                 ctx.get_type_dependency_rust(py, cls)
-                    .or_else(|| client.get_type_dependency_rust(py, cls))
+                    .or_else(|| client.get_type_dependency_rust(cls))
             })
             .next()
         {
