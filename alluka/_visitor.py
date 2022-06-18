@@ -165,7 +165,9 @@ class ParameterVisitor:
 
         return _types.InjectedType(type_, sub_types, default=None)
 
-    def _annotation_to_type(self, value: typing.Any, /, other_default: _types.UndefinedOr[typing.Any] = _types.UNDEFINED) -> _types.InjectedTuple:
+    def _annotation_to_type(
+        self, value: typing.Any, /, other_default: _types.UndefinedOr[typing.Any] = _types.UNDEFINED
+    ) -> _types.InjectedTuple:
         if typing.get_origin(value) is typing.Annotated:
             args = typing.get_args(value)
             # The first "type" arg of annotated will always be flatterned to a type.
