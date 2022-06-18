@@ -34,13 +34,13 @@ use std::borrow::BorrowMut;
 use std::collections::hash_map::RawEntryMut;
 use std::collections::HashMap;
 use std::convert::AsRef;
-use std::lazy::Lazy;
+use std::lazy::SyncOnceCell;
 use std::sync::Arc;
 
 use pyo3::exceptions::PyKeyError;
 use pyo3::pycell::PyRef;
 use pyo3::types::{IntoPyDict, PyDict, PyModule, PyTuple, PyType};
-use pyo3::{IntoPy, Py, PyAny, PyObject, PyRefMut, PyResult, Python, ToPyObject};
+use pyo3::{Py, PyAny, PyObject, PyRefMut, PyResult, Python, ToPyObject};
 
 use crate::visitor::{Callback, ParameterVisitor};
 
@@ -48,8 +48,13 @@ mod types;
 use types::{Injected, InjectedTuple};
 mod visitor;
 
-const SELF_INJECTING: Lazy<Py<PyModule>> =
-    Lazy::new(|| Python::with_gil(|py| py.import("alluka._self_injecting").unwrap().into_py(py)));
+static SELF_INJECTING: SyncOnceCell<PyObject> = SyncOnceCell::new();
+
+fn import_self_injecting(py: Python) -> PyResult<&PyAny> {
+    SELF_INJECTING
+        .get_or_try_init(|| Ok(py.import("alluka._self_injecting")?.to_object(py)))
+        .map(|value| value.as_ref(py))
+}
 
 #[pyo3::pyclass(subclass)]
 pub struct Client {
@@ -140,15 +145,17 @@ impl Client {
     }
 
     #[args(callback, "/")]
-    fn as_async_self_injecting(slf: PyRef<Self>, py: Python, callback: &PyAny) -> PyResult<PyObject> {
-        SELF_INJECTING
-            .getattr(py, "AsyncSelfInjecting")?
-            .call1(py, (slf, callback))
+    fn as_async_self_injecting<'p>(slf: PyRef<Self>, py: Python<'p>, callback: &PyAny) -> PyResult<&'p PyAny> {
+        import_self_injecting(py)?
+            .getattr("AsyncSelfInjecting")?
+            .call1((slf, callback))
     }
 
     #[args(callback, "/")]
-    fn as_self_injecting(slf: PyRef<Self>, py: Python, callback: &PyAny) -> PyResult<PyObject> {
-        SELF_INJECTING.getattr(py, "SelfInjecting")?.call1(py, (slf, callback))
+    fn as_self_injecting<'p>(slf: PyRef<Self>, py: Python<'p>, callback: &PyAny) -> PyResult<&'p PyAny> {
+        import_self_injecting(py)?
+            .getattr("SelfInjecting")?
+            .call1((slf, callback))
     }
 
     #[args(callback, "/", args = "*", kwargs = "**")]

@@ -29,7 +29,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 use std::collections::HashMap;
-use std::lazy::{Lazy, OnceCell};
+use std::lazy::{OnceCell, SyncOnceCell};
 use std::rc::Rc;
 use std::sync::RwLock;
 
@@ -41,19 +41,34 @@ use crate::types::{Injected, InjectedTuple};
 
 import_exception!(alluka._types, InjectedDescriptor);
 
-const ALLUKA: Lazy<PyObject> = Lazy::new(|| Python::with_gil(|py| py.import("alluka").unwrap().to_object(py)));
-const INSPECT: Lazy<PyObject> =
-    Lazy::new(|| Python::with_gil(|py| ALLUKA.getattr(py, "_vendor").unwrap().getattr(py, "inspect").unwrap()));
-const TYPING: Lazy<PyObject> = Lazy::new(|| Python::with_gil(|py| py.import("typing").unwrap().to_object(py)));
-const UNION_TYPES: Lazy<(PyObject, PyObject)> = Lazy::new(|| {
-    Python::with_gil(|py| {
-        let types_ = py.import("types").unwrap();
-        (
-            types_.getattr("UnionType").unwrap().into_py(py),
-            TYPING.getattr(py, "Union").unwrap().into_py(py),
-        )
-    })
-});
+static ALLUKA: SyncOnceCell<PyObject> = SyncOnceCell::new();
+static INSPECT: SyncOnceCell<PyObject> = SyncOnceCell::new();
+static TYPE: SyncOnceCell<PyObject> = SyncOnceCell::new();
+static TYPING: SyncOnceCell<PyObject> = SyncOnceCell::new();
+
+fn import_alluka(py: Python) -> PyResult<&PyAny> {
+    ALLUKA
+        .get_or_try_init(|| Ok(py.import("alluka")?.to_object(py)))
+        .map(|value| value.as_ref(py))
+}
+
+fn import_inspect(py: Python) -> PyResult<&PyAny> {
+    INSPECT
+        .get_or_try_init(|| Ok(py.import("alluka._vendor.inspect")?.to_object(py)))
+        .map(|value| value.as_ref(py))
+}
+
+fn import_type(py: Python) -> PyResult<&PyAny> {
+    TYPE.get_or_try_init(|| Ok(py.import("types")?.to_object(py)))
+        .map(|value| value.as_ref(py))
+}
+
+fn import_typing(py: Python) -> PyResult<&PyAny> {
+    TYPING
+        .get_or_try_init(|| Ok(py.import("typing")?.to_object(py)))
+        .map(|value| value.as_ref(py))
+}
+
 
 trait Node {
     fn new(callback: Rc<Callback>, name: String) -> PyResult<Self>
@@ -62,7 +77,7 @@ trait Node {
     fn accept<V: Visitor>(&self, py: Python) -> PyResult<Option<Injected>>;
 }
 
-struct Annotation {
+pub(crate) struct Annotation {
     pub callback: Rc<Callback>,
     pub name: String,
 }
@@ -77,7 +92,7 @@ impl Node for Annotation {
     }
 }
 
-pub struct Callback {
+pub(crate) struct Callback {
     callback: PyObject,
     pub empty: PyObject,
     resolved: OnceCell<()>,
@@ -85,17 +100,16 @@ pub struct Callback {
 }
 
 fn _inspect(py: Python, callback: &PyAny, eval_str: bool) -> PyResult<Option<HashMap<String, PyObject>>> {
-    let signature: PyResult<Option<HashMap<String, PyObject>>> = INSPECT
+    let signature: PyResult<Option<HashMap<String, PyObject>>> = import_inspect(py)?
         .call_method(
-            py,
             "signature",
             (callback,),
             Some([("eval_str", eval_str.to_object(py))].into_py_dict(py)),
         )
         .and_then(|signature| {
             signature
-                .getattr(py, "parameters")?
-                .cast_as::<PyMapping>(py)
+                .getattr("parameters")?
+                .cast_as::<PyMapping>()
                 .map_err(PyErr::from)?
                 .items()?
                 .iter()?
@@ -116,7 +130,10 @@ fn _inspect(py: Python, callback: &PyAny, eval_str: bool) -> PyResult<Option<Has
 
 impl Callback {
     pub fn new(py: Python, callback: &PyAny) -> PyResult<Self> {
-        let empty = INSPECT.getattr(py, "Parameter")?.getattr(py, "empty")?;
+        let empty = import_inspect(py)?
+            .getattr("Parameter")?
+            .getattr("empty")?
+            .to_object(py);
 
         Ok(Self {
             callback: callback.to_object(py),
@@ -162,7 +179,7 @@ impl Callback {
     }
 }
 
-struct Default {
+pub(crate) struct Default {
     pub callback: Rc<Callback>,
     pub default: Option<PyObject>,
     pub name: String,
@@ -197,23 +214,26 @@ impl Node for Default {
     }
 }
 
-pub trait Visitor {
+pub(crate) trait Visitor {
     fn visit_annotation(py: Python, node: &Annotation) -> PyResult<Option<Injected>>;
     fn visit_callback(py: Python, node: Rc<Callback>) -> PyResult<Vec<InjectedTuple>>;
     fn visit_default(py: Python, node: &Default) -> PyResult<Option<Injected>>;
 }
 
-pub struct ParameterVisitor {}
+pub(crate) struct ParameterVisitor {}
 
 impl ParameterVisitor {
-    fn parse_type(py: Python, type_: &PyAny, mut other_default: Option<&PyAny>) -> PyResult<Injected> {
-        let origin = TYPING.call_method1(py, "get_origin", (type_,))?;
-        if !origin.is(&UNION_TYPES.0) && !origin.is(&UNION_TYPES.1) {
+    fn parse_type(py: Python, type_: &PyAny, other_default: Option<&PyAny>) -> PyResult<Injected> {
+        let typing = import_typing(py)?;
+        let origin = typing.call_method1("get_origin", (type_,))?;
+        if !origin.is(import_type(py)?) && !origin.is(typing.getattr("Union")?) {
             return Injected::new_type(py, other_default, type_, vec![type_]);
         };
 
-        let sub_types = TYPING.call_method1(py, "get_args", (type_,))?;
-        let mut sub_types = sub_types.as_ref(py).iter()?.collect::<PyResult<Vec<&PyAny>>>()?;
+        let mut sub_types = typing
+            .call_method1("get_args", (type_,))?
+            .iter()?
+            .collect::<PyResult<Vec<&PyAny>>>()?;
         let len = sub_types.len();
         sub_types.retain(|value| !value.is_none());
 
@@ -225,11 +245,12 @@ impl ParameterVisitor {
     }
 
     fn annotation_to_type(py: Python, annotation: &PyAny, default: Option<&PyAny>) -> PyResult<Injected> {
-        let origin = TYPING.call_method1(py, "get_origin", (annotation,))?;
-        if origin.is(&TYPING.getattr(py, "Annotated")?) {
+        let typing = import_typing(py)?;
+        let origin = typing.call_method1("get_origin", (annotation,))?;
+        if origin.is(typing.getattr("Annotated")?) {
             // The first "type" arg of annotated will always be flatterned to a type.
             // so we don't have to deal with Annotated nesting".
-            Self::parse_type(py, origin.as_ref(py).get_item(0)?, default)
+            Self::parse_type(py, origin.get_item(0)?, default)
         } else {
             Self::parse_type(py, annotation, default)
         }
@@ -248,7 +269,7 @@ impl Visitor for ParameterVisitor {
             Some(annotation) => annotation,
             None => return Ok(None),
         };
-        let default = node
+        let parameter = node
             .callback
             .signature
             .read()
@@ -256,29 +277,30 @@ impl Visitor for ParameterVisitor {
             .as_ref()
             .unwrap()
             .get(&node.name)
-            .ok_or_else(|| PyKeyError::new_err(node.name.clone()))?
-            .getattr(py, "default")?;
+            .map(|parameter| parameter.clone_ref(py))
+            .ok_or_else(|| PyKeyError::new_err(node.name.clone()))?;
 
-        let default = if default.is(&INSPECT.getattr(py, "Parameter")?.getattr(py, "empty")?) {
+        let default = parameter.getattr(py, "default")?;
+        let default = if default.is(import_inspect(py)?.getattr("Parameter")?.getattr("empty")?) {
             None
         } else {
             Some(default.as_ref(py))
         };
 
-        if !TYPING
-            .call_method1(py, "get_origin", (&value,))?
-            .is(&TYPING.getattr(py, "Annotated")?)
+        let typing = import_typing(py)?;
+        if !typing
+            .call_method1("get_origin", (&value,))?
+            .is(typing.getattr("Annotated")?)
         {
             return Ok(None);
         }
 
-        let args_ = TYPING.call_method1(py, "get_args", (&value,))?;
-        let args = args_.as_ref(py);
+        let args = typing.call_method1("get_args", (&value,))?;
         if args.contains(
-            ALLUKA
-                .getattr(py, "_types")?
-                .getattr(py, "InjectedTypes")?
-                .getattr(py, "TYPE")?,
+            import_alluka(py)?
+                .getattr("_types")?
+                .getattr("InjectedTypes")?
+                .getattr("TYPE")?,
         )? {
             return Self::annotation_to_type(py, args.get_item(0)?, default).map(Some);
         }
@@ -315,7 +337,7 @@ impl Visitor for ParameterVisitor {
             .as_ref()
             .unwrap()
             .iter()
-            .map(|(name, value)| {
+            .map(|(name, _)| {
                 if let Some(result) = _accept::<Default, Self>(py, callback.clone(), name)
                     .or_else(|| _accept::<Annotation, Self>(py, callback.clone(), name))
                     .transpose()?
