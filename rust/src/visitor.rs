@@ -71,7 +71,7 @@ fn import_typing(py: Python) -> PyResult<&PyAny> {
 
 
 trait Node {
-    fn new(callback: Rc<Callback>, name: String) -> PyResult<Self>
+    fn new(py: Python, callback: Rc<Callback>, name: String) -> PyResult<Self>
     where
         Self: Sized;
     fn accept<V: Visitor>(&self, py: Python) -> PyResult<Option<Injected>>;
@@ -83,7 +83,7 @@ pub(crate) struct Annotation {
 }
 
 impl Node for Annotation {
-    fn new(callback: Rc<Callback>, name: String) -> PyResult<Self> {
+    fn new(_py: Python, callback: Rc<Callback>, name: String) -> PyResult<Self> {
         Ok(Self { callback, name })
     }
 
@@ -187,7 +187,7 @@ pub(crate) struct Default {
 
 
 impl Node for Default {
-    fn new(callback: Rc<Callback>, name: String) -> PyResult<Self> {
+    fn new(py: Python, callback: Rc<Callback>, name: String) -> PyResult<Self> {
         let default = callback
             .signature
             .read()
@@ -196,14 +196,16 @@ impl Node for Default {
             .unwrap()
             .get(&name)
             .ok_or_else(|| PyKeyError::new_err(name.clone()))?
-            .clone();
+            .getattr(py, "default")?;
+
+        let default = if default.is(&callback.empty) {
+            Some(default)
+        } else {
+            None
+        };
 
         Ok(Self {
-            default: if default.is(&callback.empty) {
-                None
-            } else {
-                Some(default)
-            },
+            default,
             callback,
             name,
         })
@@ -226,7 +228,7 @@ impl ParameterVisitor {
     fn parse_type(py: Python, type_: &PyAny, other_default: Option<&PyAny>) -> PyResult<Injected> {
         let typing = import_typing(py)?;
         let origin = typing.call_method1("get_origin", (type_,))?;
-        if !origin.is(import_type(py)?) && !origin.is(typing.getattr("Union")?) {
+        if !origin.is(import_type(py)?.getattr("UnionType")?) && !origin.is(typing.getattr("Union")?) {
             return Injected::new_type(py, other_default, type_, vec![type_]);
         };
 
@@ -235,10 +237,12 @@ impl ParameterVisitor {
             .iter()?
             .collect::<PyResult<Vec<&PyAny>>>()?;
         let len = sub_types.len();
-        sub_types.retain(|value| !value.is_none());
+        let none_ = py.None();
+        let none = none_.as_ref(py);
+        sub_types.retain(|value| !value.is(none.get_type()));
 
         if sub_types.len() != len && other_default.is_none() {
-            return Injected::new_type(py, Some(py.None().as_ref(py)), type_, sub_types);
+            return Injected::new_type(py, Some(none), type_, sub_types);
         }
 
         Injected::new_type(py, other_default, type_, sub_types)
@@ -257,7 +261,7 @@ impl ParameterVisitor {
     }
 }
 fn _accept<N: Node, V: Visitor>(py: Python, callback: Rc<Callback>, name: &String) -> Option<PyResult<Injected>> {
-    match N::new(callback, name.to_owned()) {
+    match N::new(py, callback, name.to_owned()) {
         Ok(node) => node.accept::<V>(py).transpose(),
         Err(err) => Some(Err(err)),
     }
