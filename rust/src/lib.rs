@@ -171,7 +171,6 @@ impl Client {
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
-        // TODO: does this work or do we need to slf.clone_ref(py).borrow(py)
         slf.clone_ref(py).borrow(py).call_with_ctx_rust(
             py,
             Py::new(py, BasicContext::new(slf))?,
