@@ -6,14 +6,16 @@
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //
-// * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-//   following disclaimer.
+// * Redistributions of source code must retain the above copyright notice, this
+//   list of conditions and the following disclaimer.
 //
-// * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
-//   following disclaimer in the documentation and/or other materials provided with the distribution.
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution.
 //
-// * Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote
-//   products derived from this software without specific prior written permission.
+// * Neither the name of the copyright holder nor the names of its contributors
+//   may be used to endorse or promote products derived from this software
+//   without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -33,7 +35,7 @@ use std::sync::RwLock;
 
 use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::types::{IntoPyDict, PyMapping, PyString, PyTuple};
-use pyo3::{import_exception, FromPyObject, IntoPy, PyErr, PyObject, PyResult, Python, ToPyObject};
+use pyo3::{import_exception, FromPyObject, IntoPy, PyAny, PyErr, PyObject, PyResult, Python, ToPyObject};
 
 use crate::types::{Injected, InjectedTuple};
 
@@ -82,12 +84,12 @@ pub struct Callback {
     pub signature: RwLock<Option<HashMap<String, PyObject>>>,
 }
 
-fn _inspect(py: Python, callback: &PyObject, eval_str: bool) -> PyResult<Option<HashMap<String, PyObject>>> {
+fn _inspect(py: Python, callback: &PyAny, eval_str: bool) -> PyResult<Option<HashMap<String, PyObject>>> {
     let signature = INSPECT
         .call_method(
             py,
             "signature",
-            (callback.clone_ref(py),),
+            (callback,),
             Some([("eval_str", eval_str.to_object(py))].into_py_dict(py)),
         )
         .and_then(|signature| {
@@ -113,14 +115,14 @@ fn _inspect(py: Python, callback: &PyObject, eval_str: bool) -> PyResult<Option<
 }
 
 impl Callback {
-    pub fn new(py: Python, callback: PyObject) -> PyResult<Self> {
+    pub fn new(py: Python, callback: &PyAny) -> PyResult<Self> {
         let empty = INSPECT.getattr(py, "Parameter")?.getattr(py, "empty")?;
 
         Ok(Self {
-            callback: callback.clone_ref(py),
+            callback: callback.to_object(py),
             empty,
             resolved: OnceCell::new(),
-            signature: RwLock::new(_inspect(py, &callback, false)?),
+            signature: RwLock::new(_inspect(py, callback, false)?),
         })
     }
 
@@ -134,21 +136,21 @@ impl Callback {
             return Ok(None);
         }
 
-        match parameters
+        let parameters = parameters
             .as_ref()
             .unwrap()
             .get(name)
-            .map(|parameter| parameter.getattr(py, "annotation"))
-        {
+            .map(|parameter| parameter.getattr(py, "annotation"));
+
+        match parameters {
             Some(Ok(annotation)) => {
                 if annotation.is(&self.empty) {
                     return Ok(None);
                 }
 
                 if self.resolved.get().is_none() && annotation.as_ref(py).is_instance_of::<PyString>()? {
-                    *self.signature.write().unwrap() = _inspect(py, &self.callback, true)?;
+                    *self.signature.write().unwrap() = _inspect(py, self.callback.as_ref(py), true)?;
                     self.resolved.set(()).unwrap();
-                    drop(parameters);
                     self.resolve_annotation(py, name)
                 } else {
                     Ok(Some(annotation))

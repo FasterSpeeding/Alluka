@@ -52,7 +52,7 @@ const SELF_INJECTING: Lazy<Py<PyModule>> =
     Lazy::new(|| Python::with_gil(|py| py.import("alluka._self_injecting").unwrap().into_py(py)));
 
 #[pyo3::pyclass(subclass)]
-struct Client {
+pub struct Client {
     callback_overrides: HashMap<isize, PyObject>,
     descriptors: HashMap<isize, Arc<Box<[InjectedTuple]>>>,
     introspect_annotations: bool,
@@ -60,8 +60,8 @@ struct Client {
 }
 
 impl Client {
-    fn build_descriptors(&mut self, py: Python, callback: PyObject) -> PyResult<Arc<Box<[InjectedTuple]>>> {
-        let key = callback.as_ref(py).hash()?;
+    fn build_descriptors(&mut self, py: Python, callback: &PyAny) -> PyResult<Arc<Box<[InjectedTuple]>>> {
+        let key = callback.hash()?;
         let entry = self.descriptors.raw_entry_mut().from_key(&key);
 
         Ok(match entry {
@@ -76,7 +76,7 @@ impl Client {
         })
     }
 
-    pub fn get_type_dependency_rust<'a>(&'a self, type_: &isize) -> Option<&'a PyObject> {
+    pub fn get_type_dependency_rust<'a>(&'a self, py: Python, type_: &isize) -> Option<&'a PyObject> {
         self.type_dependencies.get(type_)
     }
 }
@@ -86,11 +86,11 @@ impl Client {
         &mut self,
         py: Python<'p>,
         ctx: Py<BasicContext>,
-        callback: PyObject,
+        callback: &PyAny,
         args: &PyTuple,
         mut kwargs: Option<&'p PyDict>,
     ) -> PyResult<PyObject> {
-        let descriptors = self.build_descriptors(py, callback.clone_ref(py))?;
+        let descriptors = self.build_descriptors(py, callback)?;
 
         if !descriptors.is_empty() {
             let descriptors = descriptors.iter().map(|(key, value)| match value {
@@ -111,16 +111,16 @@ impl Client {
             }
         }
 
-        callback.call(py, args, kwargs)
+        callback.call(args, kwargs).map(|value| value.to_object(py))
     }
 
-    pub fn call_with_ctx_async_rust<'p>(
+    pub fn call_with_ctx_async_rust(
         &mut self,
-        py: Python<'p>,
+        py: Python,
         ctx: Py<BasicContext>,
-        callback: PyObject,
+        callback: &PyAny,
         args: &PyTuple,
-        mut kwargs: Option<&'p PyDict>,
+        mut kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
         unimplemented!()
     }
@@ -152,10 +152,10 @@ impl Client {
     }
 
     #[args(callback, "/", args = "*", kwargs = "**")]
-    fn call_with_di<'p>(
+    fn call_with_di(
         slf: Py<Self>,
-        py: Python<'p>,
-        callback: PyObject,
+        py: Python,
+        callback: &PyAny,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
@@ -170,22 +170,22 @@ impl Client {
     }
 
     #[args(ctx, callback, "/", args = "*", kwargs = "**")]
-    pub fn call_with_ctx<'p>(
+    pub fn call_with_ctx(
         slf: Py<Self>,
-        py: Python<'p>,
+        py: Python,
         ctx: PyObject,
         callback: PyObject,
         args: &PyTuple,
-        mut kwargs: Option<&'p PyDict>,
+        mut kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
         unimplemented!("Custom contexts are not supported yet")
     }
 
     #[args(callback, "/", args = "*", kwargs = "**")]
-    fn call_with_async_di<'p>(
+    fn call_with_async_di(
         slf: Py<Self>,
-        py: Python<'p>,
-        callback: PyObject,
+        py: Python,
+        callback: &PyAny,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
@@ -260,7 +260,7 @@ impl Client {
         Ok(self
             .callback_overrides
             .get(&callback.hash()?)
-            .map(|value| ToPyObject::to_object(value, py)))
+            .map(|value| value.clone_ref(py)))
     }
 
     #[args(callback, "/")]
@@ -288,7 +288,7 @@ pub struct BasicContext {
 }
 
 impl BasicContext {
-    pub fn get_type_dependency_rust<'a>(&'a self, type_: &isize) -> Option<&'a PyObject> {
+    pub fn get_type_dependency_rust<'a>(&'a self, py: Python, type_: &isize) -> Option<&'a PyObject> {
         self.special_cased_types.get(type_)
     }
 }
@@ -317,10 +317,10 @@ impl BasicContext {
     }
 
     #[args(callback, "/", args = "*", kwargs = "**")]
-    fn call_with_di<'p>(
+    fn call_with_di(
         slf: Py<Self>,
-        py: Python<'p>,
-        callback: PyObject,
+        py: Python,
+        callback: &PyAny,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
@@ -332,10 +332,10 @@ impl BasicContext {
     }
 
     #[args(callback, "/", args = "*", kwargs = "**")]
-    fn call_with_async_di<'p>(
+    fn call_with_async_di(
         slf: Py<Self>,
-        py: Python<'p>,
-        callback: PyObject,
+        py: Python,
+        callback: &PyAny,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {

@@ -29,7 +29,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 use pyo3::types::PyTuple;
-use pyo3::{Py, PyAny, PyErr, PyObject, PyResult, Python};
+use pyo3::{Py, PyErr, PyObject, PyResult, Python, ToPyObject};
 
 use crate::{BasicContext, Client};
 
@@ -50,7 +50,7 @@ impl InjectedCallback {
         let callback = client
             .get_callback_override(py, self.callback.as_ref(py))?
             .unwrap_or_else(|| self.callback.clone_ref(py));
-        client.call_with_ctx_rust(py, ctx, callback, PyTuple::empty(py), None)
+        client.call_with_ctx_rust(py, ctx, callback.as_ref(py), PyTuple::empty(py), None)
     }
 
     pub fn resolve_async(&self, py: Python, client: &mut Client, ctx: PyObject) -> PyResult<PyObject> {
@@ -61,7 +61,7 @@ impl InjectedCallback {
         let callback = client
             .get_callback_override(py, self.callback.as_ref(py))?
             .unwrap_or_else(|| self.callback.clone_ref(py));
-        client.call_with_ctx_async_rust(py, ctx, callback, PyTuple::empty(py), None)
+        client.call_with_ctx_async_rust(py, ctx, callback.as_ref(py), PyTuple::empty(py), None)
     }
 }
 
@@ -79,20 +79,21 @@ impl InjectedType {
     }
 
     pub fn resolve_rust(&self, py: Python, ctx: Py<BasicContext>) -> PyResult<PyObject> {
+        let ctx = ctx.borrow(py);
+        let client = ctx.client.borrow(py);
         if let Some(value) = self
             .type_ids
             .iter()
             .filter_map(|cls| {
-                ctx.borrow(py)
-                    .get_type_dependency_rust(cls)
-                    .map(|value| value.clone_ref(py))
+                ctx.get_type_dependency_rust(py, cls)
+                    .or_else(|| client.get_type_dependency_rust(py, cls))
             })
             .next()
         {
-            return Ok(value);
+            return Ok(value.to_object(py));
         }
 
-        if let Some(default) = &self.default {
+        if let Some(default) = self.default.as_ref() {
             return Ok(default.clone_ref(py));
         }
 
