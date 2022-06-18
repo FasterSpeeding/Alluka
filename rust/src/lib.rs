@@ -173,8 +173,8 @@ impl Client {
     pub fn call_with_ctx(
         slf: Py<Self>,
         py: Python,
-        ctx: PyObject,
-        callback: PyObject,
+        ctx: &PyAny,
+        callback: &PyAny,
         args: &PyTuple,
         mut kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
@@ -202,12 +202,11 @@ impl Client {
     pub fn call_with_ctx_async<'p>(
         slf: Py<Self>,
         py: Python<'p>,
-        ctx: PyObject,
-        callback: PyObject,
+        ctx: &PyAny,
+        callback: &PyAny,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
-        ctx.as_ref(py);
         unimplemented!("Custom contexts arenot supported yet")
     }
 

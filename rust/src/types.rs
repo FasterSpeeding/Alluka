@@ -29,7 +29,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 use pyo3::types::PyTuple;
-use pyo3::{Py, PyErr, PyObject, PyResult, Python, ToPyObject};
+use pyo3::{Py, PyAny, PyErr, PyObject, PyResult, Python, ToPyObject};
 
 use crate::{BasicContext, Client};
 
@@ -53,7 +53,7 @@ impl InjectedCallback {
         client.call_with_ctx_rust(py, ctx, callback.as_ref(py), PyTuple::empty(py), None)
     }
 
-    pub fn resolve_async(&self, py: Python, client: &mut Client, ctx: PyObject) -> PyResult<PyObject> {
+    pub fn resolve_async(&self, py: Python, client: &mut Client, ctx: &PyAny) -> PyResult<PyObject> {
         unimplemented!("Custom contexts are not yet supported")
     }
 
@@ -74,7 +74,7 @@ pub struct InjectedType {
 }
 
 impl InjectedType {
-    pub fn resolve(&self, py: Python, ctx: &PyObject) -> PyResult<PyObject> {
+    pub fn resolve(&self, py: Python, ctx: &PyAny) -> PyResult<PyObject> {
         unimplemented!("Custom contexts are not yet supported")
     }
 
@@ -114,24 +114,21 @@ pub enum Injected {
 }
 
 impl Injected {
-    pub fn new_callback(callback: PyObject) -> Self {
-        Injected::Callback(InjectedCallback { callback })
+    pub fn new_callback(py: Python, callback: &PyAny) -> Self {
+        Injected::Callback(InjectedCallback {
+            callback: callback.to_object(py),
+        })
     }
 
-    pub fn new_type(
-        py: Python,
-        default: Option<PyObject>,
-        repr_type: PyObject,
-        types: Vec<PyObject>,
-    ) -> PyResult<Self> {
+    pub fn new_type(py: Python, default: Option<&PyAny>, repr_type: &PyAny, types: Vec<&PyAny>) -> PyResult<Self> {
         Ok(Injected::Type(InjectedType {
-            default,
-            repr_type,
+            default: default.map(|value| value.to_object(py)),
+            repr_type: repr_type.to_object(py),
             type_ids: types
                 .iter()
-                .map(|type_| type_.as_ref(py).hash())
+                .map(|type_| type_.hash())
                 .collect::<PyResult<Vec<isize>>>()?,
-            types,
+            types: types.iter().map(|type_| type_.to_object(py)).collect(),
         }))
     }
 }

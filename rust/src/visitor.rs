@@ -85,7 +85,7 @@ pub struct Callback {
 }
 
 fn _inspect(py: Python, callback: &PyAny, eval_str: bool) -> PyResult<Option<HashMap<String, PyObject>>> {
-    let signature = INSPECT
+    let signature: PyResult<Option<HashMap<String, PyObject>>> = INSPECT
         .call_method(
             py,
             "signature",
@@ -104,7 +104,7 @@ fn _inspect(py: Python, callback: &PyAny, eval_str: bool) -> PyResult<Option<Has
                         .and_then(|value| value.cast_as::<PyTuple>().map_err(PyErr::from))
                         .and_then(|value| Ok((String::extract(value.get_item(0)?)?, value.get_item(1)?.into_py(py))))
                 })
-                .collect::<PyResult<HashMap<String, PyObject>>>()
+                .collect()
         })
         .map(Some);
 
@@ -206,39 +206,33 @@ pub trait Visitor {
 pub struct ParameterVisitor {}
 
 impl ParameterVisitor {
-    fn parse_type(py: Python, type_: PyObject, other_default: Option<PyObject>) -> PyResult<Injected> {
-        let origin = TYPING.call_method1(py, "get_origin", (&type_,))?;
+    fn parse_type(py: Python, type_: &PyAny, mut other_default: Option<&PyAny>) -> PyResult<Injected> {
+        let origin = TYPING.call_method1(py, "get_origin", (type_,))?;
         if !origin.is(&UNION_TYPES.0) && !origin.is(&UNION_TYPES.1) {
-            return Injected::new_type(py, other_default, type_.clone_ref(py), vec![type_]);
+            return Injected::new_type(py, other_default, type_, vec![type_]);
         };
 
-        let mut sub_types = TYPING
-            .call_method1(py, "get_args", (&type_,))?
-            .as_ref(py)
-            .iter()?
-            .map(|entry| entry.map(|value| value.to_object(py)))
-            .collect::<PyResult<Vec<PyObject>>>()?;
-        let none_type = py.None().as_ref(py).get_type().to_object(py);
+        let sub_types = TYPING.call_method1(py, "get_args", (type_,))?;
+        let mut sub_types = sub_types.as_ref(py).iter()?.collect::<PyResult<Vec<&PyAny>>>()?;
+        let len = sub_types.len();
+        sub_types.retain(|value| !value.is_none());
 
-        for value in sub_types.iter() {
-            if none_type.is(value) {
-                sub_types.retain(|value| !none_type.is(value));
-                return Injected::new_type(py, Some(py.None().to_object(py)), type_, sub_types);
-            }
+        if sub_types.len() != len && other_default.is_none() {
+            return Injected::new_type(py, Some(py.None().as_ref(py)), type_, sub_types);
         }
 
         Injected::new_type(py, other_default, type_, sub_types)
     }
 
-    fn annotation_to_type(py: Python, mut annotation: PyObject, default: Option<PyObject>) -> PyResult<Injected> {
-        let origin = TYPING.call_method1(py, "get_origin", (&annotation,))?;
+    fn annotation_to_type(py: Python, annotation: &PyAny, default: Option<&PyAny>) -> PyResult<Injected> {
+        let origin = TYPING.call_method1(py, "get_origin", (annotation,))?;
         if origin.is(&TYPING.getattr(py, "Annotated")?) {
             // The first "type" arg of annotated will always be flatterned to a type.
             // so we don't have to deal with Annotated nesting".
-            annotation = origin.as_ref(py).get_item(0).map(|value| value.to_object(py))?;
+            Self::parse_type(py, origin.as_ref(py).get_item(0)?, default)
+        } else {
+            Self::parse_type(py, annotation, default)
         }
-
-        Self::parse_type(py, annotation, default)
     }
 }
 fn _accept<N: Node, V: Visitor>(py: Python, callback: Rc<Callback>, name: &String) -> Option<PyResult<Injected>> {
@@ -268,7 +262,7 @@ impl Visitor for ParameterVisitor {
         let default = if default.is(&INSPECT.getattr(py, "Parameter")?.getattr(py, "empty")?) {
             None
         } else {
-            Some(default)
+            Some(default.as_ref(py))
         };
 
         if !TYPING
@@ -286,7 +280,7 @@ impl Visitor for ParameterVisitor {
                 .getattr(py, "InjectedTypes")?
                 .getattr(py, "TYPE")?,
         )? {
-            return Self::annotation_to_type(py, args.get_item(0)?.to_object(py), default).map(Some);
+            return Self::annotation_to_type(py, args.get_item(0)?, default).map(Some);
         }
 
         for arg in args.iter()? {
@@ -297,15 +291,15 @@ impl Visitor for ParameterVisitor {
 
             let callback = arg.getattr("callback")?;
             if !callback.is_none() {
-                return Ok(Some(Injected::new_callback(callback.to_object(py))));
+                return Ok(Some(Injected::new_callback(py, callback)));
             }
 
             let type_ = arg.getattr("type")?;
             if !type_.is_none() {
-                return Self::parse_type(py, type_.to_object(py), default).map(Some);
+                return Self::parse_type(py, type_, default).map(Some);
             }
 
-            return Self::annotation_to_type(py, arg.to_object(py), default).map(Some);
+            return Self::annotation_to_type(py, arg, default).map(Some);
         }
 
         Ok(None)
@@ -332,7 +326,7 @@ impl Visitor for ParameterVisitor {
                 }
             })
             .filter_map(Result::transpose)
-            .collect::<PyResult<Vec<InjectedTuple>>>()
+            .collect()
     }
 
     fn visit_default(py: Python, node: &Default) -> PyResult<Option<Injected>> {
@@ -343,16 +337,16 @@ impl Visitor for ParameterVisitor {
 
         let callback = default.getattr(py, "callback")?;
         if !callback.is_none(py) {
-            return Ok(Some(Injected::new_callback(callback)));
+            return Ok(Some(Injected::new_callback(py, callback.as_ref(py))));
         };
 
         let type_ = default.getattr(py, "type")?;
         if !type_.is_none(py) {
-            return Self::parse_type(py, type_, None).map(Some);
+            return Self::parse_type(py, type_.as_ref(py), None).map(Some);
         };
 
         match node.callback.resolve_annotation(py, &node.name)? {
-            Some(annotaton) => Self::parse_type(py, type_, None).map(Some),
+            Some(annotaton) => Self::parse_type(py, type_.as_ref(py), None).map(Some),
             None => Err(PyValueError::new_err(format!(
                 "Could not resolve type for parameter {} with no annotation",
                 node.name
