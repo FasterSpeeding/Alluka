@@ -48,7 +48,17 @@ mod types;
 use types::{Injected, InjectedTuple};
 mod visitor;
 
+pyo3::import_exception!(alluka._errors, AsyncOnlyError);
+
+
+static ASYNCIO: SyncOnceCell<PyObject> = SyncOnceCell::new();
 static SELF_INJECTING: SyncOnceCell<PyObject> = SyncOnceCell::new();
+
+fn import_asyncio(py: Python) -> PyResult<&PyAny> {
+    ASYNCIO
+        .get_or_try_init(|| Ok(py.import("asyncio")?.to_object(py)))
+        .map(|value| value.as_ref(py))
+}
 
 fn import_self_injecting(py: Python) -> PyResult<&PyAny> {
     SELF_INJECTING
@@ -121,7 +131,16 @@ impl Client {
             }
         }
 
-        callback.call(args, kwargs).map(|value| value.to_object(py))
+        let result = callback.call(args, kwargs)?;
+        if import_asyncio(py)?
+            .getattr("iscoroutine")?
+            .call1((result,))?
+            .is_true()?
+        {
+            Err(AsyncOnlyError::new_err(()))
+        } else {
+            Ok(result.to_object(py))
+        }
     }
 
     pub fn call_with_ctx_async_rust(
@@ -210,15 +229,15 @@ impl Client {
     }
 
     #[args(ctx, callback, "/", args = "*", kwargs = "**")]
-    pub fn call_with_ctx_async<'p>(
+    pub fn call_with_ctx_async(
         slf: Py<Self>,
-        py: Python<'p>,
+        py: Python,
         ctx: &PyAny,
         callback: &PyAny,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
-        unimplemented!("Custom contexts arenot supported yet")
+        unimplemented!("Custom contexts are not supported yet")
     }
 
     #[args(type_, value, "/")]

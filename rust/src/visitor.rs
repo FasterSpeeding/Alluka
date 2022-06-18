@@ -35,11 +35,11 @@ use std::sync::RwLock;
 
 use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::types::{IntoPyDict, PyMapping, PyString, PyTuple};
-use pyo3::{import_exception, FromPyObject, IntoPy, PyAny, PyErr, PyObject, PyResult, Python, ToPyObject};
+use pyo3::{FromPyObject, IntoPy, PyAny, PyErr, PyObject, PyResult, Python, ToPyObject};
 
 use crate::types::{Injected, InjectedTuple};
 
-import_exception!(alluka._types, InjectedDescriptor);
+pyo3::import_exception!(alluka._types, InjectedDescriptor);
 
 static ALLUKA: SyncOnceCell<PyObject> = SyncOnceCell::new();
 static INSPECT: SyncOnceCell<PyObject> = SyncOnceCell::new();
@@ -325,7 +325,7 @@ impl Visitor for ParameterVisitor {
                 return Self::parse_type(py, type_, default).map(Some);
             }
 
-            return Self::annotation_to_type(py, arg, default).map(Some);
+            return Self::annotation_to_type(py, args.get_item(0)?, default).map(Some);
         }
 
         Ok(None)

@@ -200,7 +200,7 @@ class ParameterVisitor:
             if arg.type:
                 return (_types.InjectedTypes.TYPE, self._parse_type(arg.type, other_default=default))
 
-            return self._annotation_to_type(arg, other_default=default)
+            return self._annotation_to_type(args[0], other_default=default)
 
     def visit_callback(self, callback: Callback, /) -> dict[str, _types.InjectedTuple]:
         results: dict[str, _types.InjectedTuple] = {}
