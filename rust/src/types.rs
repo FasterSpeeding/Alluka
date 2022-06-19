@@ -29,7 +29,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 use pyo3::types::PyTuple;
-use pyo3::{Py, PyAny, PyErr, PyObject, PyResult, Python, ToPyObject};
+use pyo3::{Py, PyAny, PyErr, PyObject, PyRef, PyResult, Python, ToPyObject};
 
 use crate::client::{BasicContext, Client};
 
@@ -46,12 +46,17 @@ impl InjectedCallback {
         unimplemented!("Custom contexts are not yet supported")
     }
 
-    pub fn resolve_rust(&self, py: Python, client: &Client, ctx: Py<BasicContext>) -> PyResult<PyObject> {
+    pub fn resolve_rust<'p>(
+        &self,
+        py: Python,
+        client: &PyRef<'p, Client>,
+        ctx: &PyRef<'p, BasicContext>,
+    ) -> PyResult<PyObject> {
         let mut callback = self.callback.as_ref(py);
         if let Some(callback) = client.get_callback_override(callback)?.map(|value| value.clone_ref(py)) {
-            client.call_with_ctx_rust(py, ctx, callback.as_ref(py), PyTuple::empty(py), None)
+            BasicContext::call_with_di_rust(ctx, py, client, callback.as_ref(py), PyTuple::empty(py), None)
         } else {
-            client.call_with_ctx_rust(py, ctx, callback, PyTuple::empty(py), None)
+            BasicContext::call_with_di_rust(ctx, py, client, callback, PyTuple::empty(py), None)
         }
     }
 
@@ -59,12 +64,17 @@ impl InjectedCallback {
         unimplemented!("Custom contexts are not yet supported")
     }
 
-    pub fn resolve_rust_async(&self, py: Python, client: &mut Client, ctx: Py<BasicContext>) -> PyResult<PyObject> {
+    pub fn resolve_rust_async<'p>(
+        &self,
+        py: Python<'p>,
+        client: &PyRef<'p, Client>,
+        ctx: &PyRef<'p, BasicContext>,
+    ) -> PyResult<PyObject> {
         let mut callback = self.callback.as_ref(py);
         if let Some(callback) = client.get_callback_override(callback)?.map(|value| value.clone_ref(py)) {
-            client.call_with_ctx_async_rust(py, ctx, callback.as_ref(py), PyTuple::empty(py), None)
+            BasicContext::call_with_async_di_rust(ctx, py, client, callback.as_ref(py), PyTuple::empty(py), None)
         } else {
-            client.call_with_ctx_async_rust(py, ctx, callback, PyTuple::empty(py), None)
+            BasicContext::call_with_async_di_rust(ctx, py, client, callback, PyTuple::empty(py), None)
         }
     }
 }
@@ -82,9 +92,12 @@ impl InjectedType {
         unimplemented!("Custom contexts are not yet supported")
     }
 
-    pub fn resolve_rust(&self, py: Python, ctx: Py<BasicContext>) -> PyResult<PyObject> {
-        let ctx = ctx.borrow(py);
-        let client = ctx.client.borrow(py);
+    pub fn resolve_rust<'p>(
+        &self,
+        py: Python<'p>,
+        client: &PyRef<'p, Client>,
+        ctx: &PyRef<'p, BasicContext>,
+    ) -> PyResult<PyObject> {
         if let Some(value) = self
             .type_ids
             .iter()

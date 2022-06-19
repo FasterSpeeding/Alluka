@@ -32,8 +32,9 @@
 #![feature(once_cell)]
 use client::{BasicContext, Client};
 use pyo3::types::{PyModule, PyType};
-use pyo3::{PyResult, Python};
+use pyo3::{PyAny, PyResult, Python};
 
+mod anyio;
 mod client;
 mod types;
 mod visitor;
@@ -45,6 +46,7 @@ fn _alluka(py: Python, module: &PyModule) -> PyResult<()> {
 
     module.add("__version__", "0.1.1")?;
     module.add_class::<Client>()?;
+    module.add_class::<BasicContext>()?;
 
     abc.getattr("Client")?
         .call_method1("register", (PyType::new::<Client>(py),))?;

@@ -105,21 +105,19 @@ impl Client {
 
 impl Client {
     pub fn call_with_ctx_rust<'p>(
-        &self,
+        slf: &PyRef<'p, Self>,
         py: Python<'p>,
-        ctx: Py<BasicContext>,
+        ctx: &PyRef<'p, BasicContext>,
         callback: &PyAny,
         args: &PyTuple,
         mut kwargs: Option<&'p PyDict>,
     ) -> PyResult<PyObject> {
-        let descriptors = self.build_descriptors(py, callback)?;
+        let descriptors = slf.build_descriptors(py, callback)?;
 
         if !descriptors.is_empty() {
             let descriptors = descriptors.iter().map(|(key, value)| match value {
-                Injected::Type(type_) => type_.resolve_rust(py, ctx.clone_ref(py)).map(|value| (key, value)),
-                Injected::Callback(callback) => callback
-                    .resolve_rust(py, self, ctx.clone_ref(py))
-                    .map(|value| (key, value)),
+                Injected::Type(type_) => type_.resolve_rust(py, slf, ctx).map(|value| (key, value)),
+                Injected::Callback(callback) => callback.resolve_rust(py, slf, ctx).map(|value| (key, value)),
             });
             if let Some(dict) = kwargs {
                 for entry in descriptors {
@@ -145,10 +143,10 @@ impl Client {
         }
     }
 
-    pub fn call_with_ctx_async_rust(
-        &self,
+    pub fn call_with_ctx_async_rust<'p>(
+        slf: &PyRef<'p, Self>,
         py: Python,
-        ctx: Py<BasicContext>,
+        ctx: &PyRef<'p, BasicContext>,
         callback: &PyAny,
         args: &PyTuple,
         mut kwargs: Option<&PyDict>,
@@ -192,9 +190,9 @@ impl Client {
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
-        slf.clone_ref(py).borrow(py).call_with_ctx_rust(
+        BasicContext::call_with_di(
+            Py::new(py, BasicContext::new(slf))?.borrow(py),
             py,
-            Py::new(py, BasicContext::new(slf))?,
             callback,
             args,
             kwargs,
@@ -221,9 +219,9 @@ impl Client {
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
-        slf.clone_ref(py).borrow(py).call_with_ctx_async_rust(
+        BasicContext::call_with_async_di(
+            Py::new(py, BasicContext::new(slf))?.borrow(py),
             py,
-            Py::new(py, BasicContext::new(slf))?,
             callback,
             args,
             kwargs,
@@ -328,6 +326,28 @@ impl BasicContext {
     pub fn get_type_dependency_rust<'a>(&'a self, py: Python, type_: &isize) -> Option<&'a PyObject> {
         self.special_cased_types.get(type_)
     }
+
+    pub fn call_with_di_rust<'p>(
+        slf: &PyRef<'p, Self>,
+        py: Python<'p>,
+        client: &PyRef<'p, Client>,
+        callback: &PyAny,
+        args: &PyTuple,
+        kwargs: Option<&PyDict>,
+    ) -> PyResult<PyObject> {
+        Client::call_with_ctx_rust(client, py, slf, callback, args, kwargs)
+    }
+
+    pub fn call_with_async_di_rust<'p>(
+        slf: &PyRef<'p, Self>,
+        py: Python,
+        client: &PyRef<'p, Client>,
+        callback: &PyAny,
+        args: &PyTuple,
+        kwargs: Option<&PyDict>,
+    ) -> PyResult<PyObject> {
+        Client::call_with_ctx_async_rust(client, py, slf, callback, args, kwargs)
+    }
 }
 
 #[pyo3::pymethods]
@@ -354,33 +374,25 @@ impl BasicContext {
     }
 
     #[args(callback, "/", args = "*", kwargs = "**")]
-    fn call_with_di(
-        slf: Py<Self>,
-        py: Python,
+    pub fn call_with_di<'p>(
+        slf: PyRef<'p, Self>,
+        py: Python<'p>,
         callback: &PyAny,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
-        slf.clone_ref(py)
-            .borrow(py)
-            .client
-            .borrow(py)
-            .call_with_ctx_rust(py, slf, callback, args, kwargs)
+        Self::call_with_di_rust(&slf, py, &slf.client.borrow(py), callback, args, kwargs)
     }
 
     #[args(callback, "/", args = "*", kwargs = "**")]
-    fn call_with_async_di(
-        slf: Py<Self>,
+    pub fn call_with_async_di<'p>(
+        slf: PyRef<'p, Self>,
         py: Python,
         callback: &PyAny,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
-        slf.clone_ref(py)
-            .borrow(py)
-            .client
-            .borrow(py)
-            .call_with_ctx_async_rust(py, slf, callback, args, kwargs)
+        Self::call_with_async_di_rust(&slf, py, &slf.client.borrow(py), callback, args, kwargs)
     }
 
     #[args(callback, "/", "*", default)]
