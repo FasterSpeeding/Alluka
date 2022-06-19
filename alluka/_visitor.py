@@ -230,4 +230,4 @@ class ParameterVisitor:
         if (annotation := value.callback.resolve_annotation(value.name)) is _types.UNDEFINED:
             raise ValueError(f"Could not resolve type for parameter {value.name!r} with no annotation")
 
-        return self._parse_type(self._annotation_to_type(annotation))
+        return self._annotation_to_type(annotation)
