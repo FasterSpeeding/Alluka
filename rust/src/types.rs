@@ -47,14 +47,14 @@ impl InjectedCallback {
     }
 
     pub fn resolve_rust<'p>(
-        &self,
-        py: Python,
-        client: &PyRef<'p, Client>,
-        ctx: &PyRef<'p, BasicContext>,
-    ) -> PyResult<PyObject> {
+        &'p self,
+        py: Python<'p>,
+        client: &'p PyRef<'p, Client>,
+        ctx: &'p PyRef<'p, BasicContext>,
+    ) -> PyResult<&'p PyAny> {
         let mut callback = self.callback.as_ref(py);
-        if let Some(callback) = client.get_callback_override(callback)?.map(|value| value.clone_ref(py)) {
-            BasicContext::call_with_di_rust(ctx, py, client, callback.as_ref(py), PyTuple::empty(py), None)
+        if let Some(callback) = client.get_callback_override(py, callback)? {
+            BasicContext::call_with_di_rust(ctx, py, client, callback, PyTuple::empty(py), None)
         } else {
             BasicContext::call_with_di_rust(ctx, py, client, callback, PyTuple::empty(py), None)
         }
@@ -65,14 +65,14 @@ impl InjectedCallback {
     }
 
     pub fn resolve_rust_async<'p>(
-        &self,
+        &'p self,
         py: Python<'p>,
-        client: &PyRef<'p, Client>,
-        ctx: &PyRef<'p, BasicContext>,
-    ) -> PyResult<PyObject> {
+        client: &'p PyRef<'p, Client>,
+        ctx: &'p PyRef<'p, BasicContext>,
+    ) -> PyResult<&'p PyAny> {
         let mut callback = self.callback.as_ref(py);
-        if let Some(callback) = client.get_callback_override(callback)?.map(|value| value.clone_ref(py)) {
-            BasicContext::call_with_async_di_rust(ctx, py, client, callback.as_ref(py), PyTuple::empty(py), None)
+        if let Some(callback) = client.get_callback_override(py, callback)? {
+            BasicContext::call_with_async_di_rust(ctx, py, client, callback, PyTuple::empty(py), None)
         } else {
             BasicContext::call_with_async_di_rust(ctx, py, client, callback, PyTuple::empty(py), None)
         }
@@ -93,25 +93,22 @@ impl InjectedType {
     }
 
     pub fn resolve_rust<'p>(
-        &self,
+        &'p self,
         py: Python<'p>,
-        client: &PyRef<'p, Client>,
-        ctx: &PyRef<'p, BasicContext>,
-    ) -> PyResult<PyObject> {
+        client: &'p PyRef<'p, Client>,
+        ctx: &'p PyRef<'p, BasicContext>,
+    ) -> PyResult<&'p PyAny> {
         if let Some(value) = self
             .type_ids
             .iter()
-            .filter_map(|cls| {
-                ctx.get_type_dependency_rust(py, cls)
-                    .or_else(|| client.get_type_dependency_rust(cls))
-            })
+            .filter_map(|cls| ctx.get_type_dependency_rust(py, client, cls))
             .next()
         {
-            return Ok(value.to_object(py));
+            return Ok(value.as_ref(py));
         }
 
         if let Some(default) = self.default.as_ref() {
-            return Ok(default.clone_ref(py));
+            return Ok(default.as_ref(py));
         }
 
         Err(PyErr::new::<MissingDependencyError, _>((

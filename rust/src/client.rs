@@ -108,10 +108,10 @@ impl Client {
         slf: &PyRef<'p, Self>,
         py: Python<'p>,
         ctx: &PyRef<'p, BasicContext>,
-        callback: &PyAny,
+        callback: &'p PyAny,
         args: &PyTuple,
         mut kwargs: Option<&'p PyDict>,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<&'p PyAny> {
         let descriptors = slf.build_descriptors(py, callback)?;
 
         if !descriptors.is_empty() {
@@ -126,7 +126,7 @@ impl Client {
                 }
             } else {
                 kwargs = descriptors
-                    .collect::<PyResult<Vec<(&String, PyObject)>>>()
+                    .collect::<PyResult<Vec<(&String, &PyAny)>>>()
                     .map(|value| Some(value.into_py_dict(py)))?
             }
         }
@@ -139,7 +139,7 @@ impl Client {
         {
             Err(AsyncOnlyError::new_err(()))
         } else {
-            Ok(result.to_object(py))
+            Ok(result)
         }
     }
 
@@ -150,7 +150,7 @@ impl Client {
         callback: &PyAny,
         args: &PyTuple,
         mut kwargs: Option<&PyDict>,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<&'p PyAny> {
         unimplemented!()
     }
 }
@@ -197,6 +197,7 @@ impl Client {
             args,
             kwargs,
         )
+        .map(|value| value.to_object(py))
     }
 
     #[args(ctx, callback, "/", args = "*", kwargs = "**")]
@@ -229,9 +230,9 @@ impl Client {
     }
 
     #[args(ctx, callback, "/", args = "*", kwargs = "**")]
-    pub fn call_with_ctx_async(
+    pub fn call_with_ctx_async<'p>(
         slf: Py<Self>,
-        py: Python,
+        py: Python<'p>,
         ctx: &PyAny,
         callback: &PyAny,
         args: &PyTuple,
@@ -294,8 +295,11 @@ impl Client {
     }
 
     #[args(callback, "/")]
-    pub fn get_callback_override(&self, callback: &PyAny) -> PyResult<Option<&PyObject>> {
-        Ok(self.callback_overrides.get(&callback.hash()?))
+    pub fn get_callback_override<'p>(&'p self, py: Python<'p>, callback: &'p PyAny) -> PyResult<Option<&'p PyAny>> {
+        Ok(self
+            .callback_overrides
+            .get(&callback.hash()?)
+            .map(|value| value.as_ref(py)))
     }
 
     #[args(callback, "/")]
@@ -323,18 +327,25 @@ pub struct BasicContext {
 }
 
 impl BasicContext {
-    pub fn get_type_dependency_rust<'a>(&'a self, py: Python, type_: &isize) -> Option<&'a PyObject> {
-        self.special_cased_types.get(type_)
+    pub fn get_type_dependency_rust<'p>(
+        &'p self,
+        py: Python<'p>,
+        client: &'p PyRef<'p, Client>,
+        type_: &isize,
+    ) -> Option<&'p PyObject> {
+        self.special_cased_types
+            .get(type_)
+            .or_else(|| client.get_type_dependency_rust(type_))
     }
 
     pub fn call_with_di_rust<'p>(
         slf: &PyRef<'p, Self>,
         py: Python<'p>,
         client: &PyRef<'p, Client>,
-        callback: &PyAny,
+        callback: &'p PyAny,
         args: &PyTuple,
-        kwargs: Option<&PyDict>,
-    ) -> PyResult<PyObject> {
+        kwargs: Option<&'p PyDict>,
+    ) -> PyResult<&'p PyAny> {
         Client::call_with_ctx_rust(client, py, slf, callback, args, kwargs)
     }
 
@@ -342,10 +353,10 @@ impl BasicContext {
         slf: &PyRef<'p, Self>,
         py: Python,
         client: &PyRef<'p, Client>,
-        callback: &PyAny,
+        callback: &'p PyAny,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<&'p PyAny> {
         Client::call_with_ctx_async_rust(client, py, slf, callback, args, kwargs)
     }
 }
@@ -382,6 +393,7 @@ impl BasicContext {
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
         Self::call_with_di_rust(&slf, py, &slf.client.borrow(py), callback, args, kwargs)
+            .map(|value| value.to_object(py))
     }
 
     #[args(callback, "/", args = "*", kwargs = "**")]
@@ -393,6 +405,7 @@ impl BasicContext {
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
         Self::call_with_async_di_rust(&slf, py, &slf.client.borrow(py), callback, args, kwargs)
+            .map(|value| value.to_object(py))
     }
 
     #[args(callback, "/", "*", default)]
@@ -406,10 +419,15 @@ impl BasicContext {
 
     #[args(type_, "/", "*", default)]
     fn get_type_dependency(&self, py: Python, type_: &PyAny, default: Option<PyObject>) -> PyResult<PyObject> {
-        if let Some(result) = self.special_cased_types.get(&type_.hash()?) {
-            return Ok(result.clone_ref(py));
+        if let Some(result) = self.get_type_dependency_rust(py, &self.client.borrow(py), &type_.hash()?) {
+            return Ok(result.to_object(py));
         }
 
-        self.client.borrow(py).get_type_dependency(py, type_, default)
+        default.map(Ok).unwrap_or_else(|| {
+            import_alluka(py)?
+                .getattr("abc")?
+                .getattr("UNDEFINED")
+                .map(|v| v.to_object(py))
+        })
     }
 }
