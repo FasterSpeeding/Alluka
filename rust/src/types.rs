@@ -31,7 +31,7 @@
 use pyo3::types::PyTuple;
 use pyo3::{Py, PyAny, PyErr, PyObject, PyResult, Python, ToPyObject};
 
-use crate::{BasicContext, Client};
+use crate::client::{BasicContext, Client};
 
 pyo3::import_exception!(alluka._errors, MissingDependencyError);
 
