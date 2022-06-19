@@ -31,6 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import typing
+import warnings
 from unittest import mock
 
 import pytest
@@ -94,37 +95,168 @@ class TestClient:
         assert result._client is client
 
     def test_call_with_di(self):
-        mock_call_with_ctx = mock.Mock()
+        class MockType1:
+            ...
 
-        class MockClient(alluka.Client):
-            call_with_ctx = mock_call_with_ctx
+        class MockType2:
+            ...
 
-        client = MockClient()
+        class MockType3:
+            ...
+
+        mock_value_1 = MockType1()
+        mock_value_2 = MockType2()
+        mock_value_3 = MockType3()
         mock_callback = mock.Mock()
+        mock_override = mock.Mock()
 
-        with mock.patch("alluka._client.BasicContext") as basic_context:
-            result = client.call_with_di(mock_callback, "ea", "gb", jp="nyaa")
+        def callback(
+            foo: int,
+            bar: str,
+            bam: alluka.Injected[MockType1],
+            baz: alluka.Injected[typing.Union[int, str, None]],
+            other_result: typing.Annotated[int, alluka.inject(callback=lambda: "no you")],
+            overridden: typing.Annotated[int, alluka.inject(callback=mock_callback)],
+            bart_man: alluka.Injected[int] = 123,
+            meow: MockType3 = alluka.inject(type=MockType3),
+            nyaa: typing.Optional[bool] = alluka.inject(type=typing.Optional[bool]),
+            result: typing.Optional[str] = alluka.inject(callback=lambda: "hi"),
+        ) -> str:
+            assert foo == 43234
+            assert bar == "nyaa"
+            assert bam is mock_value_1
+            assert baz is None
+            assert other_result == "no you"
+            assert overridden is mock_override.return_value
+            assert bart_man == 123
+            assert meow is mock_value_3
+            assert nyaa is None
+            assert result == "hi"
+            return "ok"
 
-        assert result is mock_call_with_ctx.return_value
-        mock_call_with_ctx.assert_called_once_with(basic_context.return_value, mock_callback, "ea", "gb", jp="nyaa")
-        basic_context.assert_called_once_with(client)
+        client = (
+            alluka.Client()
+            .set_type_dependency(MockType1, mock_value_1)
+            .set_type_dependency(MockType2, mock_value_2)
+            .set_type_dependency(MockType3, mock_value_3)
+            .set_callback_override(mock_callback, mock_override)
+        )
+
+        result = client.call_with_di(callback, 43234, bar="nyaa")
+
+        assert result == "ok"
+
+    def test_call_with_di_when_type_not_found(self):
+        class MockType:
+            ...
+
+        def callback(value: alluka.Injected[MockType]) -> typing.NoReturn:
+            raise NotImplementedError
+
+        client = alluka.Client()
+
+        with pytest.raises(alluka.MissingDependencyError):
+            client.call_with_di(callback)
+
+    def test_call_with_di_when_type_not_found_when_async_callback(self):
+        async def callback(value: alluka.Injected[int]) -> typing.NoReturn:
+            raise NotImplementedError
+
+        client = alluka.Client().set_type_dependency(int, 123)
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+            with pytest.raises(alluka.AsyncOnlyError):
+                client.call_with_di(callback)
+
+    def test_call_with_di_when_type_not_found_when_async_dependency(self):
+        class MockType:
+            ...
+
+        def callback(
+            value: alluka.Injected[MockType], dep: int = alluka.inject(callback=mock.AsyncMock())
+        ) -> typing.NoReturn:
+            raise NotImplementedError
+
+        client = alluka.Client().set_type_dependency(MockType, MockType())
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+            with pytest.raises(alluka.AsyncOnlyError):
+                client.call_with_di(callback)
 
     @pytest.mark.anyio()
     async def test_call_with_async_di(self):
-        mock_call_with_ctx_async = mock.AsyncMock()
+        class MockType1:
+            ...
 
-        class MockClient(alluka.Client):
-            call_with_ctx_async = mock_call_with_ctx_async
+        class MockType2:
+            ...
 
-        client = MockClient()
+        class MockType3:
+            ...
+
+        mock_value_1 = MockType1()
+        mock_value_2 = MockType2()
+        mock_value_3 = MockType3()
         mock_callback = mock.Mock()
+        mock_override = mock.AsyncMock()
+        mock_other_callback = mock.AsyncMock()
+        mock_other_override = mock.Mock()
 
-        with mock.patch("alluka._client.BasicContext") as basic_context:
-            result = await client.call_with_async_di(mock_callback, 123, jp=6969)
+        async def callback(
+            foo: int,
+            bar: str,
+            bam: alluka.Injected[MockType1],
+            baz: alluka.Injected[typing.Union[int, str, None]],
+            other_result: typing.Annotated[int, alluka.inject(callback=lambda: "no you")],
+            overridden: typing.Annotated[int, alluka.inject(callback=mock_callback)],
+            other_overridden: typing.Any = alluka.inject(callback=mock_other_callback),
+            bart_man: alluka.Injected[int] = 123,
+            meow: MockType3 = alluka.inject(type=MockType3),
+            nyaa: typing.Optional[bool] = alluka.inject(type=typing.Optional[bool]),
+            result: typing.Optional[str] = alluka.inject(callback=lambda: "hi"),
+        ) -> str:
+            assert foo == 43234
+            assert bar == "nyaa"
+            assert bam is mock_value_1
+            assert baz is None
+            assert other_result == "no you"
+            assert overridden is mock_override.return_value
+            assert other_overridden is mock_other_override.return_value
+            assert bart_man == 123
+            assert meow is mock_value_3
+            assert nyaa is None
+            assert result == "hi"
+            return "ok"
 
-        assert result is mock_call_with_ctx_async.return_value
-        mock_call_with_ctx_async.assert_called_once_with(basic_context.return_value, mock_callback, 123, jp=6969)
-        basic_context.assert_called_once_with(client)
+        client = (
+            alluka.Client()
+            .set_type_dependency(MockType1, mock_value_1)
+            .set_type_dependency(MockType2, mock_value_2)
+            .set_type_dependency(MockType3, mock_value_3)
+            .set_callback_override(mock_callback, mock_override)
+            .set_callback_override(mock_other_callback, mock_other_override)
+        )
+
+        result = await client.call_with_async_di(callback, 43234, bar="nyaa")
+
+        assert result == "ok"
+
+    @pytest.mark.anyio()
+    async def test_call_with_async_di_when_type_not_found(self):
+        class MockType:
+            ...
+
+        def callback(value: alluka.Injected[MockType]) -> typing.NoReturn:
+            raise NotImplementedError
+
+        client = alluka.Client()
+
+        with pytest.raises(alluka.MissingDependencyError):
+            await client.call_with_async_di(callback)
 
     def test_set_type_dependency_when_not_found(self):
         mock_type: typing.Any = mock.Mock()
@@ -209,27 +341,6 @@ class TestBasicContext:
         ctx.cache_result(mock_callback, mock_result)
 
         assert ctx.get_cached_result(mock_callback) is mock_result
-
-    def test_call_with_di(self):
-        mock_client = mock.Mock()
-        mock_callback = mock.Mock()
-        ctx = alluka.BasicContext(mock_client)
-
-        result = ctx.call_with_di(mock_callback, 1, "ok", ex="nah", pa="bah")
-
-        assert result is mock_client.call_with_ctx.return_value
-        mock_client.call_with_ctx.assert_called_once_with(ctx, mock_callback, 1, "ok", ex="nah", pa="bah")
-
-    @pytest.mark.anyio()
-    async def test_call_with_async_di(self):
-        mock_client = mock.AsyncMock()
-        mock_callback = mock.Mock()
-        ctx = alluka.BasicContext(mock_client)
-
-        result = await ctx.call_with_async_di(mock_callback, "op", ah=123)
-
-        assert result is mock_client.call_with_ctx_async.return_value
-        mock_client.call_with_ctx_async.assert_awaited_once_with(ctx, mock_callback, "op", ah=123)
 
     def test_get_cached_result_when_not_found(self):
         ctx = alluka.BasicContext(mock.Mock())

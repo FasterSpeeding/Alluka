@@ -34,6 +34,7 @@ use std::rc::Rc;
 use std::sync::RwLock;
 
 use pyo3::exceptions::{PyKeyError, PyValueError};
+use pyo3::type_object::PyTypeObject;
 use pyo3::types::{IntoPyDict, PyMapping, PyString, PyTuple};
 use pyo3::{FromPyObject, IntoPy, PyAny, PyErr, PyObject, PyResult, Python, ToPyObject};
 
@@ -199,9 +200,9 @@ impl Node for Default {
             .getattr(py, "default")?;
 
         let default = if default.is(&callback.empty) {
-            Some(default)
-        } else {
             None
+        } else {
+            Some(default)
         };
 
         Ok(Self {
@@ -309,9 +310,10 @@ impl Visitor for ParameterVisitor {
             return Self::annotation_to_type(py, args.get_item(0)?, default).map(Some);
         }
 
+        let descriptor_type = InjectedDescriptor::type_object(py);
         for arg in args.iter()? {
             let arg = arg?;
-            if !arg.is_instance_of::<InjectedDescriptor>()? {
+            if !arg.is_instance(descriptor_type)? {
                 continue;
             }
 

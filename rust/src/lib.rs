@@ -51,8 +51,15 @@ mod visitor;
 pyo3::import_exception!(alluka._errors, AsyncOnlyError);
 
 
+static ALLUKA: SyncOnceCell<PyObject> = SyncOnceCell::new();
 static ASYNCIO: SyncOnceCell<PyObject> = SyncOnceCell::new();
 static SELF_INJECTING: SyncOnceCell<PyObject> = SyncOnceCell::new();
+
+fn import_alluka(py: Python) -> PyResult<&PyAny> {
+    ALLUKA
+        .get_or_try_init(|| Ok(py.import("alluka")?.to_object(py)))
+        .map(|value| value.as_ref(py))
+}
 
 fn import_asyncio(py: Python) -> PyResult<&PyAny> {
     ASYNCIO
@@ -253,11 +260,20 @@ impl Client {
 
     #[args(type_, "/", "*", default)]
     pub fn get_type_dependency(&self, py: Python, type_: &PyAny, default: Option<PyObject>) -> PyResult<PyObject> {
-        Ok(self
+        if let Some(value) = self
             .type_dependencies
             .get(&type_.hash()?)
             .map(|value| value.clone_ref(py))
-            .unwrap_or_else(|| default.unwrap_or_else(|| py.None())))
+        {
+            return Ok(value);
+        };
+
+        default.map(Ok).unwrap_or_else(|| {
+            import_alluka(py)?
+                .getattr("abc")?
+                .getattr("UNDEFINED")
+                .map(|v| v.to_object(py))
+        })
     }
 
     #[args(type_, "/")]
@@ -266,7 +282,7 @@ impl Client {
         py: Python,
         type_: &PyAny,
     ) -> PyResult<PyRefMut<'p, Self>> {
-        if slf.borrow_mut().type_dependencies.remove(&type_.hash()?).is_some() {
+        if slf.borrow_mut().type_dependencies.remove(&type_.hash()?).is_none() {
             Err(PyKeyError::new_err(format!("Type dependency not found: {}", type_)))
         } else {
             Ok(slf)
@@ -295,7 +311,7 @@ impl Client {
         py: Python,
         callback: &PyAny,
     ) -> PyResult<PyRefMut<'p, Self>> {
-        if slf.borrow_mut().callback_overrides.remove(&callback.hash()?).is_some() {
+        if slf.borrow_mut().callback_overrides.remove(&callback.hash()?).is_none() {
             Err(PyKeyError::new_err(format!(
                 "Callback override not found: {}",
                 callback
