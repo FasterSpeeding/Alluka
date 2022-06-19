@@ -9,5 +9,10 @@ name = "_alluka"
 crate-type = ["cdylib"]
 
 [dependencies.pyo3]
-features = ["extension-module", "serde"]
+features = ["extension-module"]
 version = "0.16.5"
+
+[profile.release]
+codegen-units = 1
+lto = true
+strip = true
