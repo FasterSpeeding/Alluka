@@ -52,7 +52,7 @@ impl InjectedCallback {
         client: &'p PyRef<'p, Client>,
         ctx: &'p PyRef<'p, BasicContext>,
     ) -> PyResult<&'p PyAny> {
-        let mut callback = self.callback.as_ref(py);
+        let callback = self.callback.as_ref(py);
         if let Some(callback) = client.get_callback_override(py, callback)? {
             BasicContext::call_with_di_rust(ctx, py, client, callback, PyTuple::empty(py), None)
         } else {
@@ -64,17 +64,19 @@ impl InjectedCallback {
         unimplemented!("Custom contexts are not yet supported")
     }
 
-    pub fn resolve_rust_async<'p>(
+    #[async_recursion::async_recursion(?Send)]
+    pub async fn resolve_rust_async<'p>(
         &'p self,
         py: Python<'p>,
+        task_group: &'p PyAny,
         client: &'p PyRef<'p, Client>,
         ctx: &'p PyRef<'p, BasicContext>,
     ) -> PyResult<&'p PyAny> {
-        let mut callback = self.callback.as_ref(py);
+        let callback = self.callback.as_ref(py);
         if let Some(callback) = client.get_callback_override(py, callback)? {
-            BasicContext::call_with_async_di_rust(ctx, py, client, callback, PyTuple::empty(py), None)
+            BasicContext::call_with_async_di_rust(ctx, py, task_group, client, callback, PyTuple::empty(py), None).await
         } else {
-            BasicContext::call_with_async_di_rust(ctx, py, client, callback, PyTuple::empty(py), None)
+            BasicContext::call_with_async_di_rust(ctx, py, task_group, client, callback, PyTuple::empty(py), None).await
         }
     }
 }

@@ -32,13 +32,16 @@ use std::borrow::BorrowMut;
 use std::collections::hash_map::RawEntryMut;
 use std::collections::HashMap;
 use std::convert::AsRef;
+use std::future::Future;
 use std::lazy::SyncOnceCell;
+use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
-use pyo3::exceptions::PyKeyError;
+use async_executor::LocalExecutor;
+use pyo3::exceptions::{PyBaseException, PyKeyError};
 use pyo3::pycell::PyRef;
 use pyo3::types::{IntoPyDict, PyDict, PyTuple};
-use pyo3::{Py, PyAny, PyObject, PyRefMut, PyResult, Python, ToPyObject};
+use pyo3::{Py, PyAny, PyErr, PyObject, PyRefMut, PyResult, Python, ToPyObject};
 
 use crate::types::{Injected, InjectedTuple};
 use crate::visitor::{Callback, ParameterVisitor};
@@ -47,12 +50,26 @@ use crate::visitor::{Callback, ParameterVisitor};
 pyo3::import_exception!(alluka._errors, AsyncOnlyError);
 
 static ALLUKA: SyncOnceCell<PyObject> = SyncOnceCell::new();
+static ANYIO: SyncOnceCell<PyObject> = SyncOnceCell::new();
+static ANYIO_UTIL: SyncOnceCell<PyObject> = SyncOnceCell::new();
 static ASYNCIO: SyncOnceCell<PyObject> = SyncOnceCell::new();
 static SELF_INJECTING: SyncOnceCell<PyObject> = SyncOnceCell::new();
 
 fn import_alluka(py: Python) -> PyResult<&PyAny> {
     ALLUKA
         .get_or_try_init(|| Ok(py.import("alluka")?.to_object(py)))
+        .map(|value| value.as_ref(py))
+}
+
+fn import_anyio(py: Python) -> PyResult<&PyAny> {
+    ANYIO
+        .get_or_try_init(|| Ok(py.import("anyio")?.to_object(py)))
+        .map(|value| value.as_ref(py))
+}
+
+fn import_anyio_util(py: Python) -> PyResult<&PyAny> {
+    ANYIO_UTIL
+        .get_or_try_init(|| Ok(py.import("alluka._anyio")?.to_object(py)))
         .map(|value| value.as_ref(py))
 }
 
@@ -68,6 +85,10 @@ fn import_self_injecting(py: Python) -> PyResult<&PyAny> {
         .map(|value| value.as_ref(py))
 }
 
+std::thread_local! {
+    pub static EXECUTOR: Rc<LocalExecutor<'static>> = Rc::new(LocalExecutor::new())
+}
+
 #[pyo3::pyclass(subclass)]
 pub struct Client {
     callback_overrides: HashMap<isize, PyObject>,
@@ -75,6 +96,32 @@ pub struct Client {
     introspect_annotations: bool,
     type_dependencies: HashMap<isize, PyObject>,
 }
+
+#[pyo3::pyclass]
+struct PyFuture {
+    channel: PyObject,
+    value: Option<PyObject>,
+    exception: Option<PyObject>,
+}
+
+#[pyo3::pymethods]
+impl PyFuture {
+    #[getter]
+    fn get_channel<'a>(&'a self) -> &'a PyObject {
+        &self.channel
+    }
+
+    #[getter]
+    fn get_value<'a>(&'a self) -> &'a Option<PyObject> {
+        &self.value
+    }
+
+    #[getter]
+    fn get_exception<'a>(&'a self) -> &'a Option<PyObject> {
+        &self.exception
+    }
+}
+
 
 impl Client {
     fn build_descriptors(&self, py: Python, callback: &PyAny) -> PyResult<Arc<Box<[InjectedTuple]>>> {
@@ -101,9 +148,7 @@ impl Client {
     pub fn get_type_dependency_rust<'a>(&'a self, type_: &isize) -> Option<&'a PyObject> {
         self.type_dependencies.get(type_)
     }
-}
 
-impl Client {
     pub fn call_with_ctx_rust<'p>(
         slf: &PyRef<'p, Self>,
         py: Python<'p>,
@@ -143,15 +188,79 @@ impl Client {
         }
     }
 
-    pub fn call_with_ctx_async_rust<'p>(
-        slf: &PyRef<'p, Self>,
-        py: Python,
-        ctx: &PyRef<'p, BasicContext>,
-        callback: &PyAny,
-        args: &PyTuple,
-        mut kwargs: Option<&PyDict>,
+    pub async fn call_with_ctx_async_rust<'p>(
+        slf: &'p PyRef<'p, Self>,
+        py: Python<'p>,
+        task_group: &PyAny,
+        ctx: &'p PyRef<'p, BasicContext>,
+        callback: &'p PyAny,
+        args: &'p PyTuple,
+        kwargs: Option<Py<PyDict>>,
     ) -> PyResult<&'p PyAny> {
-        unimplemented!()
+        let descriptors = slf.build_descriptors(py, callback)?;
+
+        if descriptors.is_empty() {
+            let result = callback.call1(args)?;
+            return import_anyio(py)?.call_method1("maybe_async", (result,));
+        }
+
+        let iter = descriptors.iter().map(|(key, value)| async move {
+            match value {
+                Injected::Type(type_) => type_.resolve_rust(py, slf, ctx).map(|value| (key, value)),
+                Injected::Callback(callback) => callback
+                    .resolve_rust_async(py, task_group, slf, ctx)
+                    .await
+                    .map(|value| (key, value)),
+            }
+        });
+
+        let result = match kwargs {
+            Some(kwargs) => {
+                let kwargs = kwargs.as_ref(py);
+                for entry in iter {
+                    let (key, value) = entry.await?;
+                    kwargs.set_item(key, value)?;
+                }
+                callback.call(args, Some(kwargs))?
+            }
+            None => {
+                let kwargs = futures::future::join_all(iter)
+                    .await
+                    .into_iter()
+                    .collect::<PyResult<Vec<(&String, &PyAny)>>>()?
+                    .into_py_dict(py);
+                callback.call(args, Some(kwargs))?
+            }
+        };
+        if import_asyncio(py)?.call_method1("iscoroutine", (result,))?.is_true()? {
+            let (sender, receiver) = async_oneshot::oneshot::<Result<PyObject, Py<PyBaseException>>>();
+            import_anyio_util(py)?.call_method1("set_result", (result, OneShot { sender }));
+            receiver
+                .await
+                .unwrap()
+                .map(|value| value.as_ref(py))
+                .map_err(|err| PyErr::from_value(err.as_ref(py)))
+        } else {
+            Ok(result)
+        }
+    }
+}
+
+#[pyo3::pyclass]
+struct OneShot {
+    sender: async_oneshot::Sender<Result<PyObject, Py<PyBaseException>>>,
+}
+
+#[pyo3::pymethods]
+impl OneShot {
+    #[args(value, "/")]
+    fn set(&mut self, value: PyObject) {
+        self.sender.send(Ok(value)).unwrap();
+    }
+
+    #[args(value, "/")]
+    fn set_exception(&mut self, value: Py<PyBaseException>) {
+        self.sender.send(Err(value)).unwrap();
     }
 }
 
@@ -159,13 +268,13 @@ impl Client {
 impl Client {
     #[new]
     #[args("*", introspect_annotations = "true")]
-    fn new(introspect_annotations: bool) -> Self {
-        Self {
+    fn new(py: Python, introspect_annotations: bool) -> PyResult<Self> {
+        Ok(Self {
             callback_overrides: HashMap::new(),
             descriptors: RwLock::new(HashMap::new()),
             introspect_annotations,
             type_dependencies: HashMap::new(),
-        }
+        })
     }
 
     #[args(callback, "/")]
@@ -212,26 +321,64 @@ impl Client {
         unimplemented!("Custom contexts are not supported yet")
     }
 
-    #[args(callback, "/", args = "*", kwargs = "**")]
-    fn call_with_async_di(
+    #[args(task_group, ctx, callback, "/", args = "*", kwargs = "**")]
+    pub fn _call_with_ctx_async_rust<'p>(
         slf: Py<Self>,
-        py: Python,
+        py: Python<'p>,
+        task_group: PyObject,
+        ctx: Py<BasicContext>,
+        callback: PyObject,
+        args: Py<PyTuple>,
+        mut kwargs: Option<Py<PyDict>>,
+    ) -> PyResult<&'p PyAny> {
+        let channel = import_anyio_util(py)?.call_method0("OneShotChannel")?;
+        let set_value = channel.getattr("set")?.to_object(py);
+        let set_exception = channel.getattr("set_exception")?.to_object(py);
+        EXECUTOR
+            .with(|executor| {
+                executor.spawn(async move {
+                    let py_guard = Python::acquire_gil();
+                    let py = py_guard.python();
+                    // Python::with_gil(|py| async move {
+                    let slf = slf.borrow(py);
+                    let ctx = ctx.borrow(py);
+
+                    let result = Self::call_with_ctx_async_rust(
+                        &slf,
+                        py,
+                        task_group.as_ref(py),
+                        &ctx,
+                        callback.as_ref(py),
+                        args.as_ref(py),
+                        kwargs,
+                    )
+                    .await;
+                    match result {
+                        Ok(value) => set_value.call1(py, (value,)).unwrap(),
+                        Err(err) => set_exception.call1(py, (err,)).unwrap(),
+                    };
+                    // })
+                    // .await;
+                })
+            })
+            .detach();
+        Ok(channel)
+    }
+
+    #[args(callback, "/", args = "*", kwargs = "**")]
+    fn call_with_async_di<'p>(
+        slf: Py<Self>,
+        py: Python<'p>,
         callback: &PyAny,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
-    ) -> PyResult<PyObject> {
-        BasicContext::call_with_async_di(
-            Py::new(py, BasicContext::new(slf))?.borrow(py),
-            py,
-            callback,
-            args,
-            kwargs,
-        )
+    ) -> PyResult<&'p PyAny> {
+        BasicContext::call_with_async_di(Py::new(py, BasicContext::new(slf))?, py, callback, args, kwargs)
     }
 
     #[args(ctx, callback, "/", args = "*", kwargs = "**")]
     pub fn call_with_ctx_async<'p>(
-        slf: Py<Self>,
+        slf: PyRef<'p, Self>,
         py: Python<'p>,
         ctx: &PyAny,
         callback: &PyAny,
@@ -350,14 +497,15 @@ impl BasicContext {
     }
 
     pub fn call_with_async_di_rust<'p>(
-        slf: &PyRef<'p, Self>,
-        py: Python,
-        client: &PyRef<'p, Client>,
+        slf: &'p PyRef<'p, Self>,
+        py: Python<'p>,
+        task_group: &'p PyAny,
+        client: &'p PyRef<'p, Client>,
         callback: &'p PyAny,
-        args: &PyTuple,
-        kwargs: Option<&PyDict>,
-    ) -> PyResult<&'p PyAny> {
-        Client::call_with_ctx_async_rust(client, py, slf, callback, args, kwargs)
+        args: &'p PyTuple,
+        kwargs: Option<Py<PyDict>>,
+    ) -> impl Future<Output = PyResult<&'p PyAny>> {
+        Client::call_with_ctx_async_rust(client, py, task_group, slf, callback, args, kwargs)
     }
 }
 
@@ -398,14 +546,16 @@ impl BasicContext {
 
     #[args(callback, "/", args = "*", kwargs = "**")]
     pub fn call_with_async_di<'p>(
-        slf: PyRef<'p, Self>,
-        py: Python,
+        slf: Py<Self>,
+        py: Python<'p>,
         callback: &PyAny,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
-    ) -> PyResult<PyObject> {
-        Self::call_with_async_di_rust(&slf, py, &slf.client.borrow(py), callback, args, kwargs)
-            .map(|value| value.to_object(py))
+    ) -> PyResult<&'p PyAny> {
+        import_alluka(py)?
+            .getattr("_anyio")?
+            .getattr("with_task_queue")?
+            .call1((slf.getattr(py, "_call_with_ctx_async_rust")?, callback, args, kwargs))
     }
 
     #[args(callback, "/", "*", default)]

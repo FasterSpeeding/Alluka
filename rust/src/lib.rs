@@ -32,9 +32,8 @@
 #![feature(once_cell)]
 use client::{BasicContext, Client};
 use pyo3::types::{PyModule, PyType};
-use pyo3::{PyAny, PyResult, Python};
+use pyo3::{PyResult, Python};
 
-mod anyio;
 mod client;
 mod types;
 mod visitor;
