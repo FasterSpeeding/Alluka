@@ -374,7 +374,7 @@ impl Visitor for ParameterVisitor {
         };
 
         match node.callback.resolve_annotation(py, &node.name)? {
-            Some(annotaton) => Self::parse_type(py, type_.as_ref(py), None).map(Some),
+            Some(annotaton) => Self::parse_type(py, annotaton.as_ref(py), None).map(Some),
             None => Err(PyValueError::new_err(format!(
                 "Could not resolve type for parameter {} with no annotation",
                 node.name

@@ -42,7 +42,7 @@ pub struct InjectedCallback {
 }
 
 impl InjectedCallback {
-    pub fn resolve(&self, py: Python, client: &mut Client, ctx: Py<BasicContext>) -> PyResult<PyObject> {
+    pub fn resolve(&self, _py: Python, _client: &mut Client, _ctx: Py<BasicContext>) -> PyResult<PyObject> {
         unimplemented!("Custom contexts are not yet supported")
     }
 
@@ -60,7 +60,7 @@ impl InjectedCallback {
         }
     }
 
-    pub fn resolve_async(&self, py: Python, client: &mut Client, ctx: &PyAny) -> PyResult<PyObject> {
+    pub fn resolve_async(&self, _py: Python, _client: &mut Client, _ctx: &PyAny) -> PyResult<PyObject> {
         unimplemented!("Custom contexts are not yet supported")
     }
 
@@ -71,7 +71,7 @@ impl InjectedCallback {
         task_group: &'p PyAny,
         client: &'p PyRef<'p, Client>,
         ctx: &'p PyRef<'p, BasicContext>,
-    ) -> PyResult<&'p PyAny> {
+    ) -> PyResult<PyObject> {
         let callback = self.callback.as_ref(py);
         if let Some(callback) = client.get_callback_override(py, callback)? {
             BasicContext::call_with_async_di_rust(ctx, py, task_group, client, callback, PyTuple::empty(py), None).await
@@ -90,7 +90,7 @@ pub struct InjectedType {
 }
 
 impl InjectedType {
-    pub fn resolve(&self, py: Python, ctx: &PyAny) -> PyResult<PyObject> {
+    pub fn resolve(&self, _py: Python, _ctx: &PyAny) -> PyResult<PyObject> {
         unimplemented!("Custom contexts are not yet supported")
     }
 
@@ -103,7 +103,7 @@ impl InjectedType {
         if let Some(value) = self
             .type_ids
             .iter()
-            .filter_map(|cls| ctx.get_type_dependency_rust(py, client, cls))
+            .filter_map(|cls| ctx.get_type_dependency_rust(client, cls))
             .next()
         {
             return Ok(value.as_ref(py));

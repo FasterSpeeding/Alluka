@@ -45,7 +45,7 @@ class OneShotChannel:
     This is a channel that can only be used once.
     """
 
-    __slots__ = ("_channel", "_exception" "_value")
+    __slots__ = ("_channel", "_exception", "_value")
 
     def __init__(self):
         self._channel = anyio.Event()
@@ -121,7 +121,7 @@ async def get(self: ChannelProto) -> typing.Any:
 
 
 
-async def with_task_queue(callback: collections.Callable[..., collections.Awaitable[typing.Any]], args: typing.Any, kwargs: typing.Any) -> None:
+async def with_task_queue(callback: collections.Callable[..., collections.Awaitable[typing.Any]], args: typing.Any) -> None:
     """Run a callback with a task queue."""
     async with anyio.create_task_group() as task_group:
-        await callback(task_group, *args, **kwargs)
+        await callback(task_group, *args)
