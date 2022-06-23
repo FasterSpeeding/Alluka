@@ -32,9 +32,9 @@
 """Helper classes and methods for AnyIO."""
 from __future__ import annotations
 
-from collections import abc as collections
 import copy
 import typing
+from collections import abc as collections
 
 import anyio
 
@@ -87,7 +87,9 @@ class RustOneShotProto(typing.Protocol):
         ...
 
 
-async def set_result(coro: collections.Coroutine[typing.Any, typing.Any, typing.Any], one_shot: RustOneShotProto, /) -> None:
+async def set_result(
+    coro: collections.Coroutine[typing.Any, typing.Any, typing.Any], one_shot: RustOneShotProto, /
+) -> None:
     try:
         result = await coro
 
@@ -96,7 +98,6 @@ async def set_result(coro: collections.Coroutine[typing.Any, typing.Any, typing.
 
     else:
         one_shot.set(result)
-
 
 
 class ChannelProto(typing.Protocol):
@@ -120,8 +121,9 @@ async def get(self: ChannelProto) -> typing.Any:
     return self.value
 
 
-
-async def with_task_queue(callback: collections.Callable[..., collections.Awaitable[typing.Any]], args: typing.Any) -> None:
+async def with_task_queue(
+    callback: collections.Callable[..., collections.Awaitable[typing.Any]], args: typing.Any
+) -> None:
     """Run a callback with a task queue."""
     async with anyio.create_task_group() as task_group:
         await callback(task_group, *args)
