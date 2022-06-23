@@ -134,7 +134,7 @@ impl Client {
         }
 
         let mut descriptors = self.descriptors.write().unwrap();
-        let mut entry = descriptors.raw_entry_mut().from_key(&key);
+        let entry = descriptors.raw_entry_mut().from_key(&key);
         Ok(match entry {
             RawEntryMut::Occupied(entry) => entry.into_key_value().1.clone(),
             RawEntryMut::Vacant(entry) => entry
@@ -186,13 +186,13 @@ impl Client {
         }
     }
 
-    pub async fn call_with_ctx_async_rust<'p>(
-        slf: &'p PyRef<'p, Self>,
-        py: Python<'p>,
+    pub async fn call_with_ctx_async_rust(
+        slf: &PyRef<'_, Self>,
+        py: Python<'_>,
         task_group: &PyAny,
-        ctx: &'p PyRef<'p, BasicContext>,
-        callback: &'p PyAny,
-        args: &'p PyTuple,
+        ctx: &PyRef<'_, BasicContext>,
+        callback: &PyAny,
+        args: &PyTuple,
         kwargs: Option<Py<PyDict>>,
     ) -> PyResult<PyObject> {
         let descriptors = slf.build_descriptors(py, callback)?;
@@ -348,21 +348,14 @@ impl Client {
         args: Py<PyTuple>,
         kwargs: Option<Py<PyDict>>,
     ) -> PyResult<&'p PyAny> {
-        let channel = import_anyio_util(py)?.call_method0("OneShotChannel")?;
-        let set_value = channel.getattr("set")?.to_object(py);
-        let set_exception = channel.getattr("set_exception")?.to_object(py);
-
         future_into_py(py, {
             Python::with_gil(|py| async move {
-                let slf = slf.borrow(py);
-                let ctx = ctx.borrow(py);
-
                 // TODO: retain locals
                 Self::call_with_ctx_async_rust(
-                    &slf,
+                    &slf.borrow(py),
                     py,
                     task_group.as_ref(py),
-                    &ctx,
+                    &ctx.borrow(py),
                     callback.as_ref(py),
                     args.as_ref(py),
                     kwargs,
@@ -384,9 +377,9 @@ impl Client {
     }
 
     #[args(ctx, callback, "/", args = "*", kwargs = "**")]
-    pub fn call_with_ctx_async<'p>(
-        _slf: PyRef<'p, Self>,
-        _py: Python<'p>,
+    pub fn call_with_ctx_async(
+        _slf: PyRef<'_, Self>,
+        _py: Python,
         _ctx: &PyAny,
         _callback: &PyAny,
         _args: &PyTuple,
@@ -398,7 +391,6 @@ impl Client {
     #[args(type_, value, "/")]
     fn set_type_dependency<'p>(
         mut slf: PyRefMut<'p, Self>,
-        py: Python<'p>,
         type_: &PyAny,
         value: PyObject,
     ) -> PyResult<PyRefMut<'p, Self>> {

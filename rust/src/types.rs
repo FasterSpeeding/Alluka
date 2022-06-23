@@ -66,11 +66,11 @@ impl InjectedCallback {
 
     #[async_recursion::async_recursion(?Send)]
     pub async fn resolve_rust_async<'p>(
-        &'p self,
+        &self,
         py: Python<'p>,
-        task_group: &'p PyAny,
-        client: &'p PyRef<'p, Client>,
-        ctx: &'p PyRef<'p, BasicContext>,
+        task_group: &PyAny,
+        client: &PyRef<'p, Client>,
+        ctx: &PyRef<'p, BasicContext>,
     ) -> PyResult<PyObject> {
         let callback = self.callback.as_ref(py);
         if let Some(callback) = client.get_callback_override(py, callback)? {
