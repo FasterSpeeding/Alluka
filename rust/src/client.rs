@@ -152,19 +152,19 @@ impl Client {
     }
 
     pub fn call_with_ctx_rust<'p>(
-        slf: &PyRef<'p, Self>,
+        self: &PyRef<'p, Self>,
         py: Python<'p>,
         ctx: &PyRef<'p, BasicContext>,
         callback: &'p PyAny,
         args: &PyTuple,
         mut kwargs: Option<&'p PyDict>,
     ) -> PyResult<&'p PyAny> {
-        let descriptors = slf.build_descriptors(py, callback)?;
+        let descriptors = self.build_descriptors(py, callback)?;
 
         if !descriptors.is_empty() {
             let descriptors = descriptors.iter().map(|(key, value)| match value {
-                Injected::Type(type_) => type_.resolve_rust(py, slf, ctx).map(|value| (key, value)),
-                Injected::Callback(callback) => callback.resolve_rust(py, slf, ctx).map(|value| (key, value)),
+                Injected::Type(type_) => type_.resolve_rust(py, self, ctx).map(|value| (key, value)),
+                Injected::Callback(callback) => callback.resolve_rust(py, self, ctx).map(|value| (key, value)),
             });
             if let Some(dict) = kwargs {
                 for entry in descriptors {
@@ -187,18 +187,22 @@ impl Client {
     }
 
     pub async fn call_with_ctx_async_rust(
-        slf: &PyRef<'_, Self>,
-        py: Python<'_>,
-        task_group: &PyAny,
-        ctx: &PyRef<'_, BasicContext>,
-        callback: &PyAny,
-        args: &PyTuple,
+        slf: Py<Self>,
+        task_group: PyObject,
+        ctx: Py<BasicContext>,
+        callback: PyObject,
+        args: Py<PyTuple>,
         kwargs: Option<Py<PyDict>>,
     ) -> PyResult<PyObject> {
-        let descriptors = slf.build_descriptors(py, callback)?;
+        let gil_guard = Python::acquire_gil();
+        let py = gil_guard.python();
+        let slf = &slf;
+        let ctx = &ctx;
+        let task_group = &task_group;
 
+        let descriptors = slf.borrow(py).build_descriptors(py, callback.as_ref(py))?;
         if descriptors.is_empty() {
-            let result = callback.call1(args)?;
+            let result = callback.call1(py, args.as_ref(py))?;
             return import_anyio(py)?
                 .call_method1("maybe_async", (result,))
                 .map(|value| value.to_object(py));
@@ -206,9 +210,11 @@ impl Client {
 
         let iter = descriptors.iter().map(|(key, value)| async move {
             match value {
-                Injected::Type(type_) => type_.resolve_rust(py, slf, ctx).map(|value| (key, value.to_object(py))),
+                Injected::Type(type_) => type_
+                    .resolve_rust(py, &slf.borrow(py), &ctx.borrow(py))
+                    .map(|value| (key, value.to_object(py))),
                 Injected::Callback(callback) => callback
-                    .resolve_rust_async(py, task_group, slf, ctx)
+                    .resolve_rust_async(py, task_group.clone_ref(py), slf.clone_ref(py), ctx.clone_ref(py))?
                     .await
                     .map(|value| (key, value)),
             }
@@ -221,7 +227,7 @@ impl Client {
                     let (key, value) = entry.await?;
                     kwargs.set_item(key, value)?;
                 }
-                callback.call(args, Some(kwargs))?
+                callback.call(py, args.as_ref(py), Some(kwargs))?
             }
             None => {
                 let kwargs = futures::future::join_all(iter)
@@ -229,22 +235,22 @@ impl Client {
                     .into_iter()
                     .collect::<PyResult<Vec<(&String, PyObject)>>>()?
                     .into_py_dict(py);
-                callback.call(args, Some(kwargs))?
+                callback.call(py, args.as_ref(py), Some(kwargs))?
             }
         };
-        if import_asyncio(py)?.call_method1("iscoroutine", (result,))?.is_true()? {
-            let (sender, receiver) = async_oneshot::oneshot::<Result<PyObject, Py<PyBaseException>>>();
-            import_anyio_util(py)?.call_method1("set_result", (result, OneShot { sender }))?;
-            receiver.await.unwrap().map_err(|err| PyErr::from_value(err.as_ref(py)))
+        if import_asyncio(py)?.call_method1("iscoroutine", (&result,))?.is_true()? {
+            let (sender, receiver) = async_oneshot::oneshot::<Result<PyObject, PyErr>>();
+            import_anyio_util(py)?.call_method1("set_result", (&result, OneShot { sender }))?;
+            receiver.await.unwrap()
         } else {
-            Ok(result.to_object(py))
+            Ok(result)
         }
     }
 }
 
 #[pyo3::pyclass]
 struct OneShot {
-    sender: async_oneshot::Sender<Result<PyObject, Py<PyBaseException>>>,
+    sender: async_oneshot::Sender<Result<PyObject, PyErr>>,
 }
 
 #[pyo3::pymethods]
@@ -255,8 +261,8 @@ impl OneShot {
     }
 
     #[args(value, "/")]
-    fn set_exception(&mut self, value: Py<PyBaseException>) {
-        self.sender.send(Err(value)).unwrap();
+    fn set_exception(&mut self, value: &PyBaseException) {
+        self.sender.send(Err(PyErr::from_value(value))).unwrap();
     }
 }
 
@@ -299,13 +305,13 @@ impl Client {
     }
 
     #[args(callback, "/")]
-    fn as_async_self_injecting<'p>(slf: PyRef<Self>, py: Python<'p>, callback: &PyAny) -> PyResult<&'p PyAny> {
-        import_self_injecting(py)?.call_method1("AsyncSelfInjecting", (slf, callback))
+    fn as_async_self_injecting<'p>(self: PyRef<Self>, py: Python<'p>, callback: &PyAny) -> PyResult<&'p PyAny> {
+        import_self_injecting(py)?.call_method1("AsyncSelfInjecting", (self, callback))
     }
 
     #[args(callback, "/")]
-    fn as_self_injecting<'p>(slf: PyRef<Self>, py: Python<'p>, callback: &PyAny) -> PyResult<&'p PyAny> {
-        import_self_injecting(py)?.call_method1("SelfInjecting", (slf, callback))
+    fn as_self_injecting<'p>(self: PyRef<Self>, py: Python<'p>, callback: &PyAny) -> PyResult<&'p PyAny> {
+        import_self_injecting(py)?.call_method1("SelfInjecting", (self, callback))
     }
 
     #[args(callback, "/", args = "*", kwargs = "**")]
@@ -316,19 +322,15 @@ impl Client {
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
-        BasicContext::call_with_di(
-            Py::new(py, BasicContext::new(slf))?.borrow(py),
-            py,
-            callback,
-            args,
-            kwargs,
-        )
-        .map(|value| value.to_object(py))
+        Py::new(py, BasicContext::new(slf))?
+            .borrow(py)
+            .call_with_di(py, callback, args, kwargs)
+            .map(|value| value.to_object(py))
     }
 
     #[args(ctx, callback, "/", args = "*", kwargs = "**")]
     pub fn call_with_ctx(
-        _slf: Py<Self>,
+        _self: Py<Self>,
         _py: Python,
         _ctx: &PyAny,
         _callback: &PyAny,
@@ -348,20 +350,9 @@ impl Client {
         args: Py<PyTuple>,
         kwargs: Option<Py<PyDict>>,
     ) -> PyResult<&'p PyAny> {
-        future_into_py(py, {
-            Python::with_gil(|py| async move {
-                // TODO: retain locals
-                Self::call_with_ctx_async_rust(
-                    &slf.borrow(py),
-                    py,
-                    task_group.as_ref(py),
-                    &ctx.borrow(py),
-                    callback.as_ref(py),
-                    args.as_ref(py),
-                    kwargs,
-                )
-                .await
-            })
+        future_into_py(py, async move {
+            // TODO: retain locals
+            Self::call_with_ctx_async_rust(slf, task_group, ctx, callback, args, kwargs).await
         })
     }
 
@@ -378,7 +369,7 @@ impl Client {
 
     #[args(ctx, callback, "/", args = "*", kwargs = "**")]
     pub fn call_with_ctx_async(
-        _slf: PyRef<'_, Self>,
+        _self: PyRef<'_, Self>,
         _py: Python,
         _ctx: &PyAny,
         _callback: &PyAny,
@@ -390,12 +381,12 @@ impl Client {
 
     #[args(type_, value, "/")]
     fn set_type_dependency<'p>(
-        mut slf: PyRefMut<'p, Self>,
+        mut self: PyRefMut<'p, Self>,
         type_: &PyAny,
         value: PyObject,
     ) -> PyResult<PyRefMut<'p, Self>> {
-        slf.borrow_mut().type_dependencies.insert(type_.hash()?, value);
-        Ok(slf)
+        self.borrow_mut().type_dependencies.insert(type_.hash()?, value);
+        Ok(self)
     }
 
     #[args(type_, "/", "*", default)]
@@ -417,22 +408,22 @@ impl Client {
     }
 
     #[args(type_, "/")]
-    fn remove_type_dependency<'p>(mut slf: PyRefMut<'p, Self>, type_: &PyAny) -> PyResult<PyRefMut<'p, Self>> {
-        if slf.borrow_mut().type_dependencies.remove(&type_.hash()?).is_none() {
+    fn remove_type_dependency<'p>(mut self: PyRefMut<'p, Self>, type_: &PyAny) -> PyResult<PyRefMut<'p, Self>> {
+        if self.borrow_mut().type_dependencies.remove(&type_.hash()?).is_none() {
             Err(PyKeyError::new_err(format!("Type dependency not found: {}", type_)))
         } else {
-            Ok(slf)
+            Ok(self)
         }
     }
 
     #[args(callback, override_, "/")]
     fn set_callback_override<'p>(
-        mut slf: PyRefMut<'p, Self>,
+        mut self: PyRefMut<'p, Self>,
         callback: &PyAny,
         override_: PyObject,
     ) -> PyResult<PyRefMut<'p, Self>> {
-        slf.borrow_mut().callback_overrides.insert(callback.hash()?, override_);
-        Ok(slf)
+        self.borrow_mut().callback_overrides.insert(callback.hash()?, override_);
+        Ok(self)
     }
 
     #[args(callback, "/")]
@@ -444,14 +435,14 @@ impl Client {
     }
 
     #[args(callback, "/")]
-    fn remove_callback_override<'p>(mut slf: PyRefMut<'p, Self>, callback: &PyAny) -> PyResult<PyRefMut<'p, Self>> {
-        if slf.borrow_mut().callback_overrides.remove(&callback.hash()?).is_none() {
+    fn remove_callback_override<'p>(mut self: PyRefMut<'p, Self>, callback: &PyAny) -> PyResult<PyRefMut<'p, Self>> {
+        if self.borrow_mut().callback_overrides.remove(&callback.hash()?).is_none() {
             Err(PyKeyError::new_err(format!(
                 "Callback override not found: {}",
                 callback
             )))
         } else {
-            Ok(slf)
+            Ok(self)
         }
     }
 }
@@ -475,26 +466,25 @@ impl BasicContext {
     }
 
     pub fn call_with_di_rust<'p>(
-        slf: &PyRef<'p, Self>,
+        self: &PyRef<'p, Self>,
         py: Python<'p>,
         client: &PyRef<'p, Client>,
         callback: &'p PyAny,
         args: &PyTuple,
         kwargs: Option<&'p PyDict>,
     ) -> PyResult<&'p PyAny> {
-        Client::call_with_ctx_rust(client, py, slf, callback, args, kwargs)
+        client.call_with_ctx_rust(py, self, callback, args, kwargs)
     }
 
-    pub fn call_with_async_di_rust<'p>(
-        slf: &'p PyRef<'p, Self>,
-        py: Python<'p>,
-        task_group: &'p PyAny,
-        client: &'p PyRef<'p, Client>,
-        callback: &'p PyAny,
-        args: &'p PyTuple,
+    pub fn call_with_async_di_rust(
+        slf: Py<Self>,
+        task_group: PyObject,
+        client: Py<Client>,
+        callback: PyObject,
+        args: Py<PyTuple>,
         kwargs: Option<Py<PyDict>>,
-    ) -> impl Future<Output = PyResult<PyObject>> + 'p {
-        Client::call_with_ctx_async_rust(client, py, task_group, slf, callback, args, kwargs)
+    ) -> impl Future<Output = PyResult<PyObject>> {
+        Client::call_with_ctx_async_rust(client, task_group, slf, callback, args, kwargs)
     }
 }
 
@@ -523,13 +513,13 @@ impl BasicContext {
 
     #[args(callback, "/", args = "*", kwargs = "**")]
     pub fn call_with_di<'p>(
-        slf: PyRef<'p, Self>,
+        self: PyRef<'p, Self>,
         py: Python<'p>,
         callback: &PyAny,
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<PyObject> {
-        Self::call_with_di_rust(&slf, py, &slf.client.borrow(py), callback, args, kwargs)
+        self.call_with_di_rust(py, &self.client.borrow(py), callback, args, kwargs)
             .map(|value| value.to_object(py))
     }
 

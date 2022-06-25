@@ -28,6 +28,7 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+#![feature(arbitrary_self_types)]
 #![feature(hash_raw_entry)]
 #![feature(once_cell)]
 use client::{BasicContext, Client};

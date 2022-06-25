@@ -29,7 +29,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 use pyo3::types::PyTuple;
-use pyo3::{Py, PyAny, PyErr, PyObject, PyRef, PyResult, Python, ToPyObject};
+use pyo3::{IntoPy, Py, PyAny, PyErr, PyObject, PyRef, PyResult, Python, ToPyObject};
 
 use crate::client::{BasicContext, Client};
 
@@ -54,9 +54,9 @@ impl InjectedCallback {
     ) -> PyResult<&'p PyAny> {
         let callback = self.callback.as_ref(py);
         if let Some(callback) = client.get_callback_override(py, callback)? {
-            BasicContext::call_with_di_rust(ctx, py, client, callback, PyTuple::empty(py), None)
+            ctx.call_with_di_rust(py, client, callback, PyTuple::empty(py), None)
         } else {
-            BasicContext::call_with_di_rust(ctx, py, client, callback, PyTuple::empty(py), None)
+            ctx.call_with_di_rust(py, client, callback, PyTuple::empty(py), None)
         }
     }
 
@@ -64,20 +64,26 @@ impl InjectedCallback {
         unimplemented!("Custom contexts are not yet supported")
     }
 
-    #[async_recursion::async_recursion(?Send)]
-    pub async fn resolve_rust_async<'p>(
+    // #[async_recursion::async_recursion(?Send)]
+    pub fn resolve_rust_async<'p>(
         &self,
         py: Python<'p>,
-        task_group: &PyAny,
-        client: &PyRef<'p, Client>,
-        ctx: &PyRef<'p, BasicContext>,
-    ) -> PyResult<PyObject> {
-        let callback = self.callback.as_ref(py);
-        if let Some(callback) = client.get_callback_override(py, callback)? {
-            BasicContext::call_with_async_di_rust(ctx, py, task_group, client, callback, PyTuple::empty(py), None).await
+        task_group: PyObject,
+        client: Py<Client>,
+        ctx: Py<BasicContext>,
+    ) -> PyResult<std::pin::Pin<Box<dyn std::future::Future<Output = PyResult<PyObject>>>>> {
+        let args = PyTuple::empty(py).into_py(py);
+        let client_borrow = client.borrow(py);
+        let other_callback = client_borrow
+            .get_callback_override(py, self.callback.as_ref(py))?
+            .map(|value| value.to_object(py));
+        drop(client_borrow);
+        let result = if let Some(callback) = other_callback {
+            BasicContext::call_with_async_di_rust(ctx, task_group, client, callback, args, None)
         } else {
-            BasicContext::call_with_async_di_rust(ctx, py, task_group, client, callback, PyTuple::empty(py), None).await
-        }
+            BasicContext::call_with_async_di_rust(ctx, task_group, client, self.callback.clone_ref(py), args, None)
+        };
+        Ok(Box::pin(result))
     }
 }
 
