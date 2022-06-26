@@ -56,14 +56,14 @@ class OneShotChannel:
         return self.get().__await__()
 
     def set(self, value: typing.Any, /) -> None:
-        if self._channel.set():
+        if self._channel.is_set():
             raise RuntimeError("Channel already set")
 
         self._value = value
         self._channel.set()
 
     def set_exception(self, exception: BaseException, /) -> None:
-        if self._channel.set():
+        if self._channel.is_set():
             raise RuntimeError("Channel already set")
 
         self._exception = exception

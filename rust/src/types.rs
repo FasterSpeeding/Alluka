@@ -38,7 +38,7 @@ pyo3::import_exception!(alluka._errors, MissingDependencyError);
 pub type InjectedTuple = (String, Injected);
 
 pub struct InjectedCallback {
-    callback: PyObject,
+    pub callback: PyObject,
 }
 
 impl InjectedCallback {
@@ -64,14 +64,13 @@ impl InjectedCallback {
         unimplemented!("Custom contexts are not yet supported")
     }
 
-    // #[async_recursion::async_recursion(?Send)]
-    pub fn resolve_rust_async<'p>(
+    pub fn resolve_rust_async(
         &self,
-        py: Python<'p>,
+        py: Python,
         task_group: PyObject,
         client: Py<Client>,
         ctx: Py<BasicContext>,
-    ) -> PyResult<std::pin::Pin<Box<dyn std::future::Future<Output = PyResult<PyObject>>>>> {
+    ) -> PyResult<std::pin::Pin<Box<dyn std::future::Future<Output = PyResult<PyObject>> + Send>>> {
         let args = PyTuple::empty(py).into_py(py);
         let client_borrow = client.borrow(py);
         let other_callback = client_borrow
