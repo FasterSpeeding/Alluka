@@ -49,7 +49,6 @@ use crate::visitor::{Callback, ParameterVisitor};
 pyo3::import_exception!(alluka._errors, AsyncOnlyError);
 
 static ALLUKA: SyncOnceCell<PyObject> = SyncOnceCell::new();
-static ANYIO: SyncOnceCell<PyObject> = SyncOnceCell::new();
 static ANYIO_UTIL: SyncOnceCell<PyObject> = SyncOnceCell::new();
 static ASYNCIO: SyncOnceCell<PyObject> = SyncOnceCell::new();
 static SELF_INJECTING: SyncOnceCell<PyObject> = SyncOnceCell::new();
@@ -57,12 +56,6 @@ static SELF_INJECTING: SyncOnceCell<PyObject> = SyncOnceCell::new();
 fn import_alluka(py: Python) -> PyResult<&PyAny> {
     ALLUKA
         .get_or_try_init(|| Ok(py.import("alluka")?.to_object(py)))
-        .map(|value| value.as_ref(py))
-}
-
-fn import_anyio(py: Python) -> PyResult<&PyAny> {
-    ANYIO
-        .get_or_try_init(|| Ok(py.import("anyio")?.to_object(py)))
         .map(|value| value.as_ref(py))
 }
 
@@ -142,13 +135,11 @@ impl OrEarlyReturn {
         args: &PyTuple,
         kwargs: Option<&PyDict>,
     ) -> PyResult<Self> {
-        import_anyio(py)?
-            .call_method1("maybe_async", (callback.call(args, kwargs)?,))
-            .and_then(|value| {
-                Ok(OrEarlyReturn::EarlyReturn(MaybeAsync::from_result(
-                    py, task_group, value,
-                )?))
-            })
+        Ok(OrEarlyReturn::EarlyReturn(MaybeAsync::from_result(
+            py,
+            task_group,
+            callback.call(args, kwargs)?,
+        )?))
     }
 }
 
