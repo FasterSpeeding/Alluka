@@ -29,17 +29,17 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 use std::future::Future;
-use std::lazy::{SyncLazy, SyncOnceCell};
+use std::sync::{LazyLock, OnceLock};
 
 use pyo3::exceptions::{PyBaseException, PyRuntimeError};
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{IntoPy, PyAny, PyErr, PyObject, PyResult, Python, ToPyObject};
 
 
-static ASYNCIO: SyncOnceCell<PyObject> = SyncOnceCell::new();
-static PY_ONE_SHOT: SyncOnceCell<PyObject> = SyncOnceCell::new();
-static SET_RESULT: SyncOnceCell<PyObject> = SyncOnceCell::new();
-static TRIO_LOW: SyncOnceCell<PyObject> = SyncOnceCell::new();
+static ASYNCIO: OnceLock<PyObject> = OnceLock::new();
+static PY_ONE_SHOT: OnceLock<PyObject> = OnceLock::new();
+static SET_RESULT: OnceLock<PyObject> = OnceLock::new();
+static TRIO_LOW: OnceLock<PyObject> = OnceLock::new();
 
 fn import_asyncio(py: Python) -> PyResult<&PyAny> {
     ASYNCIO
@@ -158,7 +158,7 @@ impl OneShot {
     }
 }
 
-static EXECUTOR: SyncLazy<tokio::runtime::Runtime> = SyncLazy::new(|| {
+static EXECUTOR: LazyLock<tokio::runtime::Runtime> = LazyLock::new(|| {
     let mut builder = tokio::runtime::Builder::new_multi_thread();
     builder.enable_all();
     builder.build().expect("Failed to start executor")
@@ -214,9 +214,8 @@ tokio::task_local! {
     static PY_RUNTIME: Context;
 }
 
-pub fn future_into_py<F, T>(py: Python, fut: F) -> PyResult<&PyAny>
+pub fn future_into_py<T>(py: Python, fut: impl Future<Output = PyResult<T>> + Send + 'static) -> PyResult<&PyAny>
 where
-    F: Future<Output = PyResult<T>> + 'static + Send,
     T: IntoPy<PyObject>, {
     let channel = py_one_shot(py)?;
     let set_value = channel.getattr("set")?.to_object(py);

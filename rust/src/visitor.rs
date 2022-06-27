@@ -28,10 +28,10 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+use std::cell::OnceCell;
 use std::collections::HashMap;
-use std::lazy::{OnceCell, SyncOnceCell};
 use std::rc::Rc;
-use std::sync::RwLock;
+use std::sync::{OnceLock, RwLock};
 
 use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::type_object::PyTypeObject;
@@ -42,10 +42,10 @@ use crate::types::{Injected, InjectedTuple};
 
 pyo3::import_exception!(alluka._types, InjectedDescriptor);
 
-static ALLUKA: SyncOnceCell<PyObject> = SyncOnceCell::new();
-static INSPECT: SyncOnceCell<PyObject> = SyncOnceCell::new();
-static TYPE: SyncOnceCell<PyObject> = SyncOnceCell::new();
-static TYPING: SyncOnceCell<PyObject> = SyncOnceCell::new();
+static ALLUKA: OnceLock<PyObject> = OnceLock::new();
+static INSPECT: OnceLock<PyObject> = OnceLock::new();
+static TYPE: OnceLock<PyObject> = OnceLock::new();
+static TYPING: OnceLock<PyObject> = OnceLock::new();
 
 fn import_alluka(py: Python) -> PyResult<&PyAny> {
     ALLUKA

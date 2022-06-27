@@ -33,9 +33,8 @@ use std::collections::hash_map::RawEntryMut;
 use std::collections::HashMap;
 use std::convert::AsRef;
 use std::future::Future;
-use std::lazy::SyncOnceCell;
 use std::pin::Pin;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, OnceLock, RwLock};
 
 use pyo3::exceptions::PyKeyError;
 use pyo3::pycell::PyRef;
@@ -49,9 +48,9 @@ use crate::visitor::{Callback, ParameterVisitor};
 
 pyo3::import_exception!(alluka._errors, AsyncOnlyError);
 
-static ALLUKA: SyncOnceCell<PyObject> = SyncOnceCell::new();
-static ASYNCIO: SyncOnceCell<PyObject> = SyncOnceCell::new();
-static SELF_INJECTING: SyncOnceCell<PyObject> = SyncOnceCell::new();
+static ALLUKA: OnceLock<PyObject> = OnceLock::new();
+static ASYNCIO: OnceLock<PyObject> = OnceLock::new();
+static SELF_INJECTING: OnceLock<PyObject> = OnceLock::new();
 
 fn import_alluka(py: Python) -> PyResult<&PyAny> {
     ALLUKA
