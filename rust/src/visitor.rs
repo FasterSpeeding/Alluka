@@ -28,10 +28,10 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-use std::cell::OnceCell;
+use std::cell::{OnceCell, RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
-use std::sync::{OnceLock, RwLock};
+use std::sync::OnceLock;
 
 use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::type_object::PyTypeObject;
@@ -97,7 +97,7 @@ pub(crate) struct Callback {
     callback: PyObject,
     pub empty: PyObject,
     resolved: OnceCell<()>,
-    pub signature: RwLock<Option<HashMap<String, PyObject>>>,
+    pub signature: RefCell<Option<HashMap<String, PyObject>>>,
 }
 
 fn _inspect(py: Python, callback: &PyAny, eval_str: bool) -> PyResult<Option<HashMap<String, PyObject>>> {
@@ -140,7 +140,7 @@ impl Callback {
             callback: callback.to_object(py),
             empty,
             resolved: OnceCell::new(),
-            signature: RwLock::new(_inspect(py, callback, false)?),
+            signature: RefCell::new(_inspect(py, callback, false)?),
         })
     }
 
@@ -149,29 +149,30 @@ impl Callback {
     }
 
     pub fn resolve_annotation(&self, py: Python, name: &str) -> PyResult<Option<PyObject>> {
-        let parameters = self.signature.read().unwrap();
-        if parameters.is_none() {
+        let signature = self.signature.borrow();
+        if signature.is_none() {
             return Ok(None);
         }
 
-        let parameters = parameters
+        let parameter = signature
             .as_ref()
             .unwrap()
             .get(name)
-            .map(|parameter| parameter.getattr(py, "annotation"));
+            .map(|p| p.getattr(py, "annotation"));
 
-        match parameters {
-            Some(Ok(annotation)) => {
+        drop(signature);
+        match parameter {
+            Some(Ok(ref annotation)) => {
                 if annotation.is(&self.empty) {
                     return Ok(None);
                 }
 
                 if self.resolved.get().is_none() && annotation.as_ref(py).is_instance_of::<PyString>()? {
-                    *self.signature.write().unwrap() = _inspect(py, self.callback.as_ref(py), true)?;
+                    self.signature.replace(_inspect(py, self.callback.as_ref(py), true)?);
                     self.resolved.set(()).unwrap();
                     self.resolve_annotation(py, name)
                 } else {
-                    Ok(Some(annotation))
+                    Ok(Some(annotation.clone_ref(py)))
                 }
             }
             Some(Err(err)) => Err(err),
@@ -191,8 +192,7 @@ impl Node for Default {
     fn new(py: Python, callback: Rc<Callback>, name: String) -> PyResult<Self> {
         let default = callback
             .signature
-            .read()
-            .unwrap()
+            .borrow()
             .as_ref()
             .unwrap()
             .get(&name)
@@ -277,8 +277,7 @@ impl Visitor for ParameterVisitor {
         let parameter = node
             .callback
             .signature
-            .read()
-            .unwrap()
+            .borrow()
             .as_ref()
             .unwrap()
             .get(&node.name)
@@ -334,16 +333,16 @@ impl Visitor for ParameterVisitor {
     }
 
     fn visit_callback(py: Python, callback: Rc<Callback>) -> PyResult<Vec<InjectedTuple>> {
-        let signature = callback.signature.read().unwrap();
+        let signature = callback.signature.borrow();
         if signature.is_none() {
             return Ok(vec![]);
         }
 
-        signature
-            .as_ref()
-            .unwrap()
-            .iter()
-            .map(|(name, _)| {
+        let keys: Vec<_> = signature.as_ref().unwrap().keys().map(String::to_owned).collect();
+
+        drop(signature);
+        keys.iter()
+            .map(|name| {
                 if let Some(result) = _accept::<Default, Self>(py, callback.clone(), name)
                     .or_else(|| _accept::<Annotation, Self>(py, callback.clone(), name))
                     .transpose()?

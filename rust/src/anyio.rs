@@ -187,8 +187,8 @@ enum Context {
 
 impl Context {
     fn new(py: Python) -> PyResult<Self> {
-        // sys.modules is used here to avoid unnecessarily trying to import asyncio or trio
-        // if it hasn't been imported yet or isn't installed.
+        // sys.modules is used here to avoid unnecessarily trying to import asyncio or
+        // trio if it hasn't been imported yet or isn't installed.
         let sys = import_sys(py)?.getattr("modules")?;
 
         if sys.contains("asyncio")? {
