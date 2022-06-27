@@ -28,11 +28,13 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::future::Future;
 use std::sync::{LazyLock, OnceLock};
 
 use pyo3::exceptions::{PyBaseException, PyRuntimeError};
-use pyo3::types::{PyDict, PyTuple};
+use pyo3::types::{PyDict, PyString, PyTuple};
 use pyo3::{IntoPy, PyAny, PyErr, PyObject, PyResult, Python, ToPyObject};
 
 
@@ -157,7 +159,15 @@ impl OneShot {
     }
 
     fn asyncio_callback(&mut self, py: Python, task: &PyAny) {
-        match task.call_method0("result") {
+        let result = task.call_method0("result");
+        let name = task
+            .call_method0("get_name")
+            .unwrap()
+            .cast_as::<PyString>()
+            .unwrap()
+            .to_string();
+        TASKS.with(|tasks| tasks.borrow_mut().remove(&name));
+        match result {
             Ok(result) => self.set(result.to_object(py)),
             Err(err) => self.sender.send(Err(err)).unwrap(),
         }
@@ -255,13 +265,21 @@ where
 #[pyo3::pyclass]
 struct CreateEvent {}
 
+std::thread_local! {
+    static TASKS: RefCell<HashMap<String, PyObject>> = RefCell::new(HashMap::new());
+}
+
 #[pyo3::pymethods]
 impl CreateEvent {
     fn __call__(&self, py: Python, event_loop: &PyAny, awaitable: &PyAny, one_shot: &PyAny) -> PyResult<()> {
-        event_loop
-            .call_method1("create_task", (awaitable,))?
-            .call_method1("add_done_callback", (one_shot,))
-            .map(|_| ())
+        let id = format!("pyo3-anyio {}", uuid::Uuid::new_v4());
+        let task = event_loop.call_method1("create_task", (awaitable,))?;
+
+        task.call_method1("set_name", (&id,))?;
+
+        task.call_method1("add_done_callback", (one_shot,))?;
+        TASKS.with(|tasks| tasks.borrow_mut().insert(id, task.to_object(py)));
+        Ok(())
     }
 }
 

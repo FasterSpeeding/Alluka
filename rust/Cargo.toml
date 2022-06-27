@@ -15,6 +15,10 @@ async-oneshot = "0.5.0"
 features = ["rt-multi-thread"]
 version = "1.19.2"
 
+[dependencies.uuid]
+features = ["v4"]
+version = "1.1.2"
+
 [dependencies.pyo3]
 features = ["extension-module"]
 version = "0.16.5"
