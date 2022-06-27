@@ -37,6 +37,7 @@ use pyo3::{IntoPy, PyAny, PyErr, PyObject, PyResult, Python, ToPyObject};
 
 
 static ASYNCIO: OnceLock<PyObject> = OnceLock::new();
+static SYS: OnceLock<PyObject> = OnceLock::new();
 static PY_ONE_SHOT: OnceLock<PyObject> = OnceLock::new();
 static SET_RESULT: OnceLock<PyObject> = OnceLock::new();
 static TRIO_LOW: OnceLock<PyObject> = OnceLock::new();
@@ -44,6 +45,11 @@ static TRIO_LOW: OnceLock<PyObject> = OnceLock::new();
 fn import_asyncio(py: Python) -> PyResult<&PyAny> {
     ASYNCIO
         .get_or_try_init(|| Ok(py.import("asyncio")?.to_object(py)))
+        .map(|value| value.as_ref(py))
+}
+
+fn import_sys(py: Python) -> PyResult<&PyAny> {
+    SYS.get_or_try_init(|| Ok(py.import("sys")?.to_object(py)))
         .map(|value| value.as_ref(py))
 }
 
@@ -171,19 +177,27 @@ enum Context {
 
 impl Context {
     fn new(py: Python) -> PyResult<Self> {
-        match import_asyncio(py)?.call_method0("get_running_loop") {
-            Ok(event_loop) => return Ok(Self::Asyncio(event_loop.to_object(py))),
-            Err(err) if !err.is_instance_of::<PyRuntimeError>(py) => return Err(err),
-            _ => {}
+        // sys.modules is used here to avoid unnecessarily trying to import asyncio or trio
+        // if it hasn't been imported yet or isn't installed.
+        let sys = import_sys(py)?.getattr("modules")?;
+
+        if sys.contains("asyncio")? {
+            match import_asyncio(py)?.call_method0("get_running_loop") {
+                Ok(event_loop) => return Ok(Self::Asyncio(event_loop.to_object(py))),
+                Err(err) if !err.is_instance_of::<PyRuntimeError>(py) => return Err(err),
+                _ => {}
+            };
         };
 
-        match import_trio_low(py)?.call_method0("current_trio_token") {
-            Ok(token) => Ok(Self::Trio(token.to_object(py))),
-            Err(err) if err.is_instance_of::<PyRuntimeError>(py) => {
-                Err(PyRuntimeError::new_err("No running event loop"))
+        if sys.contains("trio")? {
+            match import_trio_low(py)?.call_method0("current_trio_token") {
+                Ok(token) => return Ok(Self::Trio(token.to_object(py))),
+                Err(err) if !err.is_instance_of::<PyRuntimeError>(py) => return Err(err),
+                _ => {}
             }
-            Err(err) => Err(err),
-        }
+        };
+
+        Err(PyRuntimeError::new_err("No running event loop"))
     }
 
     fn call_soon<'a>(&self, py: Python, callback: &PyAny, args: impl Into<Vec<&'a PyAny>>) -> PyResult<()> {
