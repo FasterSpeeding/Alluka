@@ -33,15 +33,16 @@ use std::collections::hash_map::RawEntryMut;
 use std::collections::HashMap;
 use std::convert::AsRef;
 use std::future::Future;
-use std::lazy::{SyncLazy, SyncOnceCell};
+use std::lazy::SyncOnceCell;
+use std::pin::Pin;
 use std::sync::{Arc, RwLock};
 
-use async_executor::Executor;
-use pyo3::exceptions::{PyBaseException, PyKeyError};
+use pyo3::exceptions::PyKeyError;
 use pyo3::pycell::PyRef;
 use pyo3::types::{IntoPyDict, PyDict, PyTuple};
 use pyo3::{IntoPy, Py, PyAny, PyErr, PyObject, PyRefMut, PyResult, Python, ToPyObject};
 
+use crate::anyio::{future_into_py, into_future};
 use crate::types::{Injected, InjectedTuple};
 use crate::visitor::{Callback, ParameterVisitor};
 
@@ -49,19 +50,12 @@ use crate::visitor::{Callback, ParameterVisitor};
 pyo3::import_exception!(alluka._errors, AsyncOnlyError);
 
 static ALLUKA: SyncOnceCell<PyObject> = SyncOnceCell::new();
-static ANYIO_UTIL: SyncOnceCell<PyObject> = SyncOnceCell::new();
 static ASYNCIO: SyncOnceCell<PyObject> = SyncOnceCell::new();
 static SELF_INJECTING: SyncOnceCell<PyObject> = SyncOnceCell::new();
 
 fn import_alluka(py: Python) -> PyResult<&PyAny> {
     ALLUKA
         .get_or_try_init(|| Ok(py.import("alluka")?.to_object(py)))
-        .map(|value| value.as_ref(py))
-}
-
-fn import_anyio_util(py: Python) -> PyResult<&PyAny> {
-    ANYIO_UTIL
-        .get_or_try_init(|| Ok(py.import("alluka._anyio")?.to_object(py)))
         .map(|value| value.as_ref(py))
 }
 
@@ -85,32 +79,17 @@ pub struct Client {
     type_dependencies: HashMap<isize, PyObject>,
 }
 
-fn into_future(
-    py: Python<'_>,
-    task_group: &PyObject,
-    awaitable: &PyAny,
-) -> PyResult<async_oneshot::Receiver<PyResult<PyObject>>> {
-    let (sender, receiver) = async_oneshot::oneshot::<PyResult<PyObject>>();
-    task_group.call_method1(
-        py,
-        "start_soon",
-        (import_anyio_util(py)?.getattr("set_result")?, awaitable, OneShot {
-            sender,
-        }),
-    )?;
-
-    Ok(receiver)
-}
+type BoxedFuture<T> = Pin<Box<dyn Future<Output = T> + Send + 'static>>;
 
 enum MaybeAsync {
-    Receiver(async_oneshot::Receiver<PyResult<PyObject>>),
+    Receiver(BoxedFuture<PyResult<PyObject>>),
     Result(PyObject),
 }
 
 impl MaybeAsync {
-    fn from_result(py: Python, task_group: &PyObject, value: &PyAny) -> PyResult<Self> {
+    fn from_result(py: Python, value: &PyAny) -> PyResult<Self> {
         if import_asyncio(py)?.call_method1("iscoroutine", (value,))?.is_true()? {
-            Ok(MaybeAsync::Receiver(into_future(py, task_group, value)?))
+            Ok(MaybeAsync::Receiver(Box::pin(into_future(py, value)?)))
         } else {
             Ok::<_, PyErr>(MaybeAsync::Result(value.to_object(py)))
         }
@@ -118,26 +97,14 @@ impl MaybeAsync {
 }
 
 enum OrEarlyReturn {
-    Iterator(
-        Vec<(
-            String,
-            std::pin::Pin<Box<dyn Future<Output = PyResult<PyObject>> + Send>>,
-        )>,
-    ),
+    Iterator(Vec<(String, BoxedFuture<PyResult<PyObject>>)>),
     EarlyReturn(MaybeAsync),
 }
 
 impl OrEarlyReturn {
-    fn early_return(
-        py: Python,
-        task_group: &PyObject,
-        callback: &PyAny,
-        args: &PyTuple,
-        kwargs: Option<&PyDict>,
-    ) -> PyResult<Self> {
+    fn early_return(py: Python, callback: &PyAny, args: &PyTuple, kwargs: Option<&PyDict>) -> PyResult<Self> {
         Ok(OrEarlyReturn::EarlyReturn(MaybeAsync::from_result(
             py,
-            task_group,
             callback.call(args, kwargs)?,
         )?))
     }
@@ -207,7 +174,6 @@ impl Client {
 
     pub async fn call_with_ctx_async_rust(
         slf: Py<Self>,
-        task_group: PyObject,
         ctx: Py<BasicContext>,
         callback: PyObject,
         args: Py<PyTuple>,
@@ -220,13 +186,12 @@ impl Client {
                 if let Some(kwargs) = kwargs.as_ref() {
                     return OrEarlyReturn::early_return(
                         py,
-                        &task_group,
                         callback.as_ref(py),
                         args.as_ref(py),
                         Some(kwargs.as_ref(py)),
                     );
                 }
-                return OrEarlyReturn::early_return(py, &task_group, callback.as_ref(py), args.as_ref(py), None);
+                return OrEarlyReturn::early_return(py, callback.as_ref(py), args.as_ref(py), None);
             }
 
             let ctx_borrow = ctx.borrow(py);
@@ -242,32 +207,21 @@ impl Client {
                     }
                     Injected::Callback(callback) => Ok(Some((
                         key.to_owned(),
-                        callback.resolve_rust_async(
-                            py,
-                            task_group.clone_ref(py),
-                            slf.clone_ref(py),
-                            ctx.clone_ref(py),
-                        )?,
+                        callback.resolve_rust_async(py, slf.clone_ref(py), ctx.clone_ref(py))?,
                     ))),
                 })
                 .filter_map(Result::transpose)
                 .collect::<PyResult<Vec<_>>>()?;
 
             if descriptors.is_empty() {
-                return OrEarlyReturn::early_return(
-                    py,
-                    &task_group,
-                    callback.as_ref(py),
-                    args.as_ref(py),
-                    Some(kwargs),
-                );
+                return OrEarlyReturn::early_return(py, callback.as_ref(py), args.as_ref(py), Some(kwargs));
             }
 
             Ok(OrEarlyReturn::Iterator(descriptors))
         })?;
 
         let iter = match result {
-            OrEarlyReturn::EarlyReturn(MaybeAsync::Receiver(receiver)) => return receiver.await.unwrap(),
+            OrEarlyReturn::EarlyReturn(MaybeAsync::Receiver(receiver)) => return receiver.await,
             OrEarlyReturn::EarlyReturn(MaybeAsync::Result(value)) => return Ok(value),
             OrEarlyReturn::Iterator(iter) => iter,
         };
@@ -287,71 +241,15 @@ impl Client {
                 kwargs_ref.set_item(name, value)?;
             }
 
-            MaybeAsync::from_result(
-                py,
-                &task_group,
-                callback.call(py, args.as_ref(py), Some(kwargs_ref))?.as_ref(py),
-            )
+            MaybeAsync::from_result(py, callback.call(py, args.as_ref(py), Some(kwargs_ref))?.as_ref(py))
         })?;
 
 
         match result {
-            MaybeAsync::Receiver(receiver) => receiver.await.unwrap(),
+            MaybeAsync::Receiver(receiver) => receiver.await,
             MaybeAsync::Result(result) => Ok(result),
         }
     }
-}
-
-#[pyo3::pyclass]
-struct OneShot {
-    sender: async_oneshot::Sender<Result<PyObject, PyErr>>,
-}
-
-#[pyo3::pymethods]
-impl OneShot {
-    #[args(value, "/")]
-    fn set(&mut self, value: PyObject) {
-        self.sender.send(Ok(value)).unwrap();
-    }
-
-    #[args(value, "/")]
-    fn set_exception(&mut self, value: &PyBaseException) {
-        self.sender.send(Err(PyErr::from_value(value))).unwrap();
-    }
-}
-
-static EXECUTOR: SyncLazy<Executor<'static>> = SyncLazy::new(|| {
-    std::thread::Builder::new()
-        .spawn(|| {
-            std::panic::catch_unwind(|| futures_lite::future::block_on(EXECUTOR.run(std::future::pending::<()>()))).ok()
-        })
-        .unwrap();
-
-    async_executor::Executor::new()
-});
-
-
-fn future_into_py<F, T>(py: Python, fut: F) -> PyResult<&PyAny>
-where
-    F: Future<Output = PyResult<T>> + 'static + Send,
-    T: IntoPy<PyObject>, {
-    let channel = import_anyio_util(py)?.call_method0("OneShotChannel")?;
-    let set_value = channel.getattr("set")?.to_object(py);
-    let set_exception = channel.getattr("set_exception")?.to_object(py);
-
-    EXECUTOR
-        .spawn(async move {
-            let result = fut.await;
-            Python::with_gil(|py| {
-                match result {
-                    Ok(value) => set_value.call1(py, (value,)).unwrap(),
-                    Err(err) => set_exception.call1(py, (err,)).unwrap(),
-                };
-            });
-        })
-        .detach();
-
-    Ok(channel)
 }
 
 #[pyo3::pymethods]
@@ -403,30 +301,14 @@ impl Client {
         unimplemented!("Custom contexts are not supported yet")
     }
 
-    #[args(task_group, ctx, callback, "/", args = "*", kwargs = "**")]
-    pub fn _call_with_ctx_async_rust(
+    #[args(callback, "/", args = "*", kwargs = "**")]
+    fn call_with_async_di(
         slf: Py<Self>,
-        py: Python,
-        task_group: PyObject,
-        ctx: Py<BasicContext>,
+        py: Python<'_>,
         callback: PyObject,
         args: Py<PyTuple>,
         kwargs: Option<Py<PyDict>>,
     ) -> PyResult<&PyAny> {
-        future_into_py(py, async move {
-            // TODO: retain locals
-            Self::call_with_ctx_async_rust(slf, task_group, ctx, callback, args, kwargs).await
-        })
-    }
-
-    #[args(callback, "/", args = "*", kwargs = "**")]
-    fn call_with_async_di<'p>(
-        slf: Py<Self>,
-        py: Python<'p>,
-        callback: &PyAny,
-        args: &PyTuple,
-        kwargs: Option<&PyDict>,
-    ) -> PyResult<&'p PyAny> {
         BasicContext::call_with_async_di(Py::new(py, BasicContext::new(slf))?, py, callback, args, kwargs)
     }
 
@@ -541,13 +423,12 @@ impl BasicContext {
 
     pub fn call_with_async_di_rust(
         slf: Py<Self>,
-        task_group: PyObject,
         client: Py<Client>,
         callback: PyObject,
         args: Py<PyTuple>,
         kwargs: Option<Py<PyDict>>,
     ) -> impl Future<Output = PyResult<PyObject>> {
-        Client::call_with_ctx_async_rust(client, task_group, slf, callback, args, kwargs)
+        Client::call_with_ctx_async_rust(client, slf, callback, args, kwargs)
     }
 }
 
@@ -587,21 +468,18 @@ impl BasicContext {
     }
 
     #[args(callback, "/", args = "*", kwargs = "**")]
-    pub fn call_with_async_di<'p>(
+    pub fn call_with_async_di(
         slf: Py<Self>,
-        py: Python<'p>,
-        callback: &PyAny,
-        args: &PyTuple,
-        kwargs: Option<&PyDict>,
-    ) -> PyResult<&'p PyAny> {
-        let slf = slf.borrow(py);
-        import_anyio_util(py)?.call_method1(
-            "with_task_queue",
-            (
-                slf.client.getattr(py, "_call_with_ctx_async_rust")?,
-                (slf, callback, args, kwargs),
-            ),
-        )
+        py: Python<'_>,
+        callback: PyObject,
+        args: Py<PyTuple>,
+        kwargs: Option<Py<PyDict>>,
+    ) -> PyResult<&PyAny> {
+        let client = slf.borrow(py).client.clone_ref(py);
+        future_into_py(py, async move {
+            // TODO: retain locals
+            Self::call_with_async_di_rust(slf, client, callback, args, kwargs).await
+        })
     }
 
     #[args(callback, "/", "*", default)]

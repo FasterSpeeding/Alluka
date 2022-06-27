@@ -9,9 +9,11 @@ name = "_alluka"
 crate-type = ["cdylib"]
 
 [dependencies]
-async-executor = "1.4.1"
 async-oneshot = "0.5.0"
-futures-lite = "*"  # sub-dep of async-executor
+
+[dependencies.tokio]
+features = ["rt-multi-thread"]
+version = "1.19.2"
 
 [dependencies.pyo3]
 features = ["extension-module"]

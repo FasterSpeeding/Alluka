@@ -67,7 +67,6 @@ impl InjectedCallback {
     pub fn resolve_rust_async(
         &self,
         py: Python,
-        task_group: PyObject,
         client: Py<Client>,
         ctx: Py<BasicContext>,
     ) -> PyResult<std::pin::Pin<Box<dyn std::future::Future<Output = PyResult<PyObject>> + Send>>> {
@@ -78,9 +77,9 @@ impl InjectedCallback {
             .map(|value| value.to_object(py));
         drop(client_borrow);
         let result = if let Some(callback) = other_callback {
-            BasicContext::call_with_async_di_rust(ctx, task_group, client, callback, args, None)
+            BasicContext::call_with_async_di_rust(ctx, client, callback, args, None)
         } else {
-            BasicContext::call_with_async_di_rust(ctx, task_group, client, self.callback.clone_ref(py), args, None)
+            BasicContext::call_with_async_di_rust(ctx, client, self.callback.clone_ref(py), args, None)
         };
         Ok(Box::pin(result))
     }
