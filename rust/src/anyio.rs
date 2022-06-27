@@ -244,20 +244,24 @@ struct CreateEvent {}
 
 #[pyo3::pymethods]
 impl CreateEvent {
-    fn __call__(&self, py: Python, awaitable: &PyAny, one_shot: &PyAny) -> PyResult<()> {
-        import_asyncio(py)?
+    fn __call__(&self, py: Python, event_loop: &PyAny, awaitable: &PyAny, one_shot: &PyAny) -> PyResult<()> {
+        event_loop
             .call_method1("create_task", (awaitable,))?
             .call_method1("add_done_callback", (one_shot,))
             .map(|_| ())
     }
 }
 
-pub fn into_future(py: Python<'_>, awaitable: &PyAny) -> PyResult<async_oneshot::Receiver<PyResult<PyObject>>> {
+pub fn into_future(
+    py: Python<'_>,
+    awaitable: &PyAny,
+) -> PyResult<impl Future<Output = PyResult<PyObject>> + Send + 'static> {
     let (sender, receiver) = async_oneshot::oneshot::<PyResult<PyObject>>();
     PY_RUNTIME.with(|locals| {
         let one_shot = OneShot { sender }.into_py(py);
         match locals {
-            Context::Asyncio(_) => locals.call_soon(py, CreateEvent {}.into_py(py).as_ref(py), [
+            Context::Asyncio(event_loop) => locals.call_soon(py, CreateEvent {}.into_py(py).as_ref(py), [
+                event_loop.as_ref(py),
                 awaitable,
                 one_shot.getattr(py, "asyncio_callback")?.as_ref(py),
             ]),
@@ -271,5 +275,5 @@ pub fn into_future(py: Python<'_>, awaitable: &PyAny) -> PyResult<async_oneshot:
         Ok::<(), PyErr>(())
     })?;
 
-    Ok(receiver)
+    Ok(async move { receiver.await.unwrap() })
 }
