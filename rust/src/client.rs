@@ -354,7 +354,7 @@ impl Client {
     #[args(type_, "/")]
     fn remove_type_dependency<'p>(mut self: PyRefMut<'p, Self>, type_: &PyAny) -> PyResult<PyRefMut<'p, Self>> {
         if self.borrow_mut().type_dependencies.remove(&type_.hash()?).is_none() {
-            Err(PyKeyError::new_err(format!("Type dependency not found: {}", type_)))
+            Err(PyKeyError::new_err(format!("Type dependency not found: {type_}")))
         } else {
             Ok(self)
         }

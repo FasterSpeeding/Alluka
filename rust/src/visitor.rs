@@ -333,20 +333,27 @@ impl Visitor for ParameterVisitor {
     }
 
     fn visit_callback(py: Python, callback: Rc<Callback>) -> PyResult<Vec<InjectedTuple>> {
-        let signature = callback.signature.borrow();
+        let signature = callback.signature.borrow().clone();
         if signature.is_none() {
             return Ok(vec![]);
         }
 
-        let keys: Vec<_> = signature.as_ref().unwrap().keys().map(String::to_owned).collect();
+        let positional_only = import_inspect(py)?.getattr("Parameter")?.getattr("POSITIONAL_ONLY")?;
 
-        drop(signature);
-        keys.iter()
-            .map(|name| {
-                if let Some(result) = _accept::<Default, Self>(py, callback.clone(), name)
-                    .or_else(|| _accept::<Annotation, Self>(py, callback.clone(), name))
+        signature
+            .unwrap()
+            .into_iter()
+            .map(|(name, value)| {
+                if let Some(result) = _accept::<Default, Self>(py, callback.clone(), &name)
+                    .or_else(|| _accept::<Annotation, Self>(py, callback.clone(), &name))
                     .transpose()?
                 {
+                    if value.getattr(py, "kind")?.is(positional_only) {
+                        return Err(PyValueError::new_err(
+                            "Injected positional only arguments are not supported",
+                        ));
+                    };
+
                     Ok(Some((name.to_owned(), result)))
                 } else {
                     Ok(None)
@@ -375,7 +382,7 @@ impl Visitor for ParameterVisitor {
         match node.callback.resolve_annotation(py, &node.name)? {
             Some(annotaton) => Self::parse_type(py, annotaton.as_ref(py), None).map(Some),
             None => Err(PyValueError::new_err(format!(
-                "Could not resolve type for parameter {} with no annotation",
+                "Could not resolve type for parameter '{}' with no annotation",
                 node.name
             ))),
         }
