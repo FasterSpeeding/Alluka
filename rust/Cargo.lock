@@ -150,7 +150,7 @@ dependencies = [
 [[package]]
 name = "pyo3-anyio"
 version = "0.1.0"
-source = "git+https://github.com/FasterSpeeding/pyo3-anyio?rev=6e5564f606f63e34ef33fc27b5885e7c83077bbb#6e5564f606f63e34ef33fc27b5885e7c83077bbb"
+source = "git+https://github.com/FasterSpeeding/pyo3-anyio?rev=f61d66fa06cc372450c3feafb06315463d10b40d#f61d66fa06cc372450c3feafb06315463d10b40d"
 dependencies = [
  "async-oneshot",
  "pyo3",
