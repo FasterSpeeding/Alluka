@@ -40,8 +40,8 @@ use pyo3::exceptions::PyKeyError;
 use pyo3::pycell::PyRef;
 use pyo3::types::{IntoPyDict, PyDict, PyTuple};
 use pyo3::{IntoPy, Py, PyAny, PyErr, PyObject, PyRefMut, PyResult, Python, ToPyObject};
+use pyo3_anyio::tokio::{future_into_py, into_future};
 
-use crate::anyio::{future_into_py, into_future};
 use crate::types::{Injected, InjectedTuple};
 use crate::visitor::{Callback, ParameterVisitor};
 

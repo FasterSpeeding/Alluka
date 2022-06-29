@@ -8,20 +8,13 @@ edition = "2021"
 name = "_alluka"
 crate-type = ["cdylib"]
 
-[dependencies]
-async-oneshot = "0.5.0"
-
-[dependencies.tokio]
-features = ["rt-multi-thread"]
-version = "1.19.2"
-
-[dependencies.uuid]
-features = ["v4"]
-version = "1.1.2"
-
 [dependencies.pyo3]
 features = ["extension-module"]
 version = "0.16.5"
+
+[dependencies.pyo3-anyio]
+git = "https://github.com/FasterSpeeding/pyo3-anyio"
+rev = "6e5564f606f63e34ef33fc27b5885e7c83077bbb"
 
 [profile.release]
 codegen-units = 1
