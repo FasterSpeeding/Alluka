@@ -40,7 +40,7 @@ use pyo3::exceptions::PyKeyError;
 use pyo3::pycell::PyRef;
 use pyo3::types::{IntoPyDict, PyDict, PyTuple};
 use pyo3::{IntoPy, Py, PyAny, PyErr, PyObject, PyRefMut, PyResult, Python, ToPyObject};
-use pyo3_anyio::tokio::{future_into_py, into_future};
+use pyo3_anyio::tokio::{future_into_py, to_future};
 
 use crate::types::{Injected, InjectedTuple};
 use crate::visitor::{Callback, ParameterVisitor};
@@ -88,7 +88,7 @@ enum MaybeAsync {
 impl MaybeAsync {
     fn from_result(py: Python, value: &PyAny) -> PyResult<Self> {
         if import_asyncio(py)?.call_method1("iscoroutine", (value,))?.is_true()? {
-            Ok(MaybeAsync::Receiver(Box::pin(into_future(py, value)?)))
+            Ok(MaybeAsync::Receiver(Box::pin(to_future(py, value)?)))
         } else {
             Ok::<_, PyErr>(MaybeAsync::Result(value.to_object(py)))
         }
