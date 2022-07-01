@@ -14,7 +14,7 @@ version = "0.16.5"
 
 [dependencies.pyo3-anyio]
 git = "https://github.com/FasterSpeeding/pyo3-anyio"
-rev = "88321affcba9419b02f60cf64efd902f057b0693"
+rev = "a321390896a4f470232ad406b1e8280f6e1bd38d"
 
 [profile.release]
 codegen-units = 1
