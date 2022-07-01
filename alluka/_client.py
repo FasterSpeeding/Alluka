@@ -187,7 +187,7 @@ class Client(alluka.Client):
 
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
-        return self.call_with_ctx(BasicContext(self), callback, *args, **kwargs)
+        return BasicContext(self).call_with_di(callback, *args, **kwargs)
 
     @typing.overload
     def call_with_ctx(
@@ -223,7 +223,7 @@ class Client(alluka.Client):
 
     async def call_with_async_di(self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
-        return await self.call_with_ctx_async(BasicContext(self), callback, *args, **kwargs)
+        return await BasicContext(self).call_with_async_di(callback, *args, **kwargs)
 
     async def call_with_ctx_async(
         self, ctx: alluka.Context, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
