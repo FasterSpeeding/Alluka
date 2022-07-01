@@ -8,7 +8,7 @@ anyio==3.6.1
     # via httpcore
 argcomplete==1.12.3
     # via nox
-certifi==2022.5.18.1
+certifi==2022.6.15
     # via
     #   httpcore
     #   httpx
@@ -47,5 +47,5 @@ sniffio==1.2.0
     #   anyio
     #   httpcore
     #   httpx
-virtualenv==20.14.1
+virtualenv==20.15.1
     # via nox
