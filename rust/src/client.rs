@@ -28,7 +28,6 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-use std::borrow::BorrowMut;
 use std::collections::hash_map::RawEntryMut;
 use std::collections::HashMap;
 use std::convert::AsRef;
@@ -329,7 +328,7 @@ impl Client {
         type_: &PyAny,
         value: PyObject,
     ) -> PyResult<PyRefMut<'p, Self>> {
-        self.borrow_mut().type_dependencies.insert(type_.hash()?, value);
+        self.type_dependencies.insert(type_.hash()?, value);
         Ok(self)
     }
 
@@ -343,17 +342,12 @@ impl Client {
             return Ok(value);
         };
 
-        default.map(Ok).unwrap_or_else(|| {
-            import_alluka(py)?
-                .getattr("abc")?
-                .getattr("UNDEFINED")
-                .map(|v| v.to_object(py))
-        })
+        default.map(Ok).unwrap_or_else(|| undefined(py))
     }
 
     #[args(type_, "/")]
     fn remove_type_dependency<'p>(mut self: PyRefMut<'p, Self>, type_: &PyAny) -> PyResult<PyRefMut<'p, Self>> {
-        if self.borrow_mut().type_dependencies.remove(&type_.hash()?).is_none() {
+        if self.type_dependencies.remove(&type_.hash()?).is_none() {
             Err(PyKeyError::new_err(format!("Type dependency not found: {type_}")))
         } else {
             Ok(self)
@@ -366,7 +360,7 @@ impl Client {
         callback: &PyAny,
         override_: PyObject,
     ) -> PyResult<PyRefMut<'p, Self>> {
-        self.borrow_mut().callback_overrides.insert(callback.hash()?, override_);
+        self.callback_overrides.insert(callback.hash()?, override_);
         Ok(self)
     }
 
@@ -380,7 +374,7 @@ impl Client {
 
     #[args(callback, "/")]
     fn remove_callback_override<'p>(mut self: PyRefMut<'p, Self>, callback: &PyAny) -> PyResult<PyRefMut<'p, Self>> {
-        if self.borrow_mut().callback_overrides.remove(&callback.hash()?).is_none() {
+        if self.callback_overrides.remove(&callback.hash()?).is_none() {
             Err(PyKeyError::new_err(format!(
                 "Callback override not found: {}",
                 callback
@@ -483,24 +477,54 @@ impl BasicContext {
 
     #[args(callback, "/", "*", default)]
     fn get_cached_result(&self, py: Python, callback: &PyAny, default: Option<PyObject>) -> PyResult<PyObject> {
-        Ok(self
+        if let Some(result) = self
             .result_cache
             .get(&callback.hash()?)
             .map(|value| value.clone_ref(py))
-            .unwrap_or_else(|| default.unwrap_or_else(|| py.None())))
+        {
+            return Ok(result);
+        }
+
+        default.map(Ok).unwrap_or_else(|| undefined(py))
     }
 
     #[args(type_, "/", "*", default)]
     fn get_type_dependency(&self, py: Python, type_: &PyAny, default: Option<PyObject>) -> PyResult<PyObject> {
-        if let Some(result) = self.get_type_dependency_rust(&self.client.borrow(py), &type_.hash()?) {
-            return Ok(result.to_object(py));
+        let hash = type_.hash()?;
+        if let Some(result) = self.special_cased_types.get(&hash) {
+            return Ok(result.clone_ref(py));
         }
 
-        default.map(Ok).unwrap_or_else(|| {
-            import_alluka(py)?
-                .getattr("abc")?
-                .getattr("UNDEFINED")
-                .map(|v| v.to_object(py))
-        })
+        if let Some(result) = self.get_type_dependency_rust(&self.client.borrow(py), &type_.hash()?) {
+            return Ok(result.clone_ref(py));
+        }
+
+        default.map(Ok).unwrap_or_else(|| undefined(py))
     }
+
+    #[args(type_, value, "/")]
+    fn _set_type_special_case<'p>(
+        mut self: PyRefMut<'p, Self>,
+        py: Python<'p>,
+        type_: &PyAny,
+        value: &PyAny,
+    ) -> PyResult<PyRefMut<'p, Self>> {
+        self.special_cased_types.insert(type_.hash()?, value.to_object(py));
+        Ok(self)
+    }
+
+    fn _remove_type_special_case<'p>(mut self: PyRefMut<'p, Self>, type_: &PyAny) -> PyResult<PyRefMut<'p, Self>> {
+        if self.special_cased_types.remove(&type_.hash()?).is_none() {
+            Err(PyKeyError::new_err(format!("Type dependency not found: {type_}")))
+        } else {
+            Ok(self)
+        }
+    }
+}
+
+fn undefined(py: Python) -> PyResult<PyObject> {
+    import_alluka(py)?
+        .getattr("abc")?
+        .getattr("UNDEFINED")
+        .map(|v| v.to_object(py))
 }

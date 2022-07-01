@@ -255,7 +255,8 @@ impl ParameterVisitor {
         if origin.is(typing.getattr("Annotated")?) {
             // The first "type" arg of annotated will always be flatterned to a type.
             // so we don't have to deal with Annotated nesting".
-            Self::parse_type(py, origin.get_item(0)?, default)
+            let arg = typing.call_method1("get_args", (annotation,))?.get_item(0)?;
+            Self::parse_type(py, arg, default)
         } else {
             Self::parse_type(py, annotation, default)
         }
@@ -380,7 +381,7 @@ impl Visitor for ParameterVisitor {
         };
 
         match node.callback.resolve_annotation(py, &node.name)? {
-            Some(annotaton) => Self::parse_type(py, annotaton.as_ref(py), None).map(Some),
+            Some(annotaton) => Self::annotation_to_type(py, annotaton.as_ref(py), None).map(Some),
             None => Err(PyValueError::new_err(format!(
                 "Could not resolve type for parameter '{}' with no annotation",
                 node.name
