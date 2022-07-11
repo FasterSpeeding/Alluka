@@ -154,7 +154,7 @@ class Client(alluka.Client):
             alluka.CallbackSig[typing.Any], dict[str, _types.InjectedTuple]
         ] = weakref.WeakKeyDictionary()
         self._introspect_annotations = introspect_annotations
-        self._type_dependencies: dict[type[typing.Any], typing.Any] = {Client: self}
+        self._type_dependencies: dict[type[typing.Any], typing.Any] = {alluka.Client: self, Client: self}
 
     def _build_descriptors(self, callback: alluka.CallbackSig[typing.Any], /) -> dict[str, _types.InjectedTuple]:
         try:
