@@ -1151,7 +1151,7 @@ def test_call_with_di_when_async_callback(context: alluka.BasicContext):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
-        with pytest.raises(alluka.AsyncOnlyError):
+        with pytest.raises(alluka.SyncOnlyError):
             context.call_with_di(callback)
 
 
@@ -1165,7 +1165,7 @@ def test_call_with_di_with_async_dependency(context: alluka.BasicContext):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
-        with pytest.raises(alluka.AsyncOnlyError):
+        with pytest.raises(alluka.SyncOnlyError):
             context.call_with_di(callback)
 
 
@@ -1184,7 +1184,7 @@ def test_call_with_di_with_overridden_async_dependency(context: alluka.BasicCont
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
-        with pytest.raises(alluka.AsyncOnlyError):
+        with pytest.raises(alluka.SyncOnlyError):
             context.call_with_di(callback)
 
 
@@ -1201,7 +1201,7 @@ def test_call_with_di_with_sub_async_dependency(context: alluka.BasicContext):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
-        with pytest.raises(alluka.AsyncOnlyError):
+        with pytest.raises(alluka.SyncOnlyError):
             context.call_with_di(callback)
 
 
@@ -1223,7 +1223,7 @@ def test_call_with_di_with_overridden_sub_async_dependency(context: alluka.Basic
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
-        with pytest.raises(alluka.AsyncOnlyError):
+        with pytest.raises(alluka.SyncOnlyError):
             context.call_with_di(callback)
 
 
@@ -1237,7 +1237,7 @@ def test_call_with_di_with_annotated_async_dependency(context: alluka.BasicConte
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
-        with pytest.raises(alluka.AsyncOnlyError):
+        with pytest.raises(alluka.SyncOnlyError):
             context.call_with_di(callback)
 
 
@@ -1256,7 +1256,7 @@ def test_call_with_di_with_overridden_annotated_async_dependency(context: alluka
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
-        with pytest.raises(alluka.AsyncOnlyError):
+        with pytest.raises(alluka.SyncOnlyError):
             context.call_with_di(callback)
 
 
@@ -1273,7 +1273,7 @@ def test_call_with_di_with_annotated_sub_async_dependency(context: alluka.BasicC
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
-        with pytest.raises(alluka.AsyncOnlyError):
+        with pytest.raises(alluka.SyncOnlyError):
             context.call_with_di(callback)
 
 
@@ -1295,7 +1295,7 @@ def test_call_with_di_with_overridden_annotated_sub_async_dependency(context: al
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
 
-        with pytest.raises(alluka.AsyncOnlyError):
+        with pytest.raises(alluka.SyncOnlyError):
             context.call_with_di(callback)
 
 

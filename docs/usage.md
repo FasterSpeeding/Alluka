@@ -114,7 +114,7 @@ result = client.call_with_di(callback, 123, keyword_arg="ok")
 To execute a function with purely sync dependency injection [alluka.abc.Client.call_with_di][] can be
 used with similar semantics to `call_with_async_di` for passed through arguments but this comes with the
 limitation that only sync functions may be used and any dependency on async callback dependencies
-will lead to [alluka.AsyncOnlyError][] being raised.
+will lead to [alluka.SyncOnlyError][] being raised.
 
 ```py
 def foo(ctx: alluka.Inject[alluka.abc.Context]) -> None:

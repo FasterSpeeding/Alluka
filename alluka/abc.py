@@ -185,7 +185,7 @@ class Client(abc.ABC):
         alluka.MissingDependencyError
             If any of the callback's required type dependencies aren't implemented
             by the client.
-        alluka.AsyncOnlyError
+        alluka.SyncOnlyError
             If the callback or any of its callback dependencies are async.
         """
 
@@ -238,7 +238,7 @@ class Client(abc.ABC):
         alluka.MissingDependencyError
             If any of the callback's required type dependencies aren't implemented
             by the client.
-        alluka.AsyncOnlyError
+        alluka.SyncOnlyError
             If the callback or any of its callback dependencies are async.
         """
 
@@ -267,7 +267,7 @@ class Client(abc.ABC):
         alluka.MissingDependencyError
             If any of the callback's required type dependencies aren't implemented
             by the client.
-        alluka.AsyncOnlyError
+        alluka.SyncOnlyError
             If the callback or any of its callback dependencies are async.
         """
 
@@ -489,7 +489,7 @@ class Context(abc.ABC):
         alluka.MissingDependencyError
             If any of the callback's required type dependencies aren't implemented
             by the client.
-        alluka.AsyncOnlyError
+        alluka.SyncOnlyError
             If the callback or any of its callback dependencies are async.
         """
 
@@ -710,6 +710,6 @@ class SelfInjecting(abc.ABC, typing.Generic[_SyncCallbackT]):
         alluka.MissingDependencyError
             If any of the callback's required type dependencies aren't implemented
             by the client.
-        alluka.AsyncOnlyError
+        alluka.SyncOnlyError
             If the callback or any of its callback dependencies are async.
         """

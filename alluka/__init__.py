@@ -42,6 +42,7 @@ __all__: list[str] = [
     "InjectedDescriptor",
     "MissingDependencyError",
     "SelfInjecting",
+    "SyncOnlyError",
     "abc",
     "inject",
 ]
@@ -53,8 +54,8 @@ from ._client import BasicContext
 from ._client import Client
 from ._client import inject
 from ._errors import AllukaError
-from ._errors import AsyncOnlyError
 from ._errors import MissingDependencyError
+from ._errors import SyncOnlyError
 from ._self_injecting import AsyncSelfInjecting
 from ._self_injecting import SelfInjecting
 from ._types import Injected
@@ -70,3 +71,5 @@ __issue_tracker__: typing.Final[str] = "https://github.com/FasterSpeeding/Alluka
 __license__: typing.Final[str] = "BSD"
 __url__: typing.Final[str] = "https://github.com/FasterSpeeding/Alluka"
 __version__: typing.Final[str] = "0.1.2"
+
+AsyncOnlyError = SyncOnlyError

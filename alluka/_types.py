@@ -83,7 +83,7 @@ class InjectedCallback:
 
         Raises
         ------
-        alluka.AsyncOnlyError
+        alluka.SyncOnlyError
             If the callback or any of its callback dependencies are async.
         alluka.MissingDependencyError
             If any of the callback's type dependencies aren't implemented by

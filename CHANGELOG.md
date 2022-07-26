@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `alluka.abc.Client` is now set as a type dependency by default.
 
+### Changed
+- Renamed `AsyncOnlyError` to `SyncOnlyError` (AsyncOnlyError has been kept as a
+  deprecated alias).
+
 ## [0.1.2] - 2020-07-06
 ### Changed
 - The optional `introspect_annotations` parameter for `alluka.Client.__init__`
@@ -32,7 +36,7 @@ All of the `0.1.0` entries are relative to the feature set exposed while this wa
 part of Tanjun.
 
 ### Added
-- Support for synchronous dependency injection (this comes with `AsyncOnlyError`)
+- Support for synchronous dependency injection (this comes with `SyncOnlyError`)
 - Abstract interface for the client with limited functionality.
 - `call_with_di` and `call_with_async_di` to `alluka.abc.Context` as a shorthand for
   executing a callback with that context.
