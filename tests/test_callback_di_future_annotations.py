@@ -35,6 +35,7 @@ from __future__ import annotations
 import sys
 import typing
 import warnings
+from collections import abc as collections
 from unittest import mock
 
 import pytest
@@ -97,7 +98,7 @@ def test_call_with_async_di_with_missing_annotations(context: alluka.BasicContex
 def test_call_with_di_prioritises_defaults_over_annotations(context: alluka.BasicContext):
     mock_value = mock.Mock()
     mock_other_value = mock.Mock()
-    mock_callback = mock.Mock()
+    mock_callback = mock.Mock(collections.Callable[..., typing.Any])
 
     def dependency(
         result: typing.Annotated[float, alluka.inject(type=123)] = alluka.inject(callback=mock_callback)
@@ -132,7 +133,7 @@ def test_call_with_di_prioritises_defaults_over_annotations(context: alluka.Basi
 def test_call_with_di_with_type_dependency_and_callback(context: alluka.BasicContext):
     mock_value = mock.Mock()
     mock_other_value = mock.Mock()
-    mock_callback = mock.Mock()
+    mock_callback = mock.Mock(collections.Callable[..., typing.Any])
 
     def callback(
         x: int,
@@ -1064,7 +1065,7 @@ def test_call_with_di_with_shorthand_annotated_natural_defaulting_union_type_dep
 
 
 def test_call_with_di_with_callback_dependency(context: alluka.BasicContext):
-    mock_callback = mock.Mock()
+    mock_callback = mock.Mock(collections.Callable[..., typing.Any])
 
     def callback(foo: int, result: int = alluka.inject(callback=mock_callback)) -> int:
         assert foo == 123
@@ -1077,7 +1078,7 @@ def test_call_with_di_with_callback_dependency(context: alluka.BasicContext):
 
 
 def test_call_with_di_with_sub_callback_dependency(context: alluka.BasicContext):
-    mock_callback = mock.Mock()
+    mock_callback = mock.Mock(collections.Callable[..., typing.Any])
 
     def dependency(result: int = alluka.inject(callback=mock_callback)) -> int:
         assert result is mock_callback.return_value
@@ -1095,7 +1096,7 @@ def test_call_with_di_with_sub_callback_dependency(context: alluka.BasicContext)
 
 def test_call_with_di_with_annotated_callback_dependency(context: alluka.BasicContext):
     global mock_callback
-    mock_callback = mock.Mock()
+    mock_callback = mock.Mock(collections.Callable[..., typing.Any])
 
     def callback(foo: int, result: typing.Annotated[int, alluka.inject(callback=mock_callback)]) -> int:
         assert foo == 123
@@ -1111,7 +1112,7 @@ def test_call_with_di_with_annotated_callback_dependency(context: alluka.BasicCo
 def test_call_with_di_with_annotated_sub_callback_dependency(context: alluka.BasicContext):
     global mock_callback
     global dependency_1
-    mock_callback = mock.Mock()
+    mock_callback = mock.Mock(collections.Callable[..., typing.Any])
 
     def dependency_1(result: typing.Annotated[int, alluka.inject(callback=mock_callback)]) -> int:
         assert result is mock_callback.return_value

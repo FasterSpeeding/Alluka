@@ -32,6 +32,7 @@
 
 import typing
 import warnings
+from collections import abc as collections
 from unittest import mock
 
 import pytest
@@ -107,8 +108,8 @@ class TestClient:
         mock_value_1 = MockType1()
         mock_value_2 = MockType2()
         mock_value_3 = MockType3()
-        mock_callback = mock.Mock()
-        mock_override = mock.Mock()
+        mock_callback = mock.Mock(collections.Callable[..., typing.Any])
+        mock_override = mock.Mock(collections.Callable[..., typing.Any])
 
         def callback(
             foo: int,
@@ -175,7 +176,8 @@ class TestClient:
             ...
 
         def callback(
-            value: alluka.Injected[MockType], dep: int = alluka.inject(callback=mock.AsyncMock())
+            value: alluka.Injected[MockType],
+            dep: int = alluka.inject(callback=mock.AsyncMock(collections.Callable[..., typing.Any])),
         ) -> typing.NoReturn:
             raise NotImplementedError
 
@@ -201,10 +203,10 @@ class TestClient:
         mock_value_1 = MockType1()
         mock_value_2 = MockType2()
         mock_value_3 = MockType3()
-        mock_callback = mock.Mock()
-        mock_override = mock.AsyncMock()
-        mock_other_callback = mock.AsyncMock()
-        mock_other_override = mock.Mock()
+        mock_callback = mock.Mock(collections.Callable[..., typing.Any])
+        mock_override = mock.AsyncMock(collections.Callable[..., typing.Any])
+        mock_other_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
+        mock_other_override = mock.Mock(collections.Callable[..., typing.Any])
 
         async def callback(
             foo: int,

@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import sys
 import typing
+from collections import abc as collections
 from unittest import mock
 
 import pytest
@@ -99,7 +100,7 @@ async def test_call_with_async_di_with_missing_annotations(context: alluka.Basic
 async def test_call_with_async_di_prioritises_defaults_over_annotations(context: alluka.BasicContext):
     mock_value = mock.Mock()
     mock_other_value = mock.Mock()
-    mock_callback = mock.AsyncMock()
+    mock_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
 
     async def dependency(
         result: typing.Annotated[float, alluka.inject(type=123)] = alluka.inject(callback=mock_callback)
@@ -135,7 +136,7 @@ async def test_call_with_async_di_prioritises_defaults_over_annotations(context:
 async def test_call_with_async_di_with_type_dependency_and_callback(context: alluka.BasicContext):
     mock_value = mock.Mock()
     mock_other_value = mock.Mock()
-    mock_callback = mock.AsyncMock()
+    mock_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
 
     async def callback(
         x: int,
@@ -1153,7 +1154,7 @@ async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_un
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_callback_dependency(context: alluka.BasicContext):
-    mock_callback = mock.AsyncMock()
+    mock_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
 
     async def callback(foo: int, result: int = alluka.inject(callback=mock_callback)) -> int:
         assert foo == 123
@@ -1168,7 +1169,7 @@ async def test_call_with_async_di_with_callback_dependency(context: alluka.Basic
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_sub_callback_dependency(context: alluka.BasicContext):
-    mock_callback = mock.Mock()
+    mock_callback = mock.Mock(collections.Callable[..., typing.Any])
 
     async def dependency(result: int = alluka.inject(callback=mock_callback)) -> int:
         assert result is mock_callback.return_value
@@ -1188,7 +1189,7 @@ async def test_call_with_async_di_with_sub_callback_dependency(context: alluka.B
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_callback_dependency(context: alluka.BasicContext):
     global mock_callback
-    mock_callback = mock.AsyncMock()
+    mock_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
 
     async def callback(foo: int, result: typing.Annotated[int, alluka.inject(callback=mock_callback)]) -> int:
         assert foo == 123
@@ -1204,7 +1205,7 @@ async def test_call_with_async_di_with_annotated_callback_dependency(context: al
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_sub_callback_dependency(context: alluka.BasicContext):
     global mock_callback
-    mock_callback = mock.AsyncMock()
+    mock_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
     global dependency_3
 
     async def dependency_3(result: typing.Annotated[int, alluka.inject(callback=mock_callback)]) -> int:
@@ -1259,7 +1260,7 @@ async def test_call_with_async_di_with_sub_type_dependency_not_found(context: al
 @pytest.mark.anyio()
 async def test_call_with_async_di_when_sync_callback(context: alluka.BasicContext):
     mock_value = MockType()
-    mock_callback = mock.AsyncMock()
+    mock_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
     context.injection_client.set_type_dependency(MockType, mock_value)
 
     async def dependency(foo: int = alluka.inject(callback=mock_callback)) -> str:
@@ -1306,8 +1307,8 @@ async def test_call_with_async_di_with_sync_dependency_callback(context: alluka.
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_overridden_sync_dependency(context: alluka.BasicContext):
     mock_value = MockType()
-    mock_callback = mock.AsyncMock()
-    mock_override = mock.Mock()
+    mock_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
+    mock_override = mock.Mock(collections.Callable[..., typing.Any])
     context.injection_client.set_type_dependency(MockType, mock_value).set_callback_override(
         mock_callback, mock_override
     )
@@ -1326,7 +1327,7 @@ async def test_call_with_async_di_with_overridden_sync_dependency(context: alluk
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_sub_sync_dependency(context: alluka.BasicContext):
     mock_value = MockType()
-    mock_callback = mock.AsyncMock()
+    mock_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
     context.injection_client.set_type_dependency(MockType, mock_value)
 
     def dependency(result: str = alluka.inject(callback=mock_callback)) -> str:
@@ -1348,8 +1349,8 @@ async def test_call_with_async_di_with_sub_sync_dependency(context: alluka.Basic
 async def test_call_with_async_di_with_overridden_sub_sync_dependency(context: alluka.BasicContext):
     mock_value = MockType()
     global mock_callback
-    mock_callback = mock.AsyncMock()
-    mock_override = mock.Mock()
+    mock_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
+    mock_override = mock.Mock(collections.Callable[..., typing.Any])
     context.injection_client.set_type_dependency(MockType, mock_value).set_callback_override(
         mock_callback, mock_override
     )
@@ -1398,8 +1399,8 @@ async def test_call_with_async_di_with_annotated_sync_dependency(context: alluka
 async def test_call_with_async_di_with_overridden_annotated_sync_dependency(context: alluka.BasicContext):
     mock_value = MockType()
     global mock_callback
-    mock_callback = mock.AsyncMock()
-    mock_override = mock.Mock()
+    mock_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
+    mock_override = mock.Mock(collections.Callable[..., typing.Any])
     context.injection_client.set_type_dependency(MockType, mock_value).set_callback_override(
         mock_callback, mock_override
     )
@@ -1420,7 +1421,7 @@ async def test_call_with_async_di_with_overridden_annotated_sync_dependency(cont
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_sub_sync_dependency(context: alluka.BasicContext):
     mock_value = MockType()
-    mock_callback = mock.AsyncMock()
+    mock_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
     context.injection_client.set_type_dependency(MockType, mock_value)
 
     global dependency
@@ -1446,8 +1447,8 @@ async def test_call_with_async_di_with_annotated_sub_sync_dependency(context: al
 async def test_call_with_async_di_with_overridden_annotated_sub_sync_dependency(context: alluka.BasicContext):
     mock_value = MockType()
     global mock_callback
-    mock_callback = mock.AsyncMock()
-    mock_override = mock.Mock()
+    mock_callback = mock.AsyncMock(collections.Callable[..., typing.Any])
+    mock_override = mock.Mock(collections.Callable[..., typing.Any])
     global dependency_1
     context.injection_client.set_type_dependency(MockType, mock_value).set_callback_override(
         mock_callback, mock_override
