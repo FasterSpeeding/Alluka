@@ -90,9 +90,21 @@ def _resolve_async(name: str, /) -> str:
 
 
 class CodeBuilder(typing.Generic[_T]):
+    """Function specific DI logic builder.
+
+    This caches the built logic.
+    """
+
     __slots__ = ("_async_built", "_built", "_callback", "_callbacks", "_types")
 
     def __init__(self, callback: alluka.CallbackSig[_T], /) -> None:
+        """Initialise a DI logic builder.
+
+        Parameters
+        ----------
+        callback : alluka.abc.CallbackSig
+            The callback to create DI logic for.
+        """
         self._async_built: BuiltSig[_CoroT[_T]] | None = None
         self._built: BuiltSig[_T] | None = None
         self._callback = callback
@@ -104,16 +116,58 @@ class CodeBuilder(typing.Generic[_T]):
         self._built = None
 
     def set_callback(self: _CodeBuilderT, name: str, callback: _types.InjectedCallback, /) -> _CodeBuilderT:
+        """Set an injected callback for an argument.
+
+        Parameters
+        ----------
+        name
+            The argument's name.
+        callback
+            The callback to inject the result of.
+
+        Returns
+        -------
+        Self
+            The code builder's object to allow call chaining.
+        """
         self._clear_cache()
         self._callbacks[name] = callback
         return self
 
     def set_type(self: _CodeBuilderT, name: str, type_: _types.InjectedType) -> _CodeBuilderT:
+        """Set an injected type for an argument.
+
+        Parameters
+        ----------
+        name
+            The argument's name.
+        type_
+            The type to inject.
+
+        Returns
+        -------
+        Self
+            The code builder's object to allow call chaining.
+        """
         self._clear_cache()
         self._types[name] = type_
         return self
 
     def set_injected(self: _CodeBuilderT, name: str, injected: _types.InjectedTuple, /) -> _CodeBuilderT:
+        """Set an injected argument.
+
+        Parameters
+        ----------
+        name
+            The argument's name
+        injected
+            The callback or type to inject.
+
+        Returns
+        -------
+        Self
+            The code builder's object to allow call chaining.
+        """
         # Pyright currently doesn't support `is` for narrowing tuple types like this.
         if injected[0] == _types.InjectedTypes.CALLBACK:
             self.set_callback(name, injected[1])
@@ -135,6 +189,15 @@ class CodeBuilder(typing.Generic[_T]):
         return typing.cast(collections.Callable[..., typing.Any], result)
 
     def build(self) -> BuiltSig[_T]:
+        """Build the sync DI logic for this function.
+
+        Returns
+        -------
+        BuiltSig[_T]
+            The created sync DI function for this callback.
+
+            This result will be cached.
+        """
         if self._built:
             return self._built
 
@@ -149,6 +212,15 @@ class CodeBuilder(typing.Generic[_T]):
         return self._built
 
     def build_async(self) -> BuiltSig[_CoroT[_T]]:
+        """Build the async DI logic for this function.
+
+        Returns
+        -------
+        BuiltSig[collections.abc.Coroutine[typing.Any, typing.Any, _T]]
+            The created async DI function for this callback.
+
+            This result will be cached.
+        """
         if self._async_built:
             return self._async_built
 
@@ -175,9 +247,21 @@ _KEYWORD_TYPES = {inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEY
 
 
 class ManuallyInjected(typing.Generic[_CallbackSigT]):
+    """Manually declare the injected arguments for a callback.
+
+    This will not perform any type inference.
+    """
+
     __slots__ = ("_builder", "_callback", "_kwargs", "__weakref__")
 
     def __init__(self, callback: _CallbackSigT, /) -> None:
+        """Initialise a callback with manual declared DI.
+
+        Parameters
+        ----------
+        callback : alluka.abc.CallbackSig
+            The callack to manually declare the injected arguments for.
+        """
         self._builder = CodeBuilder[typing.Any](callback)
         self._callback = callback
         kwargs: list[str] = []
@@ -200,10 +284,31 @@ class ManuallyInjected(typing.Generic[_CallbackSigT]):
             self._kwargs = kwargs
 
     def __call__(self: ManuallyInjected[collections.Callable[_P, _T]], *args: _P.args, **kwargs: _P.kwargs) -> _T:
+        """Call this callback.
+
+        !!! note
+            To call this with dependency injection you'll have to pass this to
+            [alluka.Client.call_with_di][]/[alluka.Client.call_with_async_di][]
+            as the callback.
+
+        Parameters
+        ----------
+        *args
+            The positional arguments to pass to the function.
+        **kwargs
+            The keyword arguments to pass to the function.
+
+        Return
+        ------
+        _T
+            The result of the function call (will only be a coroutine if the
+            function is async).
+        """
         return self.callback(*args, **kwargs)
 
     @property
     def callback(self) -> _CallbackSigT:
+        """The inner-callback."""
         return self._callback
 
     def _assert_name(self, name: str, /) -> None:
@@ -211,14 +316,30 @@ class ManuallyInjected(typing.Generic[_CallbackSigT]):
             raise ValueError(f"{name} is not a valid keyword argument for {self._callback}")
 
     def get_async_injector(self: ManuallyInjected[alluka.CallbackSig[_T]]) -> BuiltSig[_CoroT[_T]]:
+        """Internal function used by Alluka to get the async injection rules/logic."""
         return self._builder.build_async()
 
     def get_injector(self: ManuallyInjected[alluka.CallbackSig[_T]]) -> BuiltSig[_T_co]:
+        """Internal function used by Alluka to get the sync injection rules/logic."""
         return self._builder.build()
 
     def set_callback(
         self: _ManuallyInjectedT, name: str, callback: alluka.CallbackSig[typing.Any], /
     ) -> _ManuallyInjectedT:
+        """Set an injected callback for an argument.
+
+        Parameters
+        ----------
+        name
+            Name of the argument to set the callback DI for.
+        callback
+            The callback to inject the result of.
+
+        Returns
+        -------
+        Self
+            The manual injection object to allow call chaining.
+        """
         self._assert_name(name)
         self._builder.set_callback(name, _types.InjectedCallback(callback))
         return self
@@ -231,6 +352,31 @@ class ManuallyInjected(typing.Generic[_CallbackSigT]):
         *other_types: type[typing.Any],
         default: typing.Any = _types.UNDEFINED,
     ) -> _ManuallyInjectedT:
+        """Set an injected type for an argument.
+
+        Parameters
+        ----------
+        name
+            Name of the argument to set the injected type for.
+        type_
+            The first type to try to inject.
+        *other_types
+            Other types to try to inject.
+
+            This acts as a union inject where the first type to be found with
+            a registered value for it will be injected.
+        default
+            The value to inject if none of the registered types could be
+            resolved.
+
+            If not specified then a [alluka.MissingDependencyError][] will
+            be raised if none of the types could be resolved.
+
+        Returns
+        -------
+        Self
+            The manual injection object to allow call chaining.
+        """
         self._assert_name(name)
         types_ = (type_, *other_types)
         self._builder.set_type(
