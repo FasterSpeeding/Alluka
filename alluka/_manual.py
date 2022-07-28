@@ -47,9 +47,11 @@ from . import abc as alluka
 if typing.TYPE_CHECKING:
     import typing_extensions
 
+    _P = typing_extensions.ParamSpec("_P")
+
+
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=collections.Callable[..., typing.Any])
 _CodeBuilderT = typing.TypeVar("_CodeBuilderT", bound="CodeBuilder[typing.Any]")
-_KEYWORD_TYPES = {inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY}
 _ManuallyInjectedT = typing.TypeVar("_ManuallyInjectedT", bound="ManuallyInjected[typing.Any]")
 _T = typing.TypeVar("_T")
 _T_co = typing.TypeVar("_T_co", covariant=True)
@@ -169,13 +171,16 @@ class CodeBuilder(typing.Generic[_T]):
         return self._async_built
 
 
+_KEYWORD_TYPES = {inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY}
+
+
 class ManuallyInjected(typing.Generic[_CallbackSigT]):
-    __slots__ = ("_builder", "_callback", "_kwargs")
+    __slots__ = ("_builder", "_callback", "_kwargs", "__weakref__")
 
     def __init__(self, callback: _CallbackSigT, /) -> None:
         self._builder = CodeBuilder[typing.Any](callback)
         self._callback = callback
-        self._kwargs: list[str] | None = None
+        kwargs: list[str] = []
 
         try:
             signature = inspect.Signature.from_callable(callback)
@@ -185,19 +190,24 @@ class ManuallyInjected(typing.Generic[_CallbackSigT]):
 
         for parameter in signature.parameters.values():
             if parameter.kind in _KEYWORD_TYPES:
-                self._kwargs = self._kwargs or list[str]()
-                self._kwargs.append(parameter.name)
+                kwargs.append(parameter.name)
 
             elif parameter.kind is parameter.VAR_KEYWORD:
-                self._kwargs = None
+                self._kwargs: list[str] | None = None
                 break
+
+        else:
+            self._kwargs = kwargs
+
+    def __call__(self: ManuallyInjected[collections.Callable[_P, _T]], *args: _P.args, **kwargs: _P.kwargs) -> _T:
+        return self.callback(*args, **kwargs)
 
     @property
     def callback(self) -> _CallbackSigT:
         return self._callback
 
     def _assert_name(self, name: str, /) -> None:
-        if self._kwargs and name not in self._kwargs:
+        if self._kwargs is not None and name not in self._kwargs:
             raise ValueError(f"{name} is not a valid keyword argument for {self._callback}")
 
     def get_async_injector(self: ManuallyInjected[alluka.CallbackSig[_T]]) -> BuiltSig[_CoroT[_T]]:

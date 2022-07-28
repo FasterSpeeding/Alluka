@@ -189,6 +189,134 @@ class TestClient:
             with pytest.raises(alluka.SyncOnlyError):
                 client.call_with_di(callback)
 
+    def test_call_with_di_when_manual_di(self):
+        client = alluka.Client()
+        mock_callback = mock.Mock()
+        injected = alluka.ManuallyInjected(mock_callback)
+
+        result = client.call_with_di(injected, 123, 321, ok="meow")
+
+        assert result is mock_callback.return_value
+        mock_callback.assert_called_once_with(123, 321, ok="meow")
+
+    def test_call_with_di_when_manual_di_callback_deps_set(self):
+        mock_callback = mock.Mock()
+        mock_dep_1 = mock.Mock(collections.Callable[..., typing.Any])
+        mock_dep_2 = mock.Mock(collections.Callable[..., typing.Any])
+        mock_dep_3_callback = mock.Mock()
+        mock_dep_3 = alluka.ManuallyInjected(mock_dep_3_callback)
+        mock_override = mock.Mock(collections.Callable[..., typing.Any])
+        client = alluka.Client().set_callback_override(mock_dep_2, mock_override)
+        injected = (
+            alluka.ManuallyInjected(mock_callback)
+            .set_callback("e", mock_dep_1)
+            .set_callback("a", mock_dep_2)
+            .set_callback("beat", mock_dep_3)
+        )
+
+        result = client.call_with_di(injected, 333, no="ow")
+
+        assert result is mock_callback.return_value
+        mock_callback.assert_called_once_with(
+            333, no="ow", e=mock_dep_1.return_value, a=mock_override.return_value, beat=mock_dep_3_callback.return_value
+        )
+        mock_dep_1.assert_called_once_with()
+        mock_override.assert_called_once_with()
+        mock_dep_3_callback.assert_called_once_with()
+
+    def test_call_with_di_when_manual_di_type_deps_set(self):
+        class MockType1:
+            ...
+
+        class MockType2:
+            ...
+
+        class MockType3:
+            ...
+
+        mock_value_1 = MockType2()
+        mock_value_2 = MockType3()
+
+        client = (
+            alluka.Client().set_type_dependency(MockType2, mock_value_1).set_type_dependency(MockType3, mock_value_2)
+        )
+        mock_callback = mock.Mock()
+        injected = (
+            alluka.ManuallyInjected(mock_callback)
+            .set_type("foo", MockType1, MockType2)
+            .set_type("bar", int, default=123)
+            .set_type("baz", MockType3)
+        )
+
+        result = client.call_with_di(injected, 444, 555, p="e")
+
+        assert result is mock_callback.return_value
+        mock_callback.assert_called_once_with(444, 555, p="e", foo=mock_value_1, bar=123, baz=mock_value_2)
+
+    def test_call_with_di_when_manual_di_deps_set(self):
+        class MockType1:
+            ...
+
+        class MockType2:
+            ...
+
+        class MockType3:
+            ...
+
+        mock_value_1 = MockType2()
+        mock_value_2 = MockType3()
+
+        mock_callback = mock.Mock()
+        mock_dep_1 = mock.Mock(collections.Callable[..., typing.Any])
+        mock_dep_2 = mock.Mock(collections.Callable[..., typing.Any])
+        mock_dep_3_callback = mock.Mock()
+        mock_dep_3 = alluka.ManuallyInjected(mock_dep_3_callback)
+        mock_override = mock.Mock(collections.Callable[..., typing.Any])
+        client = (
+            alluka.Client()
+            .set_callback_override(mock_dep_2, mock_override)
+            .set_type_dependency(MockType2, mock_value_1)
+            .set_type_dependency(MockType3, mock_value_2)
+        )
+        injected = (
+            alluka.ManuallyInjected(mock_callback)
+            .set_callback("ea", mock_dep_1)
+            .set_callback("aa", mock_dep_2)
+            .set_callback("bee", mock_dep_3)
+            .set_type("eap", MockType1, MockType2)
+            .set_type("bar", int, default=4434)
+            .set_type("bat", MockType3)
+        )
+
+        result = client.call_with_di(injected, 333, no="ow")
+
+        assert result is mock_callback.return_value
+        mock_callback.assert_called_once_with(
+            333,
+            no="ow",
+            ea=mock_dep_1.return_value,
+            aa=mock_override.return_value,
+            bee=mock_dep_3_callback.return_value,
+            eap=mock_value_1,
+            bar=4434,
+            bat=mock_value_2,
+        )
+        mock_dep_1.assert_called_once_with()
+        mock_override.assert_called_once_with()
+        mock_dep_3_callback.assert_called_once_with()
+
+    def test_call_with_di_when_manual_di_when_async(self):
+        client = alluka.Client()
+        injected = alluka.ManuallyInjected(mock.Mock()).set_callback(
+            "aaa", mock.AsyncMock(collections.Callable[..., typing.Any])
+        )
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings(action="ignore", category=RuntimeWarning)
+
+            with pytest.raises(alluka.AsyncOnlyError):
+                client.call_with_di(injected, 333, no="ow")
+
     @pytest.mark.anyio()
     async def test_call_with_async_di(self):
         class MockType1:
@@ -259,6 +387,137 @@ class TestClient:
 
         with pytest.raises(alluka.MissingDependencyError):
             await client.call_with_async_di(callback)
+
+    @pytest.mark.anyio()
+    async def test_call_with_async_di_when_manual_di(self):
+        client = alluka.Client()
+        mock_callback = mock.AsyncMock()
+        injected = alluka.ManuallyInjected(mock_callback)
+
+        result = await client.call_with_async_di(injected, 123, 321, ok="meow")
+
+        assert result is mock_callback.return_value
+        mock_callback.assert_awaited_once_with(123, 321, ok="meow")
+
+    @pytest.mark.anyio()
+    async def test_call_with_async_di_when_manual_di_and_sync(self):
+        client = alluka.Client()
+        mock_callback = mock.Mock()
+        injected = alluka.ManuallyInjected(mock_callback)
+
+        result = await client.call_with_async_di(injected, 123, 321, ok="meow")
+
+        assert result is mock_callback.return_value
+        mock_callback.assert_called_once_with(123, 321, ok="meow")
+
+    @pytest.mark.anyio()
+    async def test_call_with_async_di_when_manual_di_callback_deps_set(self):
+        mock_callback = mock.AsyncMock()
+        mock_dep_1 = mock.AsyncMock(collections.Callable[..., typing.Any])
+        mock_dep_2 = mock.Mock(collections.Callable[..., typing.Any])
+        mock_dep_3_callback = mock.AsyncMock()
+        mock_dep_3 = alluka.ManuallyInjected(mock_dep_3_callback)
+        mock_override = mock.Mock(collections.Callable[..., typing.Any])
+        client = alluka.Client().set_callback_override(mock_dep_2, mock_override)
+        injected = (
+            alluka.ManuallyInjected(mock_callback)
+            .set_callback("e", mock_dep_1)
+            .set_callback("a", mock_dep_2)
+            .set_callback("beat", mock_dep_3)
+        )
+
+        result = await client.call_with_async_di(injected, 333, no="ow")
+
+        assert result is mock_callback.return_value
+        mock_callback.assert_awaited_once_with(
+            333, no="ow", e=mock_dep_1.return_value, a=mock_override.return_value, beat=mock_dep_3_callback.return_value
+        )
+        mock_dep_1.assert_awaited_once_with()
+        mock_override.assert_called_once_with()
+        mock_dep_3_callback.assert_awaited_once_with()
+
+    @pytest.mark.anyio()
+    async def test_call_with_async_di_when_manual_di_type_deps_set(self):
+        class MockType1:
+            ...
+
+        class MockType2:
+            ...
+
+        class MockType3:
+            ...
+
+        mock_value_1 = MockType2()
+        mock_value_2 = MockType3()
+
+        client = (
+            alluka.Client().set_type_dependency(MockType2, mock_value_1).set_type_dependency(MockType3, mock_value_2)
+        )
+        mock_callback = mock.AsyncMock()
+        injected = (
+            alluka.ManuallyInjected(mock_callback)
+            .set_type("foo", MockType1, MockType2)
+            .set_type("bar", int, default=123)
+            .set_type("baz", MockType3)
+        )
+
+        result = await client.call_with_async_di(injected, 444, 555, p="e")
+
+        assert result is mock_callback.return_value
+        mock_callback.assert_awaited_once_with(444, 555, p="e", foo=mock_value_1, bar=123, baz=mock_value_2)
+
+    @pytest.mark.anyio()
+    async def test_call_with_async_di_when_manual_di_deps_set(self):
+        class MockType1:
+            ...
+
+        class MockType2:
+            ...
+
+        class MockType3:
+            ...
+
+        mock_value_1 = MockType2()
+        mock_value_2 = MockType3()
+
+        mock_callback = mock.AsyncMock()
+        mock_dep_1 = mock.Mock(collections.Callable[..., typing.Any])
+        mock_dep_2 = mock.AsyncMock(collections.Callable[..., typing.Any])
+        mock_dep_3_callback = mock.AsyncMock()
+        mock_dep_3 = alluka.ManuallyInjected(mock_dep_3_callback)
+        mock_override = mock.AsyncMock(collections.Callable[..., typing.Any])
+        client = (
+            alluka.Client()
+            .set_callback_override(mock_dep_2, mock_override)
+            .set_type_dependency(MockType2, mock_value_1)
+            .set_type_dependency(MockType3, mock_value_2)
+        )
+        injected = (
+            alluka.ManuallyInjected(mock_callback)
+            .set_callback("ea", mock_dep_1)
+            .set_callback("aa", mock_dep_2)
+            .set_callback("bee", mock_dep_3)
+            .set_type("eap", MockType1, MockType2)
+            .set_type("bar", int, default=4434)
+            .set_type("bat", MockType3)
+        )
+
+        result = await client.call_with_async_di(injected, 333, no="ow")
+
+        assert result is mock_callback.return_value
+        mock_callback.assert_awaited_once_with(
+            333,
+            no="ow",
+            ea=mock_dep_1.return_value,
+            aa=mock_override.return_value,
+            bee=mock_dep_3_callback.return_value,
+            eap=mock_value_1,
+            bar=4434,
+            bat=mock_value_2,
+        )
+        mock_dep_1.assert_called_once_with()
+        mock_override.assert_awaited_once_with()
+        mock_dep_3_callback.assert_awaited_once_with()
 
     def test_set_type_dependency_when_not_found(self):
         mock_type: typing.Any = mock.Mock()
