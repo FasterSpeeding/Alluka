@@ -177,16 +177,23 @@ class CodeBuilder(typing.Generic[_T]):
 
         return self
 
-    def _exec(self, callback: alluka.CallbackSig[_T], code: str) -> collections.Callable[..., typing.Any]:
+    def _exec(self, code: str) -> collections.Callable[..., typing.Any]:
         globals_: dict[str, typing.Any] = dict(  # noqa: C402 - Unnecessary generator - rewrite as a dict comprehension
             ((f"i_{name}", value) for name, value in itertools.chain(self._types.items(), self._callbacks.items())),
-            callback=callback,
+            callback=self._callback,
             iscoroutine=asyncio.iscoroutine,
         )
         code = compile(code, "", "exec")
         exec(code, globals_)  # noqa: S102 - Use of exec detected.
         result = globals_["resolve"]
         return typing.cast(collections.Callable[..., typing.Any], result)
+
+    def _gen_no_inject(self) -> BuiltSig[_T]:
+        def resolve(_: alluka.Context, args: tuple[typing.Any, ...], kwargs: dict[str, typing.Any], /) -> _T:
+            return typing.cast(_T, self._callback(*args, **kwargs))
+
+        self._built = resolve
+        return resolve
 
     def build(self) -> BuiltSig[_T]:
         """Build the sync DI logic for this function.
@@ -201,15 +208,30 @@ class CodeBuilder(typing.Generic[_T]):
         if self._built:
             return self._built
 
+        # Startup optimisation around avoiding unnecessary eval calls.
+        if not self._types and not self._callbacks:
+            return self._gen_no_inject()
+
         kwargs = ", ".join(map(_resolve, itertools.chain(self._types, self._callbacks)))
         code = textwrap.dedent(
             f"""
-        def resolve(ctx, args, kwargs):
+        def resolve(ctx, args, kwargs, /):
             return callback(*args, **kwargs, {kwargs})
         """
         )
-        self._built = self._exec(self._callback, code)
+        self._built = self._exec(code)
         return self._built
+
+    def _gen_no_inject_async(self) -> BuiltSig[_CoroT[_T]]:
+        async def resolve(_: alluka.Context, args: tuple[typing.Any, ...], kwargs: dict[str, typing.Any], /) -> _T:
+            result = self._callback(*args, **kwargs)
+            if asyncio.iscoroutine(result):
+                return typing.cast(_T, await result)
+
+            return typing.cast(_T, result)
+
+        self._async_built = resolve
+        return resolve
 
     def build_async(self) -> BuiltSig[_CoroT[_T]]:
         """Build the async DI logic for this function.
@@ -224,12 +246,16 @@ class CodeBuilder(typing.Generic[_T]):
         if self._async_built:
             return self._async_built
 
+        # Startup optimisation around avoiding unnecessary eval calls.
+        if not self._types and not self._callbacks:
+            return self._gen_no_inject_async()
+
         kwargs = (", ".join(map(_resolve, self._types)) + ", " + ", ".join(map(_resolve_async, self._callbacks))).strip(
             ", "
         )
         code = textwrap.dedent(
             f"""
-        async def resolve(ctx, args, kwargs):
+        async def resolve(ctx, args, kwargs, /):
             result = callback(*args, **kwargs, {kwargs})
 
             if iscoroutine(result):
@@ -238,8 +264,7 @@ class CodeBuilder(typing.Generic[_T]):
             return result
         """
         )
-
-        self._async_built = self._exec(self._callback, code)
+        self._async_built = self._exec(code)
         return self._async_built
 
 
@@ -260,7 +285,7 @@ class ManuallyInjected(typing.Generic[_CallbackSigT]):
         Parameters
         ----------
         callback : alluka.abc.CallbackSig
-            The callack to manually declare the injected arguments for.
+            The callback to manually declare the injected arguments for.
         """
         self._builder = CodeBuilder[typing.Any](callback)
         self._callback = callback
