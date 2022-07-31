@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `alluka.abc.Client` is now set as a type dependency by default.
 
 ### Changed
-- Renamed `AsyncOnlyError` to `SyncOnlyError` (AsyncOnlyError has been kept as a
+- Renamed `AsyncOnlyError` to `SyncOnlyError` (`AsyncOnlyError` has been kept as a
   deprecated alias).
 
 ## [0.1.2] - 2020-07-06
