@@ -407,7 +407,7 @@ class ManuallyInjected(typing.Generic[_CallbackSigT]):
         self._builder.set_type(
             name,
             _types.InjectedType(
-                ", ".join(map(repr, types_)),
+                " | ".join(map(repr, types_)),
                 types_,
                 default=default,
             ),

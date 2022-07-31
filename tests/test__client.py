@@ -314,7 +314,7 @@ class TestClient:
         with warnings.catch_warnings():
             warnings.filterwarnings(action="ignore", category=RuntimeWarning)
 
-            with pytest.raises(alluka.AsyncOnlyError):
+            with pytest.raises(alluka.SyncOnlyError):
                 client.call_with_di(injected, 333, no="ow")
 
     @pytest.mark.anyio()

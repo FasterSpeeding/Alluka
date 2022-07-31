@@ -56,8 +56,8 @@ from ._client import Client
 from ._client import inject
 from ._errors import AllukaError
 from ._errors import MissingDependencyError
-from ._manual import ManuallyInjected
 from ._errors import SyncOnlyError
+from ._manual import ManuallyInjected
 from ._self_injecting import AsyncSelfInjecting
 from ._self_injecting import SelfInjecting
 from ._types import Injected
