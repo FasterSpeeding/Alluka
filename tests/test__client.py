@@ -167,7 +167,7 @@ class TestClient:
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-            with pytest.raises(alluka.AsyncOnlyError):
+            with pytest.raises(alluka.SyncOnlyError):
                 client.call_with_di(callback)
 
     def test_call_with_di_when_type_not_found_when_async_dependency(self):
@@ -184,7 +184,7 @@ class TestClient:
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-            with pytest.raises(alluka.AsyncOnlyError):
+            with pytest.raises(alluka.SyncOnlyError):
                 client.call_with_di(callback)
 
     @pytest.mark.anyio()

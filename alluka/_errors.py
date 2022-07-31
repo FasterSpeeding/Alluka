@@ -32,7 +32,7 @@
 """The custom errors raised within and by dependency injection."""
 from __future__ import annotations
 
-__all__: list[str] = ["AllukaError", "AsyncOnlyError", "MissingDependencyError"]
+__all__: list[str] = ["AllukaError", "MissingDependencyError", "SyncOnlyError"]
 
 import typing
 
@@ -41,7 +41,7 @@ class AllukaError(Exception):
     """Base clases for the custom errors raised by Alluka."""
 
 
-class AsyncOnlyError(AllukaError):
+class SyncOnlyError(AllukaError):
     """Error raised when trying to execute async DI in a sync context."""
 
 

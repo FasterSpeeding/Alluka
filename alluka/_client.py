@@ -216,7 +216,7 @@ class Client(alluka.Client):
 
         result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):
-            raise _errors.AsyncOnlyError
+            raise _errors.SyncOnlyError
 
         assert not isinstance(result, collections.Coroutine)
         return result
