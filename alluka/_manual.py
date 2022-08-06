@@ -36,7 +36,6 @@ __list__: list[str] = ["DefinedInjectors", "ManuallyInjected"]
 
 import asyncio
 import inspect
-import itertools
 import textwrap
 import typing
 from collections import abc as collections
@@ -81,12 +80,11 @@ def has_predefined_injectors(value: typing.Any) -> typing_extensions.TypeGuard[D
     return True
 
 
-def _resolve(name: str, /) -> str:
-    return f"{name}=i_{name}.resolve(ctx)"
+def _to_namespace(name: str) -> str:
+    return "i_" + name
 
 
-def _resolve_async(name: str, /) -> str:
-    return f"{name}=await i_{name}.resolve_async(ctx)"
+_INDENT = "    "
 
 
 class CodeBuilder(typing.Generic[_T]):
@@ -178,11 +176,22 @@ class CodeBuilder(typing.Generic[_T]):
         return self
 
     def _exec(self, code: str) -> collections.Callable[..., typing.Any]:
-        globals_: dict[str, typing.Any] = dict(  # noqa: C402 - Unnecessary generator - rewrite as a dict comprehension
-            ((f"i_{name}", value) for name, value in itertools.chain(self._types.items(), self._callbacks.items())),
-            callback=self._callback,
-            iscoroutine=asyncio.iscoroutine,
-        )
+        globals_: dict[str, typing.Any] = {
+            "callback": self._callback,
+            "iscoroutine": asyncio.iscoroutine,
+            "_DEFAULT": object(),
+        }
+
+        for name, value in self._types.items():
+            for index, subtype in enumerate(value.types):
+                globals_[f"itype{index}_{name}"] = subtype
+
+            if value.default is not _types.UNDEFINED:
+                globals_[f"idefault_{name}"] = value.default
+
+        for name, value in self._callbacks.items():
+            globals_[_to_namespace(name)] = value.callback
+
         code = compile(code, "", "exec")
         exec(code, globals_)  # noqa: S102 - Use of exec detected.
         result = globals_["resolve"]
@@ -194,6 +203,35 @@ class CodeBuilder(typing.Generic[_T]):
 
         self._built = resolve
         return resolve
+
+    def _process_callbacks(self, kwargs: list[str], lines: list[str], *, is_async: bool = False) -> None:
+        call = "await ctx.call_with_async_di" if is_async else "ctx.call_with_di"
+        for name, _ in self._callbacks.items():
+            namespace_name = _to_namespace(name)
+            lines.append(
+                f"_{namespace_name} = ctx.injection_client.get_callback_override({namespace_name}) or {namespace_name}"
+            )
+            kwargs.append(
+                f"{name}=value if (value := ctx.get_cached_result(_{namespace_name}, default=_DEFAULT))"
+                f" is not _DEFAULT else {call}(_{namespace_name})"
+            )
+
+    def _process_types(self, kwargs: list[str]) -> None:
+        for name, type_ in self._types.items():
+            if type_.default is _types.UNDEFINED:
+                default = ""
+
+            else:
+                default = f", default=idefault_{name}"
+
+            kwargs.append(
+                f"{name}="
+                + " ".join(
+                    f"v if (v := ctx.get_type_dependency(itype{index}_{name}, default=_DEFAULT)) is not _DEFAULT else "
+                    for index in range(len(type_.types) - 1)
+                )
+                + f"ctx.get_type_dependency(itype{len(type_.types)-1}_{name}{default})"
+            )
 
     def build(self) -> BuiltSig[_T]:
         """Build the sync DI logic for this function.
@@ -212,13 +250,18 @@ class CodeBuilder(typing.Generic[_T]):
         if not self._types and not self._callbacks:
             return self._gen_no_inject()
 
-        kwargs = ", ".join(map(_resolve, itertools.chain(self._types, self._callbacks)))
+        kwargs: list[str] = []
+        lines: list[str] = []
+        self._process_types(kwargs)
+        self._process_callbacks(kwargs, lines)
+
+        pre_lines = (f"\n{_INDENT}" + f"\n{_INDENT}".join(lines)) if lines else ""
         code = textwrap.dedent(
             f"""
-        def resolve(ctx, args, kwargs, /):
-            return callback(*args, **kwargs, {kwargs})
+        def resolve(ctx, args, kwargs, /):{{}}
+            return callback(*args, **kwargs, {', '.join(kwargs)})
         """
-        )
+        ).format(pre_lines)
         self._built = self._exec(code)
         return self._built
 
@@ -250,20 +293,23 @@ class CodeBuilder(typing.Generic[_T]):
         if not self._types and not self._callbacks:
             return self._gen_no_inject_async()
 
-        kwargs = (", ".join(map(_resolve, self._types)) + ", " + ", ".join(map(_resolve_async, self._callbacks))).strip(
-            ", "
-        )
+        kwargs: list[str] = []
+        lines: list[str] = []
+        self._process_types(kwargs)
+        self._process_callbacks(kwargs, lines, is_async=True)
+
+        pre_lines = (f"\n{_INDENT}" + f"\n{_INDENT}".join(lines)) if lines else ""
         code = textwrap.dedent(
             f"""
-        async def resolve(ctx, args, kwargs, /):
-            result = callback(*args, **kwargs, {kwargs})
+        async def resolve(ctx, args, kwargs, /):{{}}
+            result = callback(*args, **kwargs, {', '.join(kwargs)})
 
             if iscoroutine(result):
                 return await result
 
             return result
         """
-        )
+        ).format(pre_lines)
         self._async_built = self._exec(code)
         return self._async_built
 

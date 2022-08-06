@@ -322,8 +322,8 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             await context.call_with_async_di(callback, 123, "ok")
 
-        assert exc_info.value.dependency_type == MockOtherType | MockType
-        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockOtherType | MockType} to actual value"
+        assert exc_info.value.dependency_type is MockType
+        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockType} to actual value"
 
     @pytest.mark.anyio()
     async def test_call_with_async_di_with_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
@@ -388,10 +388,8 @@ async def test_call_with_async_di_with_union_type_dependency_not_found(context: 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
         await context.call_with_async_di(callback, 123, "ok")
 
-    assert exc_info.value.dependency_type == typing.Union[MockType, MockOtherType]
-    assert exc_info.value.message == (
-        f"Couldn't resolve injected type(s) {typing.Union[MockType, MockOtherType]} to actual value"
-    )
+    assert exc_info.value.dependency_type is MockOtherType
+    assert exc_info.value.message == (f"Couldn't resolve injected type(s) {MockOtherType} to actual value")
 
 
 @pytest.mark.anyio()
@@ -535,8 +533,8 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             await context.call_with_async_di(callback, 123, "ok")
 
-        assert exc_info.value.dependency_type == MockOtherType | MockType
-        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockOtherType | MockType} to actual value"
+        assert exc_info.value.dependency_type is MockType
+        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockType} to actual value"
 
     @pytest.mark.anyio()
     async def test_call_with_async_di_with_annotated_3_10_union_type_dependency_defaulting(
@@ -642,11 +640,8 @@ async def test_call_with_async_di_with_annotated_union_type_dependency_not_found
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
         await context.call_with_async_di(callback, yeee="yeee", nyaa=True)
 
-    assert exc_info.value.dependency_type == typing.Union[MockType, MockOtherType]
-    assert (
-        exc_info.value.message
-        == f"Couldn't resolve injected type(s) {typing.Union[MockType, MockOtherType]} to actual value"
-    )
+    assert exc_info.value.dependency_type is MockOtherType
+    assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockOtherType} to actual value"
 
 
 @pytest.mark.anyio()
@@ -876,7 +871,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             await context.call_with_async_di(callback, 123, "ok")
 
-        assert exc_info.value.dependency_type == MockOtherType | MockType
+        assert exc_info.value.dependency_type is MockType
         # For whatever reason the order and format of the union in message's repr
         # isn't consistent here so it isn't tested.
 
@@ -982,7 +977,7 @@ async def test_call_with_async_di_with_shorthand_annotated_union_type_dependency
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
         await context.call_with_async_di(callback, yeee="yeee", nyaa=True)
 
-    assert exc_info.value.dependency_type == typing.Union[MockType, MockOtherType]
+    assert exc_info.value.dependency_type is MockOtherType
     # For whatever reason the order and format of the union in message's repr
     # isn't consistent here so it isn't tested.
 

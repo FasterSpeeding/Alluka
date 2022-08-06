@@ -303,8 +303,8 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             context.call_with_di(callback, 123, "ok")
 
-        assert exc_info.value.dependency_type == MockOtherType | MockType
-        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockOtherType | MockType} to actual value"
+        assert exc_info.value.dependency_type is MockType
+        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockType} to actual value"
 
     def test_call_with_di_with_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
         mock_value = MockType()
@@ -355,10 +355,8 @@ def test_call_with_di_with_union_type_dependency_not_found(context: alluka.Basic
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
         context.call_with_di(callback, 123, "ok")
 
-    assert exc_info.value.dependency_type == typing.Union[MockType, MockOtherType]
-    assert exc_info.value.message == (
-        f"Couldn't resolve injected type(s) {typing.Union[MockType, MockOtherType]} to actual value"
-    )
+    assert exc_info.value.dependency_type is MockOtherType
+    assert exc_info.value.message == (f"Couldn't resolve injected type(s) {MockOtherType} to actual value")
 
 
 def test_call_with_di_with_defaulting_union_type_dependency(context: alluka.BasicContext):
@@ -493,8 +491,8 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             context.call_with_di(callback, 123, "ok")
 
-        assert exc_info.value.dependency_type == MockOtherType | MockType
-        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockOtherType | MockType} to actual value"
+        assert exc_info.value.dependency_type is MockType
+        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockType} to actual value"
 
     def test_call_with_di_with_annotated_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
         mock_value = MockType()
@@ -593,11 +591,8 @@ def test_call_with_di_with_annotated_union_type_dependency_not_found(context: al
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
         context.call_with_di(callback, yeee="yeee", nyaa=True)
 
-    assert exc_info.value.dependency_type == typing.Union[MockType, MockOtherType]
-    assert (
-        exc_info.value.message
-        == f"Couldn't resolve injected type(s) {typing.Union[MockType, MockOtherType]} to actual value"
-    )
+    assert exc_info.value.dependency_type is MockOtherType
+    assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockOtherType} to actual value"
 
 
 def test_call_with_di_with_annotated_defaulting_type_dependency(context: alluka.BasicContext):
@@ -807,8 +802,8 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             context.call_with_di(callback, 123, "ok")
 
-        assert exc_info.value.dependency_type == MockType | MockOtherType
-        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockType | MockOtherType} to actual value"
+        assert exc_info.value.dependency_type is MockOtherType
+        assert exc_info.value.message == f"Couldn't resolve injected type(s) {MockOtherType} to actual value"
 
     def test_call_with_di_with_shorthand_annotated_3_10_union_type_dependency_defaulting(
         context: alluka.BasicContext,
@@ -904,7 +899,7 @@ def test_call_with_di_with_shorthand_annotated_union_type_dependency_not_found(c
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
         context.call_with_di(callback, yeee="yeee", nyaa=True)
 
-    assert exc_info.value.dependency_type == typing.Union[MockType, MockOtherType]
+    assert exc_info.value.dependency_type is MockOtherType
     # For whatever reason the order and format of the union in message's repr
     # isn't consistent here so it isn't tested.
 

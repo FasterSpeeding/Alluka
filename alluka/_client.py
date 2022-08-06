@@ -255,7 +255,7 @@ class Client(alluka.Client):
         return self
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> _T:
         ...
 
     @typing.overload
@@ -264,9 +264,15 @@ class Client(alluka.Client):
 
     def get_type_dependency(
         self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = alluka.UNDEFINED
-    ) -> typing.Union[_T, _DefaultT, alluka.Undefined]:
+    ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Client>>.
-        return self._type_dependencies.get(type_, default)
+        result = self._type_dependencies.get(type_, default)
+        if result is alluka.UNDEFINED:
+            raise _errors.MissingDependencyError(
+                f"Couldn't resolve injected type(s) {type_} to actual value", type_
+            ) from None
+
+        return result
 
     def remove_type_dependency(self: _ClientT, type_: type[typing.Any], /) -> _ClientT:
         # <<inherited docstring from alluka.abc.Client>>.
@@ -356,7 +362,7 @@ class BasicContext(alluka.Context):
         return self._result_cache.get(callback, default) if self._result_cache else default
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> _T:
         ...
 
     @typing.overload
@@ -365,9 +371,12 @@ class BasicContext(alluka.Context):
 
     def get_type_dependency(
         self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = alluka.UNDEFINED
-    ) -> typing.Union[_T, _DefaultT, alluka.Undefined]:
+    ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Context>>.
-        if self._special_case_types and (value := self._special_case_types.get(type_, default)) is not default:
+        if (
+            self._special_case_types
+            and (value := self._special_case_types.get(type_, alluka.UNDEFINED)) is not alluka.UNDEFINED
+        ):
             return typing.cast(_T, value)
 
         return self._injection_client.get_type_dependency(type_, default=default)

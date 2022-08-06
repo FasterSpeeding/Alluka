@@ -324,7 +324,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             await context.call_with_async_di(callback, 123, "ok")
 
-        assert exc_info.value.dependency_type == MockOtherType | MockType
+        assert exc_info.value.dependency_type is MockType
         # 3.10.1/2+ and 3.11 may re-order the | union types while resolving them from a string
         # future annotation so we can't reliably assert these.
 
@@ -391,7 +391,7 @@ async def test_call_with_async_di_with_union_type_dependency_not_found(context: 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
         await context.call_with_async_di(callback, 123, "ok")
 
-    assert exc_info.value.dependency_type == typing.Union[MockType, MockOtherType]
+    assert exc_info.value.dependency_type is MockOtherType
     # On 3.10.1/2+ typing.Unions are converted to | while resolving future annotations so we can't consistently
     # assert the message.
 
@@ -537,7 +537,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             await context.call_with_async_di(callback, 123, "ok")
 
-        assert exc_info.value.dependency_type == MockOtherType | MockType
+        assert exc_info.value.dependency_type is MockType
         # 3.10.1/2+ and 3.11 may re-order the | union types while resolving them from a string
         # future annotation so we can't reliably assert these.
 
@@ -651,7 +651,7 @@ async def test_call_with_async_di_with_annotated_union_type_dependency_not_found
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
         await context.call_with_async_di(callback, yeee="yeee", nyaa=True)
 
-    assert exc_info.value.dependency_type == typing.Union[MockType, MockOtherType]
+    assert exc_info.value.dependency_type is MockOtherType
     # On 3.10.1/2+ typing.Unions are converted to | while resolving future annotations so we can't consistently
     # assert the message.
 
@@ -883,7 +883,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
             await context.call_with_async_di(callback, 123, "ok")
 
-        assert exc_info.value.dependency_type == MockOtherType | MockType
+        assert exc_info.value.dependency_type is MockType
         # 3.10.1/2+ and 3.11 may re-order the | union types while resolving them from a string
         # future annotation so we can't reliably assert these.
 
@@ -989,7 +989,7 @@ async def test_call_with_async_di_with_shorthand_annotated_union_type_dependency
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
         await context.call_with_async_di(callback, yeee="yeee", nyaa=True)
 
-    assert exc_info.value.dependency_type == typing.Union[MockType, MockOtherType]
+    assert exc_info.value.dependency_type is MockOtherType
     # On 3.10.1/2+ typing.Unions are converted to | while resolving future annotations so we can't consistently
     # assert the message.
 
