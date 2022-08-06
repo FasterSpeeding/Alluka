@@ -276,7 +276,7 @@ class _ICallbackMeta(type):
     __slots__ = ()
 
     def __getitem__(self, callback: alluka.CallbackSig[_T], /) -> type[_T]:
-        return typing.Annotated[_T, InjectedDescriptor(callback=callback)]
+        return typing.cast(type[_T], typing.Annotated[_T, InjectedDescriptor(callback=callback)])
 
 
 class ICallback(metaclass=_ICallbackMeta):
