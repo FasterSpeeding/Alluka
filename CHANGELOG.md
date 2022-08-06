@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.3] - 2022-11-12
 ### Added
 - `alluka.abc.Client` is now set as a type dependency by default.
+- Generic class `alluka.ICallback` which can be used as a shorthand for declaring
+  a callback injection in an arugment's type-hint.
 
 ### Changed
 - Renamed `AsyncOnlyError` to `SyncOnlyError` (`AsyncOnlyError` has been kept as a

@@ -31,7 +31,7 @@
 """Internal types used by Alluka."""
 from __future__ import annotations
 
-__all__ = ["Injected", "InjectedDescriptor"]
+__all__ = ["ICallback", "Injected", "InjectedDescriptor"]
 
 import enum
 import typing
@@ -270,3 +270,30 @@ be resolved using the linked client.
     This is a [typing.Annotated][] alias and the behaviour for nested
     Annotated types may be found at the docs for it [typing.Annotated][].
 """
+
+
+class _ICallbackMeta(type):
+    __slots__ = ()
+
+    def __getitem__(self, callback: alluka.CallbackSig[_T], /) -> type[_T]:
+        return typing.Annotated[_T, InjectedDescriptor(callback=callback)]
+
+
+class ICallback(metaclass=_ICallbackMeta):
+    """Generic class used to declare a callback injection in a type-hint.
+
+    ```
+    def injected_callback() -> str:
+        return "meow"
+
+    def callback(
+        value: ICallback[injected_callback],
+    ) -> None:
+        raise NotImplementedError
+    ```
+    """
+
+    __slots__ = ()
+
+    def __new__(cls) -> typing.NoReturn:
+        raise RuntimeError("ICallback cannot be initialised; you probably want `ICallback[callback]`")
