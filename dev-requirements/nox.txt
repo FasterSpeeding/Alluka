@@ -28,7 +28,7 @@ idna==3.3
     # via
     #   anyio
     #   rfc3986
-nox==2022.1.7
+nox==2022.8.7
     # via -r dev-requirements/nox.in
 packaging==21.3
     # via nox
