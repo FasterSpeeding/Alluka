@@ -6,17 +6,17 @@
 #
 anyio==3.6.1
     # via httpcore
-argcomplete==1.12.3
+argcomplete==2.0.0
     # via nox
 certifi==2022.6.15
     # via
     #   httpcore
     #   httpx
-colorlog==6.6.0
+colorlog==6.7.0
     # via nox
-distlib==0.3.4
+distlib==0.3.6
     # via virtualenv
-filelock==3.7.1
+filelock==3.8.0
     # via virtualenv
 h11==0.12.0
     # via httpcore
@@ -40,12 +40,10 @@ pyparsing==3.0.9
     # via packaging
 rfc3986[idna2008]==1.5.0
     # via httpx
-six==1.16.0
-    # via virtualenv
 sniffio==1.2.0
     # via
     #   anyio
     #   httpcore
     #   httpx
-virtualenv==20.15.1
+virtualenv==20.16.4
     # via nox
