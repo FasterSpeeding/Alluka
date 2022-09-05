@@ -1,6 +1,6 @@
 # Comes with a builtin pytest plugin.
 anyio==3.6.1
-pytest==7.1.2
+pytest==7.1.3
 pytest-cov==3
 pytest-xdist==2.5
 # Needed to run tests in trio.
