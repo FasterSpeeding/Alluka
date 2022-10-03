@@ -15,6 +15,8 @@ attrs==22.1.0
     #   trio
 coverage[toml]==6.4.4
     # via pytest-cov
+exceptiongroup==1.0.0rc9
+    # via trio
 execnet==1.9.0
     # via pytest-xdist
 idna==3.3
@@ -57,5 +59,5 @@ tomli==2.0.1
     # via
     #   coverage
     #   pytest
-trio==0.21.0
+trio==0.22.0
     # via -r dev-requirements/tests.in
