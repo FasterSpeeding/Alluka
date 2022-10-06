@@ -38,7 +38,7 @@ import typing
 
 
 class AllukaError(Exception):
-    """Base clases for the custom errors raised by Alluka."""
+    """Base class for the custom errors raised by Alluka."""
 
 
 class SyncOnlyError(AllukaError):
