@@ -43,6 +43,7 @@ __all__: list[str] = [
 ]
 
 import abc
+import enum
 import typing
 from collections import abc as collections
 
@@ -56,36 +57,26 @@ _OtherT = typing.TypeVar("_OtherT")
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
 
 
-class Undefined:
-    """Deprecated type of the [UNDEFINED][alluka.abc.UNDEFINED] constant.
-
-    !!! warning "deprecated"
-        This will be removed in `v0.2.0`.
-    """
-
+class _Undefined:
     __slots__ = ()
-    __instance: Undefined
 
     def __bool__(self) -> typing.Literal[False]:
         return False
 
-    def __new__(cls) -> Undefined:
-        try:
-            return cls.__instance
 
-        except AttributeError:
-            new = super().__new__(cls)
-            assert isinstance(new, Undefined)
-            cls.__instance = new
-            return cls.__instance
+class _UndefinedEnum(enum.Enum):
+    UNDEFINED = _Undefined()
 
 
-UNDEFINED: typing.Final[Undefined] = Undefined()
-"""Deprecated singleton value used to indicate that a value is undefined
+Undefined = typing.Literal[_UndefinedEnum.UNDEFINED]
+"""Type of [alluka.abc.UNDEFINED][]."""
 
-!!! warning "deprecated"
-    This will be removedin `v0.2.0`.
+UNDEFINED: typing.Final[Undefined] = _UndefinedEnum.UNDEFINED
+"""Used to represent when a parameter hasn't been specified.
+
+This helps differentiate from thenormal default types ([None][] and [types.EllipsisType][])
 """
+
 _UndefinedOr = typing.Union[Undefined, _T]
 
 
@@ -323,7 +314,7 @@ class Client(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> _T:
         ...
 
     @typing.overload
@@ -333,13 +324,9 @@ class Client(abc.ABC):
 
     @abc.abstractmethod
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = UNDEFINED
+        self, type_: type[_T], /, *, default: _DefaultT = ...
     ) -> typing.Union[_T, _DefaultT, Undefined]:
         """Get the implementation for an injected type.
-
-        !!! warning "deprecated"
-            Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
-            replaced by a [KeyError][] raise in `v0.2.0`.
 
         Parameters
         ----------
@@ -350,11 +337,16 @@ class Client(abc.ABC):
 
         Returns
         -------
-        _T | _DefaultT | alluka.abc.UNDEFINED
+        _T | _DefaultT
             The resolved type if found.
 
             If the type isn't implemented then the value of `default`
-            will be returned if it is provided, else [alluka.abc.UNDEFINED][].
+            will be returned if it is provided.
+
+        Raises
+        ------
+        alluka.MissingDependencyError
+            If no implementation is found for `type_` and `default` isn't specified.
         """
 
     @abc.abstractmethod
@@ -559,7 +551,7 @@ class Context(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> _T:
         ...
 
     @typing.overload
@@ -568,17 +560,11 @@ class Context(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def get_type_dependency(
-        self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = UNDEFINED
-    ) -> typing.Union[_T, _DefaultT, Undefined]:
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> typing.Union[_T, _DefaultT]:
         """Get the implementation for an injected type.
 
         Unlike [Client.get_type_dependency][alluka.abc.Client.get_type_dependency],
         this method may also return context specific implementations of a type.
-
-        !!! warning "deprecated"
-            Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
-            replaced by a [KeyError][] raise in `v0.2.0`.
 
         Parameters
         ----------
@@ -589,11 +575,16 @@ class Context(abc.ABC):
 
         Returns
         -------
-        _T | _DefaultT | alluka.abc.UNDEFINED
+        _T | _DefaultT
             The resolved type if found.
 
             If the type isn't implemented then the value of `default`
-            will be returned if it is provided, else [alluka.abc.UNDEFINED][].
+            will be returned if it is provided.
+
+        Raises
+        ------
+        alluka.MissingDependencyError
+            If no implementation is found for `type_` and `default` isn't specified.
         """
 
 

@@ -40,6 +40,7 @@ import weakref
 from collections import abc as collections
 
 from . import _errors
+from . import _manual
 from . import _self_injecting
 from . import _types
 from . import _visitor
@@ -49,8 +50,8 @@ from . import abc as alluka
 
 _T = typing.TypeVar("_T")
 
-
-_AnyCoro = collections.Coroutine[typing.Any, typing.Any, typing.Any]
+_CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
+_AnyCoro = _CoroT[typing.Any]
 _BasicContextT = typing.TypeVar("_BasicContextT", bound="BasicContext")
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=alluka.CallbackSig[typing.Any])
 _ClientT = typing.TypeVar("_ClientT", bound="Client")
@@ -136,13 +137,28 @@ def inject(
     return typing.cast(_T, _types.InjectedDescriptor(callback=callback, type=type))
 
 
+class _ParsedInjector(typing.Generic[_T]):
+    __slots__ = ("_builder",)
+
+    def __init__(self, callback: alluka.CallbackSig[_T], /) -> None:
+        self._builder = _manual.CodeBuilder(callback)
+        for name, value in _visitor.Callback(callback).accept(_visitor.ParameterVisitor()).items():
+            self._builder.set_injected(name, value)
+
+    def get_async_injector(self) -> _manual.BuiltSig[_CoroT[_T]]:
+        return self._builder.build_async()
+
+    def get_injector(self) -> _manual.BuiltSig[_T]:
+        return self._builder.build()
+
+
 class Client(alluka.Client):
     """Standard implementation of a dependency injection client.
 
     This is used to track type dependencies and execute callbacks.
     """
 
-    __slots__ = ("_callback_overrides", "_descriptors", "_introspect_annotations", "_type_dependencies")
+    __slots__ = ("_callback_overrides", "_injectors", "_introspect_annotations", "_type_dependencies")
 
     def __init__(self, *, introspect_annotations: bool = True) -> None:
         """Initialise an injector client."""
@@ -150,21 +166,26 @@ class Client(alluka.Client):
         # TODO: this forces objects to have a __weakref__ attribute,
         # and also hashability (so hash and eq or neither), do we want to
         # keep with this behaviour or document it?
-        self._descriptors: weakref.WeakKeyDictionary[
-            alluka.CallbackSig[typing.Any], dict[str, _types.InjectedTuple]
+        self._injectors: weakref.WeakKeyDictionary[
+            alluka.CallbackSig[typing.Any], _manual.DefinedInjectors[typing.Any]
         ] = weakref.WeakKeyDictionary()
         self._introspect_annotations = introspect_annotations
         self._type_dependencies: dict[type[typing.Any], typing.Any] = {alluka.Client: self, Client: self}
 
-    def _build_descriptors(self, callback: alluka.CallbackSig[typing.Any], /) -> dict[str, _types.InjectedTuple]:
+    def _get_injector(self, callback: alluka.CallbackSig[typing.Any], /) -> _manual.DefinedInjectors[typing.Any]:
         try:
-            return self._descriptors[callback]
+            return self._injectors[callback]
 
         except KeyError:
             pass
 
+        maybe_injectors = callback
+        if _manual.has_predefined_injectors(maybe_injectors):
+            self._injectors[callback] = maybe_injectors
+            return maybe_injectors
+
         # TODO: introspect_annotations=self._introspect_annotations
-        descriptors = self._descriptors[callback] = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
+        descriptors = self._injectors[callback] = _ParsedInjector(callback)
         return descriptors
 
     def as_async_self_injecting(self, callback: _CallbackSigT, /) -> alluka.AsyncSelfInjecting[_CallbackSigT]:
@@ -209,40 +230,24 @@ class Client(alluka.Client):
         self, ctx: alluka.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
-        descriptors = self._build_descriptors(callback)
-        if descriptors:
-            # This prioritises passed **kwargs over the injected dependencies.
-            kwargs = {n: v.resolve(ctx) for n, (_, v) in descriptors.items()} | kwargs
+        result = self._get_injector(callback).get_injector()(ctx, args, kwargs)
 
-        result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):
             raise _errors.SyncOnlyError
 
-        assert not isinstance(result, collections.Coroutine)
-        return result
+        return typing.cast(_T, result)
 
-    async def call_with_async_di(self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    def call_with_async_di(
+        self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
+    ) -> _CoroT[_T]:
         # <<inherited docstring from alluka.abc.Client>>.
-        return await BasicContext(self).call_with_async_di(callback, *args, **kwargs)
+        return BasicContext(self).call_with_async_di(callback, *args, **kwargs)
 
-    async def call_with_ctx_async(
+    def call_with_ctx_async(
         self, ctx: alluka.Context, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
-    ) -> _T:
+    ) -> _CoroT[_T]:
         # <<inherited docstring from alluka.abc.Client>>.
-        if descriptors := self._build_descriptors(callback):
-            # Pyright currently doesn't support `is` for narrowing tuple types like this
-            # This prioritises passed **kwargs over the injected dependencies.
-            kwargs = {
-                n: v[1].resolve(ctx) if v[0] == _types.InjectedTypes.TYPE else await v[1].resolve_async(ctx)
-                for n, v in descriptors.items()
-            } | kwargs
-
-        result = callback(*args, **kwargs)
-        if asyncio.iscoroutine(result):
-            return typing.cast(_T, await result)
-
-        assert not isinstance(result, collections.Coroutine)
-        return result
+        return self._get_injector(callback).get_async_injector()(ctx, args, kwargs)
 
     def set_type_dependency(self: _ClientT, type_: type[_T], value: _T, /) -> _ClientT:
         # <<inherited docstring from alluka.abc.Client>>.
@@ -250,7 +255,7 @@ class Client(alluka.Client):
         return self
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> _T:
         ...
 
     @typing.overload
@@ -259,9 +264,15 @@ class Client(alluka.Client):
 
     def get_type_dependency(
         self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = alluka.UNDEFINED
-    ) -> typing.Union[_T, _DefaultT, alluka.Undefined]:
+    ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Client>>.
-        return self._type_dependencies.get(type_, default)
+        result = self._type_dependencies.get(type_, default)
+        if result is alluka.UNDEFINED:
+            raise _errors.MissingDependencyError(
+                f"Couldn't resolve injected type(s) {type_} to actual value", type_
+            ) from None
+
+        return result
 
     def remove_type_dependency(self: _ClientT, type_: type[typing.Any], /) -> _ClientT:
         # <<inherited docstring from alluka.abc.Client>>.
@@ -328,9 +339,11 @@ class BasicContext(alluka.Context):
         # <<inherited docstring from alluka.abc.Context>>.
         return self._injection_client.call_with_ctx(self, callback, *args, **kwargs)
 
-    async def call_with_async_di(self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    def call_with_async_di(
+        self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
+    ) -> _CoroT[_T]:
         # <<inherited docstring from alluka.abc.Context>>.
-        return await self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs)
+        return self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs)
 
     @typing.overload
     def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> _UndefinedOr[_T]:
@@ -349,7 +362,7 @@ class BasicContext(alluka.Context):
         return self._result_cache.get(callback, default) if self._result_cache else default
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
+    def get_type_dependency(self, type_: type[_T], /) -> _T:
         ...
 
     @typing.overload
@@ -358,9 +371,12 @@ class BasicContext(alluka.Context):
 
     def get_type_dependency(
         self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = alluka.UNDEFINED
-    ) -> typing.Union[_T, _DefaultT, alluka.Undefined]:
+    ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Context>>.
-        if self._special_case_types and (value := self._special_case_types.get(type_, default)) is not default:
+        if (
+            self._special_case_types
+            and (value := self._special_case_types.get(type_, alluka.UNDEFINED)) is not alluka.UNDEFINED
+        ):
             return typing.cast(_T, value)
 
         return self._injection_client.get_type_dependency(type_, default=default)

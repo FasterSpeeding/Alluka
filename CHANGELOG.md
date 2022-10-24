@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - `alluka.abc.Client` is now set as a type dependency by default.
+- `alluka.ManuallyInjected` to allow for declaring the types and callbacks injected
+  into a callback using explicit builder method calls rather than the signature.
 
 ### Changed
 - Renamed `AsyncOnlyError` to `SyncOnlyError` (`AsyncOnlyError` has been kept as a
   deprecated alias).
+- Optimised DI for a at least 3x speed increase by switching to code gen.
+- `get_type_dependency` now raises a `alluka.MissingDependencyError` if no type
+  dependency is set.
 
 ## [0.1.2] - 2020-07-06
 ### Changed

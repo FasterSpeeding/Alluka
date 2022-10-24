@@ -45,7 +45,7 @@ class SyncOnlyError(AllukaError):
     """Error raised when trying to execute async DI in a sync context."""
 
 
-class MissingDependencyError(AllukaError):
+class MissingDependencyError(AllukaError, KeyError):
     """Error raised when a dependency couldn't be found."""
 
     message: str
