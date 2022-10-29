@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed `AsyncOnlyError` to `SyncOnlyError` (`AsyncOnlyError` has been kept as a
   deprecated alias).
 
+### Removed
+- The project metadata dunder attributes from [alluka][].
+  [importlib.metadata][] should be used to get this metadata instead.
+
 ## [0.1.2] - 2020-07-06
 ### Changed
 - The optional `introspect_annotations` parameter for `alluka.Client.__init__`

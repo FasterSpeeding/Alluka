@@ -47,8 +47,6 @@ __all__: list[str] = [
     "inject",
 ]
 
-import typing
-
 from . import abc
 from ._client import BasicContext
 from ._client import Client
@@ -60,8 +58,5 @@ from ._self_injecting import AsyncSelfInjecting
 from ._self_injecting import SelfInjecting
 from ._types import Injected
 from ._types import InjectedDescriptor
-
-__author__: typing.Final[str] = "Faster Speeding"
-__version__: typing.Final[str] = "0.1.2"
 
 AsyncOnlyError = SyncOnlyError
