@@ -4,6 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "alluka"
+version = "0.1.2"
 readme = "README.md"
 requires-python = ">=3.9.0,<3.12"
 license = {file = "LICENSE"}
@@ -28,7 +29,7 @@ classifiers = [
     "Typing :: Typed"
 ]
 dependencies = []
-dynamic = ["description", "version"]
+dynamic = ["description"]
 
 [project.urls]
 homepage = "https://github.com/FasterSpeeding/Alluka"

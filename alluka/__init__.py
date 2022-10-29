@@ -47,8 +47,6 @@ __all__: list[str] = [
     "inject",
 ]
 
-import typing
-
 from . import abc
 from ._client import BasicContext
 from ._client import Client
@@ -60,16 +58,5 @@ from ._self_injecting import AsyncSelfInjecting
 from ._self_injecting import SelfInjecting
 from ._types import Injected
 from ._types import InjectedDescriptor
-
-__author__: typing.Final[str] = "Faster Speeding"
-__ci__: typing.Final[str] = "https://github.com/FasterSpeeding/Alluka/actions"
-__copyright__: typing.Final[str] = "© 2020-2022 Faster Speeding"
-__coverage__: typing.Final[str] = "https://codeclimate.com/github/FasterSpeeding/Alluka"
-__docs__: typing.Final[str] = "https://alluka.cursed.solutions/"
-__email__: typing.Final[str] = "lucina@lmbyrne.dev"
-__issue_tracker__: typing.Final[str] = "https://github.com/FasterSpeeding/Alluka/issues"
-__license__: typing.Final[str] = "BSD"
-__url__: typing.Final[str] = "https://github.com/FasterSpeeding/Alluka"
-__version__: typing.Final[str] = "0.1.2"
 
 AsyncOnlyError = SyncOnlyError
