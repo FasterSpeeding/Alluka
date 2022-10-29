@@ -32,10 +32,10 @@ dependencies = []
 dynamic = ["description"]
 
 [project.urls]
-homepage = "https://github.com/FasterSpeeding/Alluka"
-repository = "https://github.com/FasterSpeeding/Alluka"
-documentation = "https://alluka.cursed.solutions/"
-changelog = "https://github.com/FasterSpeeding/Alluka/blob/master/CHANGELOG.md"
+Homepage = "https://github.com/FasterSpeeding/Alluka"
+Repository = "https://github.com/FasterSpeeding/Alluka"
+Documentation = "https://alluka.cursed.solutions/"
+Changelog = "https://github.com/FasterSpeeding/Alluka/blob/master/CHANGELOG.md"
 
 [tool.black]
 line-length     = 120
