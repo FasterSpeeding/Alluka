@@ -34,6 +34,7 @@ from __future__ import annotations
 __all__: list[str] = ["AllukaError", "MissingDependencyError", "SyncOnlyError"]
 
 import typing
+from collections import abc as collections
 
 
 class AllukaError(Exception):
@@ -63,3 +64,12 @@ class MissingDependencyError(AllukaError):
         """
         self.dependency_type = dependency_type
         self.message = message
+
+
+class FailedFreeze(AllukaError):
+    """Error raied"""
+
+    missing_errors: collections.Sequence[collections.Sequence[type[typing.Any]]]
+
+    def __init__(self, missing_errors: collections.Sequence[collections.Sequence[type[typing.Any]]], /) -> None:
+        self.missing_errors = missing_errors

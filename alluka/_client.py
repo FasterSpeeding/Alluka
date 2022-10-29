@@ -34,6 +34,7 @@ from __future__ import annotations
 __all__: list[str] = ["BasicContext", "Client", "inject"]
 
 import asyncio
+import itertools
 import typing
 import weakref
 from collections import abc as collections
@@ -270,6 +271,33 @@ class Client(alluka.Client):
         # <<inherited docstring from alluka.abc.Client>>.
         del self._callback_overrides[callback]
         return self
+
+    def _walk_types(
+        self, callback: collections.Callable[..., typing.Any], /
+    ) -> collections.Iterable[_types.InjectedType]:
+        for descriptor in self._build_descriptors(callback).values():
+            if descriptor[0] == _types.InjectedTypes.TYPE:
+                yield descriptor[1]
+
+            else:
+                yield from self._walk_types(descriptor[1].callback)
+
+    def freeze(self, callbacks: collections.Iterable[collections.Callable[..., typing.Any]], /) -> None:
+        missing_deps: set[tuple[type[typing.Any], ...]] = set()
+
+        for descriptor in itertools.chain.from_iterable(map(self._walk_types, callbacks)):
+            if descriptor.default is _types.UNDEFINED or descriptor.repr_type in self._type_dependencies:
+                continue
+
+            for type_ in descriptor.types:
+                if type_ in self._type_dependencies:
+                    break
+
+            else:
+                missing_deps.add(tuple(descriptor.types))
+
+        if missing_deps:
+            raise _errors.FailedFreeze(tuple(missing_deps))
 
 
 class BasicContext(alluka.Context):
