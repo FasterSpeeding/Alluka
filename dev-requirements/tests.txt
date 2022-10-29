@@ -15,7 +15,7 @@ attrs==22.1.0
     #   trio
 coverage[toml]==6.5.0
     # via pytest-cov
-exceptiongroup==1.0.0rc9
+exceptiongroup==1.0.0
     # via
     #   pytest
     #   trio
