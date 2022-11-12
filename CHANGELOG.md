@@ -67,7 +67,7 @@ part of Tanjun.
   are now processed within the client and any necessary caching is kept internal.
 
 [Unreleased]: https://github.com/FasterSpeeding/Alluka/compare/v0.1.3...HEAD
-[0.1.2]: https://github.com/FasterSpeeding/Alluka/compare/v0.1.2...v0.1.3
+[0.1.3]: https://github.com/FasterSpeeding/Alluka/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/FasterSpeeding/Alluka/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/FasterSpeeding/Alluka/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/FasterSpeeding/Alluka/compare/ed0567142b8e11f98408735495dbc4f771dc8643...v0.1.0
