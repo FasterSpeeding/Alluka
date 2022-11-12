@@ -89,7 +89,7 @@ UNDEFINED: typing.Final[Undefined] = Undefined()
 _UndefinedOr = typing.Union[Undefined, _T]
 
 
-CallbackSig = typing.Union[collections.Callable[..., _CoroT[_T]], collections.Callable[..., _T]]
+CallbackSig = collections.Callable[..., typing.Union[_CoroT[_T], _T]]
 """Type-hint of a injector callback.
 
 !!! note
