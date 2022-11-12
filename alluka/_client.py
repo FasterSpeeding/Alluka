@@ -218,12 +218,11 @@ class Client(alluka.Client):
         if asyncio.iscoroutine(result):
             raise _errors.SyncOnlyError
 
-        assert not isinstance(result, collections.Coroutine)
         return result
 
     async def call_with_async_di(self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
-        return await BasicContext(self).call_with_async_di(callback, *args, **kwargs)
+        return typing.cast(_T, await BasicContext(self).call_with_async_di(callback, *args, **kwargs))
 
     async def call_with_ctx_async(
         self, ctx: alluka.Context, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
@@ -241,8 +240,7 @@ class Client(alluka.Client):
         if asyncio.iscoroutine(result):
             return typing.cast(_T, await result)
 
-        assert not isinstance(result, collections.Coroutine)
-        return result
+        return typing.cast(_T, result)
 
     def set_type_dependency(self: _ClientT, type_: type[_T], value: _T, /) -> _ClientT:
         # <<inherited docstring from alluka.abc.Client>>.
@@ -330,7 +328,7 @@ class BasicContext(alluka.Context):
 
     async def call_with_async_di(self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Context>>.
-        return await self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs)
+        return typing.cast(_T, await self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs))
 
     @typing.overload
     def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> _UndefinedOr[_T]:

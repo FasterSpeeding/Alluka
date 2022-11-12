@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Renamed `AsyncOnlyError` to `SyncOnlyError` (`AsyncOnlyError` has been kept as a
   deprecated alias).
+- Relaxed typing around DI for async callbacks to allow for returning a union of
+  `Coroutine[Any, Any, T] | T`.
+
+### Fixed
+- Don't error on async callbacks which return a coroutine after being awaited
+  during DI when assertions are enabled.
 
 ### Removed
 - The project metadata dunder attributes from [alluka][].
