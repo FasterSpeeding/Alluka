@@ -38,7 +38,7 @@ from collections import abc as collections
 
 import nox
 
-nox.options.sessions = ["reformat", "flake8", "spell-check", "slot-check", "type-check", "test", "verify-types"]  # type: ignore
+nox.options.sessions = ["reformat", "flake8", "spell-check", "slot-check", "type-check", "test", "verify-types"]
 GENERAL_TARGETS = ["./noxfile.py", "./tests"]
 _BLACKLISTED_TARGETS = {"_vendor", "__pycache__"}
 for path in pathlib.Path("./alluka").glob("*"):
@@ -46,7 +46,6 @@ for path in pathlib.Path("./alluka").glob("*"):
         GENERAL_TARGETS.append(str(path))
 
 
-PYTHON_VERSIONS = ["3.9", "3.10"]  # TODO: @nox.session(python=["3.6", "3.7", "3.8"])?
 _DEV_DEP_DIR = pathlib.Path("./dev-requirements")
 
 
