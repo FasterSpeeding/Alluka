@@ -45,15 +45,16 @@ from . import _types
 from . import _visitor
 from . import abc as alluka
 
+if typing.TYPE_CHECKING:
+    from typing_extensions import Self
+
 # pyright: reportOverlappingOverload=warning
 
 _T = typing.TypeVar("_T")
 
 
 _AnyCoro = collections.Coroutine[typing.Any, typing.Any, typing.Any]
-_BasicContextT = typing.TypeVar("_BasicContextT", bound="BasicContext")
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=alluka.CallbackSig[typing.Any])
-_ClientT = typing.TypeVar("_ClientT", bound="Client")
 _DefaultT = typing.TypeVar("_DefaultT")
 _SyncCallbackSigT = typing.TypeVar("_SyncCallbackSigT", bound=collections.Callable[..., typing.Any])
 
@@ -242,7 +243,7 @@ class Client(alluka.Client):
 
         return typing.cast(_T, result)
 
-    def set_type_dependency(self: _ClientT, type_: type[_T], value: _T, /) -> _ClientT:
+    def set_type_dependency(self, type_: type[_T], value: _T, /) -> Self:
         # <<inherited docstring from alluka.abc.Client>>.
         self._type_dependencies[type_] = value
         return self
@@ -261,14 +262,12 @@ class Client(alluka.Client):
         # <<inherited docstring from alluka.abc.Client>>.
         return self._type_dependencies.get(type_, default)
 
-    def remove_type_dependency(self: _ClientT, type_: type[typing.Any], /) -> _ClientT:
+    def remove_type_dependency(self, type_: type[typing.Any], /) -> Self:
         # <<inherited docstring from alluka.abc.Client>>.
         del self._type_dependencies[type_]
         return self
 
-    def set_callback_override(
-        self: _ClientT, callback: alluka.CallbackSig[_T], override: alluka.CallbackSig[_T], /
-    ) -> _ClientT:
+    def set_callback_override(self, callback: alluka.CallbackSig[_T], override: alluka.CallbackSig[_T], /) -> Self:
         # <<inherited docstring from alluka.abc.Client>>.
         self._callback_overrides[callback] = override
         return self
@@ -277,7 +276,7 @@ class Client(alluka.Client):
         # <<inherited docstring from alluka.abc.Client>>.
         return self._callback_overrides.get(callback)
 
-    def remove_callback_override(self: _ClientT, callback: alluka.CallbackSig[_T], /) -> _ClientT:
+    def remove_callback_override(self, callback: alluka.CallbackSig[_T], /) -> Self:
         # <<inherited docstring from alluka.abc.Client>>.
         del self._callback_overrides[callback]
         return self
@@ -363,14 +362,14 @@ class BasicContext(alluka.Context):
 
         return self._injection_client.get_type_dependency(type_, default=default)
 
-    def _set_type_special_case(self: _BasicContextT, type_: type[_T], value: _T, /) -> _BasicContextT:
+    def _set_type_special_case(self, type_: type[_T], value: _T, /) -> Self:
         if not self._special_case_types:
             self._special_case_types = {}
 
         self._special_case_types[type_] = value
         return self
 
-    def _remove_type_special_case(self: _BasicContextT, type_: type[typing.Any], /) -> _BasicContextT:
+    def _remove_type_special_case(self, type_: type[typing.Any], /) -> Self:
         if not self._special_case_types:
             raise KeyError(type_)
 
