@@ -200,6 +200,8 @@ class ParameterVisitor:
 
             return self._annotation_to_type(args[0], default=default)
 
+        return None  # MyPy
+
     def visit_callback(self, callback: Callback, /) -> dict[str, _types.InjectedTuple]:
         results: dict[str, _types.InjectedTuple] = {}
         for name, value in callback.parameters.items():
@@ -218,7 +220,7 @@ class ParameterVisitor:
 
     def visit_default(self, value: Default, /) -> typing.Optional[_types.InjectedTuple]:
         if value.is_empty or not isinstance(value.default, _types.InjectedDescriptor):
-            return
+            return None  # MyPy
 
         descriptor: _types.InjectedDescriptor[typing.Any] = value.default
         if descriptor.callback is not None:
