@@ -46,13 +46,15 @@ import abc
 import typing
 from collections import abc as collections
 
+if typing.TYPE_CHECKING:
+    from typing_extensions import Self
+
 # pyright: reportOverlappingOverload=warning
 
 _T = typing.TypeVar("_T")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 _CallbackT = typing.TypeVar("_CallbackT", bound="CallbackSig[typing.Any]")
 _DefaultT = typing.TypeVar("_DefaultT")
-_OtherT = typing.TypeVar("_OtherT")
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
 
 
@@ -305,7 +307,7 @@ class Client(abc.ABC):
         """
 
     @abc.abstractmethod
-    def set_type_dependency(self: _T, type_: type[_OtherT], value: _OtherT, /) -> _T:
+    def set_type_dependency(self, type_: type[_T], value: _T, /) -> Self:
         """Set a callback to be called to resolve a injected type.
 
         Parameters
@@ -358,7 +360,7 @@ class Client(abc.ABC):
         """
 
     @abc.abstractmethod
-    def remove_type_dependency(self: _T, type_: type[typing.Any], /) -> _T:
+    def remove_type_dependency(self, type_: type[typing.Any], /) -> Self:
         """Remove a type dependency.
 
         Parameters
@@ -378,7 +380,7 @@ class Client(abc.ABC):
         """
 
     @abc.abstractmethod
-    def set_callback_override(self: _OtherT, callback: CallbackSig[_T], override: CallbackSig[_T], /) -> _OtherT:
+    def set_callback_override(self, callback: CallbackSig[_T], override: CallbackSig[_T], /) -> Self:
         """Override a specific injected callback.
 
         Parameters
@@ -410,7 +412,7 @@ class Client(abc.ABC):
         """
 
     @abc.abstractmethod
-    def remove_callback_override(self: _OtherT, callback: CallbackSig[_T], /) -> _OtherT:
+    def remove_callback_override(self, callback: CallbackSig[_T], /) -> Self:
         """Remove a callback override.
 
         Parameters
