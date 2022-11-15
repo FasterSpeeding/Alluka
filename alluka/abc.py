@@ -46,7 +46,7 @@ import abc
 import typing
 from collections import abc as collections
 
-if typing:
+if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
 # pyright: reportOverlappingOverload=warning
