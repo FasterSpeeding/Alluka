@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-## [0.1.3] - 2020-11-12
+## [0.1.3] - 2022-11-12
 ### Added
 - `alluka.abc.Client` is now set as a type dependency by default.
 
@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The project metadata dunder attributes from [alluka][].
   [importlib.metadata][] should be used to get this metadata instead.
 
-## [0.1.2] - 2020-07-06
+## [0.1.2] - 2022-07-06
 ### Changed
 - The optional `introspect_annotations` parameter for `alluka.Client.__init__`
   is now keyword only.
@@ -36,12 +36,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   default when no default is passed will be replaced by a `KeyError` raise in
   `v0.2.0`.
 
-## [0.1.1] - 2020-03-20
+## [0.1.1] - 2022-03-20
 ### Fixed
 - Regression around handling of "signature-less" builtin functions.
   A ValueError will no longer be raised in these cases.
 
-## [0.1.0] - 2020-02-25
+## [0.1.0] - 2022-02-25
 
 All of the `0.1.0` entries are relative to the feature set exposed while this was a
 part of Tanjun.
