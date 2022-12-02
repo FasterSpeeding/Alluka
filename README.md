@@ -18,4 +18,4 @@ python -m pip install -U alluka
 
 Before contributing you should read through the
 [contributing guidelines](https://github.com/FasterSpeeding/Alluka/blob/master/CONTRIBUTING.md) and
-the [code of conduct](https://github.com/FasterSpeeding/Alluka/blob/master/CODE_OF_CONDUCT.md)
+the [code of conduct](https://github.com/FasterSpeeding/Alluka/blob/master/CODE_OF_CONDUCT.md).
