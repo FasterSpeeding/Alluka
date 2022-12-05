@@ -2,6 +2,6 @@
 anyio==3.6.2
 pytest==7.2.0
 pytest-cov==4.0.0
-pytest-xdist==3.0.2
+pytest-xdist==3.1.0
 # Needed to run tests in trio.
 trio==0.22.0
