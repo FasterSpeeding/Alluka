@@ -38,10 +38,11 @@ Documentation = "https://alluka.cursed.solutions/"
 Changelog = "https://github.com/FasterSpeeding/Alluka/blob/master/CHANGELOG.md"
 
 [tool.black]
-line-length     = 120
-target-version  = ["py39"]
-include         = ".*pyi?$"
 extend-exclude = ["^/alluka/_vendor/.*$"]
+include = ".*pyi?$"
+line-length = 120
+skip-magic-trailing-comma = true
+target-version = ["py39"]
 
 [tool.coverage.run]
 concurrency = ["multiprocessing"]
@@ -62,31 +63,42 @@ exclude_lines = [
 ]
 
 [tool.flake8]
+accept-encodings = "utf-8"
 count = true
+docstring-convention = "numpy"
+eradicate-aggressive = true
+exclude = ["alluka/_vendor/"]
+# extend-select = ["TC100", "TC101"]
+force-future-annotations = true
+ignore-decorators = "overload"
 max-complexity = 20
 max-function-length = 100
 # Technically this is 120, but black has a policy of "1 or 2 over is fine if it is tidier", so we have to raise this.
 max-line-length = 130
+min_python_version = "3.9"
+pep585-activation = "always"
 show_source = false
 statistics = false
-accept-encodings = "utf-8"
-docstring-convention = "numpy"
-exclude = ["alluka/_vendor/"]
 ignore = [
-    "A003",   # class attribute is shadowing a builtin
-    "CFQ004", # Function has too many returns.
-    "CFQ002", # Function has too many arguments.
-    "D102",   # Missing docstring in public method.
-    "D105",   # Magic methods not having a docstring.
-    "D412",   # No blank lines allowed between a section header and its content
-    "E402",   # Module level import not at top of file (isn't compatible with our import style).
-    "IFS001", # "use a oneliner here".
-    "T101",   # TO-DO comment detection (T102 is FIX-ME and T103 is XXX).
-    "W503",   # line break before binary operator.
-    "W504",   # line break before binary operator (again, I guess).
-    "S101",   # Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
-    "E203",   # whitespace before ':'
-    "E231",   # missing whitespace after ','
+    "A003",    # class attribute is shadowing a builtin
+    "CFQ004",  # Function has too many returns.
+    "CFQ002",  # Function has too many arguments.
+    "D102",    # Missing docstring in public method.
+    "D105",    # Magic methods not having a docstring.
+    "D401",    # Conflits with property doc-strings too much.
+    "D404",    # Conflits with property doc-strings too much.
+    "D412",    # No blank lines allowed between a section header and its content
+    "E402",    # Module level import not at top of file (isn't compatible with our import style).
+    "IFS001",  # "use a oneliner here".
+    "N818",    # Exceptions should have an "Error" suffix in their name
+    "SIM105",  # Use contextlib.suppress
+    "TC003",   # Avoid specifying long messages outside the exception class (this hits way too many std exceptions rn)
+    "T101",    # TO-DO comment detection (T102 is FIX-ME and T103 is XXX).
+    "W503",    # line break before binary operator.
+    "W504",    # line break before binary operator (again, I guess).
+    "S101",    # Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+    "E203",    # whitespace before ':'
+    "E231",    # missing whitespace after ','
 ]
 # Doc errors don't matter in the tests
 per-file-ignores = ["tests/*.py: D100, D104"]
