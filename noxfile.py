@@ -67,7 +67,10 @@ def _dev_dep(*values: str) -> collections.Iterator[str]:
     return itertools.chain.from_iterable(("-r", _dev_path(value)) for value in values)
 
 
-def _tracked_files(session: nox.Session) -> collections.Iterable[str]:
+def _tracked_files(session: nox.Session, *, ignore_vendor: bool = False) -> collections.Iterable[str]:
+    if ignore_vendor:
+        return (path for path in _tracked_files(session) if "alluka/_vendor/" not in path)
+
     output = session.run("git", "ls-files", external=True, log=False, silent=True)
     assert isinstance(output, str)
     return output.splitlines()
@@ -186,7 +189,7 @@ def spell_check(session: nox.Session) -> None:
     """Check this project's text-like files for common spelling mistakes."""
     install_requirements(session, *_dev_dep("lint"))
     session.log("Running codespell")
-    session.run("codespell", *_tracked_files(session), log=False)
+    session.run("codespell", *_tracked_files(session, ignore_vendor=True), log=False)
 
 
 @nox.session(reuse_venv=True)
@@ -246,7 +249,7 @@ def reformat(session: nox.Session) -> None:
     session.run("isort", *TOP_LEVEL_TARGETS)
     session.run("pycln", *TOP_LEVEL_TARGETS)
 
-    tracked_files = list(_tracked_files(session))
+    tracked_files = list(_tracked_files(session, ignore_vendor=True))
     py_files = [path for path in tracked_files if re.fullmatch(r"^alluka\/.+.pyi?$", path)]
 
     session.log("Running sort-all")

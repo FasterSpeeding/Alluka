@@ -141,7 +141,7 @@ class TestClient:
             .set_callback_override(mock_callback, mock_override)
         )
 
-        result = client.call_with_di(callback, 43234, bar="nyaa")
+        result = client.call_with_di(callback, 43234, value_2="nyaa")
 
         assert result == "ok"
 
