@@ -47,7 +47,9 @@ class BlockFinder:
     indecorator: bool
     decoratorhasargs: bool
     last: int
-    def tokeneater(self, type: int, token: str, srowcol: tuple[int, int], erowcol: tuple[int, int], line: str) -> None: ...
+    def tokeneater(
+        self, type: int, token: str, srowcol: tuple[int, int], erowcol: tuple[int, int], line: str
+    ) -> None: ...
 
 CO_OPTIMIZED: Literal[1]
 CO_NEWLOCALS: Literal[2]
@@ -130,7 +132,9 @@ def isdatadescriptor(object: object) -> TypeGuard[_SupportsSet[Any, Any] | _Supp
 #
 # Retrieving source code
 #
-_SourceObjectType = Union[ModuleType, type[Any], MethodType, FunctionType, TracebackType, FrameType, CodeType, Callable[..., Any]]
+_SourceObjectType = Union[
+    ModuleType, type[Any], MethodType, FunctionType, TracebackType, FrameType, CodeType, Callable[..., Any]
+]
 
 def findsource(object: _SourceObjectType) -> tuple[list[str], int]: ...
 def getabsfile(object: _SourceObjectType, _filename: str | None = ...) -> str: ...
@@ -162,7 +166,11 @@ class _empty: ...
 
 class Signature:
     def __init__(
-        self, parameters: Sequence[Parameter] | None = ..., *, return_annotation: Any = ..., __validate_parameters__: bool = ...
+        self,
+        parameters: Sequence[Parameter] | None = ...,
+        *,
+        return_annotation: Any = ...,
+        __validate_parameters__: bool = ...,
     ) -> None: ...
     empty = _empty
     @property
@@ -276,7 +284,6 @@ class ArgInfo(NamedTuple):
 def getargvalues(frame: FrameType) -> ArgInfo: ...
 def formatannotation(annotation: object, base_module: str | None = ...) -> str: ...
 def formatannotationrelativeto(object: object) -> Callable[[object], str]: ...
-
 def formatargvalues(
     args: list[str],
     varargs: str | None,

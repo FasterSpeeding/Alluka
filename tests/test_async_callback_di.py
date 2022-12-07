@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -71,31 +70,31 @@ def context(client: alluka.Client) -> alluka.BasicContext:
 # TODO: test cases for cached callback results
 @pytest.mark.anyio()
 async def test_call_with_async_di_when_no_di(context: alluka.BasicContext):
-    async def callback(x: int, bar: str) -> str:
-        assert x == 42
-        assert bar == "ok"
+    async def callback(value_1: int, value_2: str) -> str:
+        assert value_1 == 42
+        assert value_2 == "ok"
         return "nyaa"
 
-    result = await context.call_with_async_di(callback, 42, bar="ok")
+    result = await context.call_with_async_di(callback, 42, value_2="ok")
 
     assert result == "nyaa"
 
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_missing_annotations(context: alluka.BasicContext):
-    async def callback(x, bar) -> str:  # type: ignore
-        assert x == 543123
-        assert bar == "sdasd"
+    async def callback(value_1, value_2) -> str:  # type: ignore
+        assert value_1 == 543123
+        assert value_2 == "sdasd"
         return "meow"
 
-    result = await context.call_with_async_di(callback, 543123, bar="sdasd")  # type: ignore
+    result = await context.call_with_async_di(callback, 543123, value_2="sdasd")  # type: ignore
 
     assert result == "meow"
 
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_prioritises_defaults_over_annotations(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_other_value = mock.Mock()
     mock_callback = mock.AsyncMock()
 
@@ -106,24 +105,22 @@ async def test_call_with_async_di_prioritises_defaults_over_annotations(context:
         return "sexual catgirls"
 
     async def callback(
-        x: int,
-        bar: str,
-        baz: alluka.Injected[str] = alluka.inject(type=MockType),
-        bat: typing.Annotated[int, alluka.inject(type=float)] = alluka.inject(type=MockOtherType),
-        bath: typing.Annotated[str, alluka.inject(callback=mock.Mock)] = alluka.inject(callback=dependency),
+        value_1: int,
+        value_2: str,
+        value_3: alluka.Injected[str] = alluka.inject(type=MockType),
+        value_4: typing.Annotated[int, alluka.inject(type=float)] = alluka.inject(type=MockOtherType),
+        value_5: typing.Annotated[str, alluka.inject(callback=mock.Mock)] = alluka.inject(callback=dependency),
     ) -> str:
-        assert x == 69
-        assert bar == "rew"
-        assert baz is mock_value
-        assert bat is mock_other_value
-        assert bath == "sexual catgirls"
+        assert value_1 == 69
+        assert value_2 == "rew"
+        assert value_3 is value
+        assert value_4 is mock_other_value
+        assert value_5 == "sexual catgirls"
         return "meow"
 
-    context.injection_client.set_type_dependency(MockType, mock_value).set_type_dependency(
-        MockOtherType, mock_other_value
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_type_dependency(MockOtherType, mock_other_value)
 
-    result = await context.call_with_async_di(callback, 69, bar="rew")
+    result = await context.call_with_async_di(callback, 69, value_2="rew")
 
     assert result == "meow"
     mock_callback.assert_awaited_once_with()
@@ -131,29 +128,27 @@ async def test_call_with_async_di_prioritises_defaults_over_annotations(context:
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_type_dependency_and_callback(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_other_value = mock.Mock()
     mock_callback = mock.AsyncMock()
 
     async def callback(
-        x: int,
-        bar: str,
-        baz: str = alluka.inject(type=MockType),
-        bat: int = alluka.inject(type=MockOtherType),
-        bath: typing.Any = alluka.inject(callback=mock_callback),
+        value_1: int,
+        value_2: str,
+        value_3: str = alluka.inject(type=MockType),
+        value_4: int = alluka.inject(type=MockOtherType),
+        value_5: typing.Any = alluka.inject(callback=mock_callback),
     ) -> str:
-        assert x == 69
-        assert bar == "rew"
-        assert baz is mock_value
-        assert bat is mock_other_value
-        assert bath is mock_callback.return_value
+        assert value_1 == 69
+        assert value_2 == "rew"
+        assert value_3 is value
+        assert value_4 is mock_other_value
+        assert value_5 is mock_callback.return_value
         return "meow"
 
-    context.injection_client.set_type_dependency(MockType, mock_value).set_type_dependency(
-        MockOtherType, mock_other_value
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_type_dependency(MockOtherType, mock_other_value)
 
-    result = await context.call_with_async_di(callback, 69, bar="rew")
+    result = await context.call_with_async_di(callback, 69, value_2="rew")
 
     assert result == "meow"
     mock_callback.assert_awaited_once_with()
@@ -161,44 +156,43 @@ async def test_call_with_async_di_with_type_dependency_and_callback(context: all
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_type_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_other_value = mock.Mock()
 
     async def callback(
-        x: int, bar: str, baz: str = alluka.inject(type=MockType), bat: int = alluka.inject(type=MockOtherType)
+        value_1: int,
+        value_2: str,
+        value_3: str = alluka.inject(type=MockType),
+        value_4: int = alluka.inject(type=MockOtherType),
     ) -> str:
-        assert x == 69
-        assert bar == "rew"
-        assert baz is mock_value
-        assert bat is mock_other_value
+        assert value_1 == 69
+        assert value_2 == "rew"
+        assert value_3 is value
+        assert value_4 is mock_other_value
         return "meow"
 
-    context.injection_client.set_type_dependency(MockType, mock_value).set_type_dependency(
-        MockOtherType, mock_other_value
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_type_dependency(MockOtherType, mock_other_value)
 
-    result = await context.call_with_async_di(callback, 69, bar="rew")
+    result = await context.call_with_async_di(callback, 69, value_2="rew")
 
     assert result == "meow"
 
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_type_dependency_inferred_from_type(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_other_value = mock.Mock()
 
     async def callback(
-        nyaa: str, meow: int, baz: MockType = alluka.inject(), bat: MockOtherType = alluka.inject()
+        nyaa: str, meow: int, value_1: MockType = alluka.inject(), value_2: MockOtherType = alluka.inject()
     ) -> str:
         assert nyaa == "5412"
         assert meow == 34123
-        assert baz is mock_value
-        assert bat is mock_other_value
+        assert value_1 is value
+        assert value_2 is mock_other_value
         return "heeee"
 
-    context.injection_client.set_type_dependency(MockType, mock_value).set_type_dependency(
-        MockOtherType, mock_other_value
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_type_dependency(MockOtherType, mock_other_value)
 
     result = await context.call_with_async_di(callback, "5412", meow=34123)
 
@@ -207,24 +201,22 @@ async def test_call_with_async_di_with_type_dependency_inferred_from_type(contex
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_type_dependency_inferred_from_annotated_type(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_other_value = mock.Mock()
 
     async def callback(
         nyaa: str,
         meow: int,
-        baz: typing.Annotated[MockType, ...] = alluka.inject(),
-        bat: typing.Annotated[MockOtherType, ..., int] = alluka.inject(),
+        value_1: typing.Annotated[MockType, ...] = alluka.inject(),
+        value_2: typing.Annotated[MockOtherType, ..., int] = alluka.inject(),
     ) -> str:
         assert nyaa == "5412"
         assert meow == 34123
-        assert baz is mock_value
-        assert bat is mock_other_value
+        assert value_1 is value
+        assert value_2 is mock_other_value
         return "heeee"
 
-    context.injection_client.set_type_dependency(MockType, mock_value).set_type_dependency(
-        MockOtherType, mock_other_value
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_type_dependency(MockOtherType, mock_other_value)
 
     result = await context.call_with_async_di(callback, "5412", meow=34123)
 
@@ -233,28 +225,26 @@ async def test_call_with_async_di_with_type_dependency_inferred_from_annotated_t
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_type_dependency_inferred_from_missing_type(context: alluka.BasicContext):
-    async def callback(
-        nyaa: str, meow: int, baz: MockType = alluka.inject(), bat=alluka.inject()  # type: ignore
-    ) -> str:
+    async def callback(nyaa: str, meow: int, _: MockType = alluka.inject(), value_1=alluka.inject()) -> str:  # type: ignore
         raise NotImplementedError
 
-    with pytest.raises(ValueError, match="Could not resolve type for parameter 'bat' with no annotation"):
+    with pytest.raises(ValueError, match="Could not resolve type for parameter 'value_1' with no annotation"):
         await context.call_with_async_di(callback, "5412", meow=34123)
 
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_type_dependency_not_found(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
 
     async def callback(
-        x: int, bar: str, baz: str = alluka.inject(type=MockType), bat: int = alluka.inject(type=MockOtherType)
+        _: int, value: str, __: str = alluka.inject(type=MockType), ___: int = alluka.inject(type=MockOtherType)
     ) -> str:
         raise NotImplementedError
 
-    context.injection_client.set_type_dependency(MockType, mock_value)
+    context.injection_client.set_type_dependency(MockType, value)
 
     with pytest.raises(alluka.MissingDependencyError) as exc:
-        await context.call_with_async_di(callback, 69, bar="rew")
+        await context.call_with_async_di(callback, 69, value="rew")
 
     assert exc.value.message == f"Couldn't resolve injected type(s) {MockOtherType} to actual value"
     assert exc.value.dependency_type is MockOtherType
@@ -262,19 +252,19 @@ async def test_call_with_async_di_with_type_dependency_not_found(context: alluka
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_defaulting_type_dependency(context: alluka.BasicContext):  # TODO: THIS
-    mock_value = mock.Mock()
+    value = mock.Mock()
 
     async def callback(
-        x: int, bar: str, bat: typing.Optional[int] = alluka.inject(type=typing.Optional[MockType])
+        value_1: int, value_2: str, value_3: typing.Optional[int] = alluka.inject(type=typing.Optional[MockType])
     ) -> str:
-        assert x == 69
-        assert bar == "rew"
-        assert bat is mock_value
+        assert value_1 == 69
+        assert value_2 == "rew"
+        assert value_3 is value
         return "meow"
 
-    context.injection_client.set_type_dependency(MockType, mock_value)
+    context.injection_client.set_type_dependency(MockType, value)
 
-    result = await context.call_with_async_di(callback, 69, bar="rew")
+    result = await context.call_with_async_di(callback, 69, value_2="rew")
 
     assert result == "meow"
 
@@ -282,11 +272,11 @@ async def test_call_with_async_di_with_defaulting_type_dependency(context: alluk
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_defaulting_type_dependency_not_found(context: alluka.BasicContext):
     async def callback(
-        yeet: int, raw: str, bat: typing.Optional[int] = alluka.inject(type=typing.Optional[MockType])
+        yeet: int, raw: str, value_1: typing.Optional[int] = alluka.inject(type=typing.Optional[MockType])
     ) -> str:
         assert yeet == 420
         assert raw == "uwu"
-        assert bat is None
+        assert value_1 is None
         return "yeet"
 
     result = await context.call_with_async_di(callback, 420, raw="uwu")
@@ -299,14 +289,16 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
     @pytest.mark.anyio()
     async def test_call_with_async_di_with_3_10_union_type_dependency(context: alluka.BasicContext):
-        mock_value = MockType()
+        value = MockType()
 
-        context.injection_client.set_type_dependency(MockType, mock_value)
+        context.injection_client.set_type_dependency(MockType, value)
 
-        async def callback(bar: int, baz: str, cope: int = alluka.inject(type=MockOtherType | MockType)) -> float:
-            assert bar == 123
-            assert baz == "ok"
-            assert cope is mock_value
+        async def callback(
+            value_1: int, value_2: str, cope: int = alluka.inject(type=MockOtherType | MockType)
+        ) -> float:
+            assert value_1 == 123
+            assert value_2 == "ok"
+            assert cope is value
             return 451.123
 
         result = await context.call_with_async_di(callback, 123, "ok")
@@ -315,7 +307,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
     @pytest.mark.anyio()
     async def test_call_with_async_di_with_3_10_union_type_dependency_not_found(context: alluka.BasicContext):
-        async def callback(bar: int, baz: str, cope: int = alluka.inject(type=MockOtherType | MockType)) -> float:
+        async def callback(_: int, __: str, cope: int = alluka.inject(type=MockOtherType | MockType)) -> float:
             raise NotImplementedError
 
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
@@ -326,16 +318,16 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
     @pytest.mark.anyio()
     async def test_call_with_async_di_with_3_10_union_type_dependency_defaulting(context: alluka.BasicContext):
-        mock_value = MockType()
+        value = MockType()
 
-        context.injection_client.set_type_dependency(MockType, mock_value)
+        context.injection_client.set_type_dependency(MockType, value)
 
         async def callback(
-            bar: int, baz: str, cope: int = alluka.inject(type=MockOtherType | MockType | None)
+            value_1: int, value_2: str, cope: int = alluka.inject(type=MockOtherType | MockType | None)
         ) -> float:
-            assert bar == 123
-            assert baz == "ok"
-            assert cope is mock_value
+            assert value_1 == 123
+            assert value_2 == "ok"
+            assert cope is value
             return 451.123
 
         result = await context.call_with_async_di(callback, 123, "ok")
@@ -347,10 +339,10 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         context: alluka.BasicContext,
     ):
         async def callback(
-            bar: int, baz: str, cope: int = alluka.inject(type=MockOtherType | MockType | None)
+            value_1: int, value_2: str, cope: int = alluka.inject(type=MockOtherType | MockType | None)
         ) -> float:
-            assert bar == 123
-            assert baz == "ok"
+            assert value_1 == 123
+            assert value_2 == "ok"
             assert cope is None
             return 451.123
 
@@ -361,15 +353,15 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_union_type_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockOtherType, mock_value)
+    value = mock.Mock()
+    context.injection_client.set_type_dependency(MockOtherType, value)
 
     async def callback(
-        bar: int, baz: str, cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType])
+        value_1: int, value_2: str, cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType])
     ) -> float:
-        assert bar == 123
-        assert baz == "ok"
-        assert cope is mock_value
+        assert value_1 == 123
+        assert value_2 == "ok"
+        assert cope is value
         return 243.234
 
     result = await context.call_with_async_di(callback, 123, "ok")
@@ -379,9 +371,7 @@ async def test_call_with_async_di_with_union_type_dependency(context: alluka.Bas
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_union_type_dependency_not_found(context: alluka.BasicContext):
-    async def callback(
-        bar: int, baz: str, cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType])
-    ) -> float:
+    async def callback(_: int, __: str, cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType])) -> float:
         raise NotImplementedError
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
@@ -395,15 +385,15 @@ async def test_call_with_async_di_with_union_type_dependency_not_found(context: 
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_defaulting_union_type_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockOtherType, mock_value)
+    value = mock.Mock()
+    context.injection_client.set_type_dependency(MockOtherType, value)
 
     async def callback(
-        bar: int, baz: str, cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType, None])
+        value_1: int, value_2: str, cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType, None])
     ) -> float:
-        assert bar == 123
-        assert baz == "ok"
-        assert cope is mock_value
+        assert value_1 == 123
+        assert value_2 == "ok"
+        assert cope is value
         return 243.234
 
     result = await context.call_with_async_di(callback, 123, "ok")
@@ -414,10 +404,10 @@ async def test_call_with_async_di_with_defaulting_union_type_dependency(context:
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_defaulting_union_type_dependency_not_found(context: alluka.BasicContext):
     async def callback(
-        bar: float, baz: int, cope: typing.Optional[int] = alluka.inject(type=typing.Optional[MockType])
+        value_1: float, value_2: int, cope: typing.Optional[int] = alluka.inject(type=typing.Optional[MockType])
     ) -> float:
-        assert bar == 123.321
-        assert baz == 543
+        assert value_1 == 123.321
+        assert value_2 == 543
         assert cope is None
         return 321.123
 
@@ -428,7 +418,7 @@ async def test_call_with_async_di_with_defaulting_union_type_dependency_not_foun
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_type_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_other_value = mock.Mock()
 
     async def callback(
@@ -439,13 +429,11 @@ async def test_call_with_async_di_with_annotated_type_dependency(context: alluka
     ) -> str:
         assert rawr == 69
         assert xd == "rew"
-        assert meowmeow is mock_value
+        assert meowmeow is value
         assert imacow is mock_other_value
         return "meow"
 
-    context.injection_client.set_type_dependency(MockType, mock_value).set_type_dependency(
-        MockOtherType, mock_other_value
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_type_dependency(MockOtherType, mock_other_value)
 
     result = await context.call_with_async_di(callback, rawr=69, xd="rew")
 
@@ -454,7 +442,7 @@ async def test_call_with_async_di_with_annotated_type_dependency(context: alluka
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_type_dependency_inferred_from_type(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_other_value = mock.Mock()
 
     async def callback(
@@ -465,13 +453,11 @@ async def test_call_with_async_di_with_annotated_type_dependency_inferred_from_t
     ) -> str:
         assert meow == 2222
         assert nyaa == "xxxxx"
-        assert meowmeow is mock_value
+        assert meowmeow is value
         assert imacow is mock_other_value
         return "wewewewew"
 
-    context.injection_client.set_type_dependency(MockType, mock_value).set_type_dependency(
-        MockOtherType, mock_other_value
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_type_dependency(MockOtherType, mock_other_value)
 
     result = await context.call_with_async_di(callback, meow=2222, nyaa="xxxxx")
 
@@ -504,30 +490,26 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
     @pytest.mark.anyio()
     async def test_call_with_async_di_with_annotated_3_10_union_type_dependency(context: alluka.BasicContext):
-        mock_value = MockType()
+        value = MockType()
 
         async def callback(
-            yeee: str,
-            nyaa: bool,
-            yeet: typing.Annotated[str, alluka.inject(type=MockType | MockOtherType)],
+            yeee: str, nyaa: bool, yeet: typing.Annotated[str, alluka.inject(type=MockType | MockOtherType)]
         ) -> str:
             assert yeee == "yeee"
             assert nyaa is True
-            assert yeet is mock_value
+            assert yeet is value
             return "hey"
 
-        context.injection_client.set_type_dependency(MockOtherType, mock_value)
+        context.injection_client.set_type_dependency(MockOtherType, value)
 
         result = await context.call_with_async_di(callback, yeee="yeee", nyaa=True)
 
         assert result == "hey"
 
     @pytest.mark.anyio()
-    async def test_call_with_async_di_with_annotated_3_10_union_type_dependency_not_found(
-        context: alluka.BasicContext,
-    ):
+    async def test_call_with_async_di_with_annotated_3_10_union_type_dependency_not_found(context: alluka.BasicContext):
         async def callback(
-            bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=MockOtherType | MockType)]
+            _: int, __: str, cope: typing.Annotated[int, alluka.inject(type=MockOtherType | MockType)]
         ) -> float:
             raise NotImplementedError
 
@@ -541,16 +523,16 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
     async def test_call_with_async_di_with_annotated_3_10_union_type_dependency_defaulting(
         context: alluka.BasicContext,
     ):
-        mock_value = MockType()
+        value = MockType()
 
-        context.injection_client.set_type_dependency(MockType, mock_value)
+        context.injection_client.set_type_dependency(MockType, value)
 
         async def callback(
-            bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=MockOtherType | MockType | None)]
+            value_1: int, value_2: str, cope: typing.Annotated[int, alluka.inject(type=MockOtherType | MockType | None)]
         ) -> float:
-            assert bar == 123
-            assert baz == "ok"
-            assert cope is mock_value
+            assert value_1 == 123
+            assert value_2 == "ok"
+            assert cope is value
             return 451.123
 
         result = await context.call_with_async_di(callback, 123, "ok")
@@ -562,10 +544,10 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         context: alluka.BasicContext,
     ):
         async def callback(
-            bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=MockOtherType | MockType | None)]
+            value_1: int, value_2: str, cope: typing.Annotated[int, alluka.inject(type=MockOtherType | MockType | None)]
         ) -> float:
-            assert bar == 123
-            assert baz == "ok"
+            assert value_1 == 123
+            assert value_2 == "ok"
             assert cope is None
             return 451.123
 
@@ -577,16 +559,18 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
     async def test_call_with_async_di_with_annotated_3_10_union_type_dependency_natural_defaulting(
         context: alluka.BasicContext,
     ):
-        mock_value = MockType()
+        value = MockType()
 
-        context.injection_client.set_type_dependency(MockType, mock_value)
+        context.injection_client.set_type_dependency(MockType, value)
 
         async def callback(
-            bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=MockOtherType | MockType | None)] = 123
+            value_1: int,
+            value_2: str,
+            cope: typing.Annotated[int, alluka.inject(type=MockOtherType | MockType | None)] = 123,
         ) -> float:
-            assert bar == 123
-            assert baz == "ok"
-            assert cope is mock_value
+            assert value_1 == 123
+            assert value_2 == "ok"
+            assert cope is value
             return 451.123
 
         result = await context.call_with_async_di(callback, 123, "ok")
@@ -598,10 +582,12 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         context: alluka.BasicContext,
     ):
         async def callback(
-            bar: int, baz: str, cope: typing.Annotated[int, alluka.inject(type=MockOtherType | MockType)] = 43123
+            value_1: int,
+            value_2: str,
+            cope: typing.Annotated[int, alluka.inject(type=MockOtherType | MockType)] = 43123,
         ) -> float:
-            assert bar == 123
-            assert baz == "ok"
+            assert value_1 == 123
+            assert value_2 == "ok"
             assert cope == 43123
             return 451.123
 
@@ -612,17 +598,16 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_union_type_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
 
     async def callback(
-        meow: int,
-        meowmeow: typing.Annotated[typing.Union[MockType, MockOtherType], alluka.inject()],
+        meow: int, meowmeow: typing.Annotated[typing.Union[MockType, MockOtherType], alluka.inject()]
     ) -> str:
         assert meow == 1233212
-        assert meowmeow is mock_value
+        assert meowmeow is value
         return "yay"
 
-    context.injection_client.set_type_dependency(MockOtherType, mock_value)
+    context.injection_client.set_type_dependency(MockOtherType, value)
 
     result = await context.call_with_async_di(callback, 1233212)
 
@@ -632,9 +617,7 @@ async def test_call_with_async_di_with_annotated_union_type_dependency(context: 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_union_type_dependency_not_found(context: alluka.BasicContext):
     async def callback(
-        yeee: str,
-        nyaa: bool,
-        yeet: typing.Annotated[int, alluka.inject(type=typing.Union[MockType, MockOtherType])],
+        yeee: str, nyaa: bool, yeet: typing.Annotated[int, alluka.inject(type=typing.Union[MockType, MockOtherType])]
     ) -> str:
         raise NotImplementedError
 
@@ -650,17 +633,15 @@ async def test_call_with_async_di_with_annotated_union_type_dependency_not_found
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_defaulting_type_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockType, mock_value)
+    value = mock.Mock()
+    context.injection_client.set_type_dependency(MockType, value)
 
     async def callback(
-        eaaaa: str,
-        nyaa: bool,
-        yeet: typing.Annotated[str, alluka.inject(type=typing.Optional[MockType])],
+        eaaaa: str, nyaa: bool, yeet: typing.Annotated[str, alluka.inject(type=typing.Optional[MockType])]
     ) -> str:
         assert eaaaa == "easd"
         assert nyaa is False
-        assert yeet is mock_value
+        assert yeet is value
         return "aaaaa"
 
     result = await context.call_with_async_di(callback, "easd", nyaa=False)
@@ -671,9 +652,7 @@ async def test_call_with_async_di_with_annotated_defaulting_type_dependency(cont
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_defaulting_type_dependency_not_found(context: alluka.BasicContext):
     async def callback(
-        eaaaa: str,
-        nyaa: bool,
-        yeet: typing.Annotated[str, alluka.inject(type=typing.Optional[MockType])],
+        eaaaa: str, nyaa: bool, yeet: typing.Annotated[str, alluka.inject(type=typing.Optional[MockType])]
     ) -> str:
         assert eaaaa == "easd"
         assert nyaa is False
@@ -687,17 +666,15 @@ async def test_call_with_async_di_with_annotated_defaulting_type_dependency_not_
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_natural_defaulting_type_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockType, mock_value)
+    value = mock.Mock()
+    context.injection_client.set_type_dependency(MockType, value)
 
     async def callback(
-        eaaaa: str,
-        nyaa: bool,
-        yeet: typing.Annotated[str, alluka.inject(type=MockType)] = "default",
+        eaaaa: str, nyaa: bool, yeet: typing.Annotated[str, alluka.inject(type=MockType)] = "default"
     ) -> str:
         assert eaaaa == "easd"
         assert nyaa is False
-        assert yeet is mock_value
+        assert yeet is value
         return "aaaaa"
 
     result = await context.call_with_async_di(callback, "easd", nyaa=False)
@@ -709,11 +686,7 @@ async def test_call_with_async_di_with_annotated_natural_defaulting_type_depende
 async def test_call_with_async_di_with_annotated_natural_defaulting_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
-    async def callback(
-        eaaaa: str,
-        nyaa: bool,
-        yeet: typing.Annotated[int, alluka.inject(type=MockType)] = 123,
-    ) -> str:
+    async def callback(eaaaa: str, nyaa: bool, yeet: typing.Annotated[int, alluka.inject(type=MockType)] = 123) -> str:
         assert eaaaa == "easd"
         assert nyaa is False
         assert yeet == 123
@@ -726,15 +699,14 @@ async def test_call_with_async_di_with_annotated_natural_defaulting_type_depende
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_defaulting_union_type_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockOtherType, mock_value)
+    value = mock.Mock()
+    context.injection_client.set_type_dependency(MockOtherType, value)
 
     async def callback(
-        vvvvv: int,
-        value: typing.Annotated[str, alluka.inject(type=typing.Union[MockType, MockOtherType])],
+        vvvvv: int, value: typing.Annotated[str, alluka.inject(type=typing.Union[MockType, MockOtherType])]
     ) -> str:
         assert vvvvv == 123
-        assert value is mock_value
+        assert value is value
         return "ea sports"
 
     result = await context.call_with_async_di(callback, 123)
@@ -746,10 +718,7 @@ async def test_call_with_async_di_with_annotated_defaulting_union_type_dependenc
 async def test_call_with_async_di_with_annotated_defaulting_union_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
-    async def callback(
-        vvvvv: int,
-        value: typing.Annotated[str, alluka.inject(type=typing.Optional[MockType])],
-    ) -> str:
+    async def callback(vvvvv: int, value: typing.Annotated[str, alluka.inject(type=typing.Optional[MockType])]) -> str:
         assert vvvvv == 123
         assert value is None
         return "yeeee"
@@ -760,18 +729,15 @@ async def test_call_with_async_di_with_annotated_defaulting_union_type_dependenc
 
 
 @pytest.mark.anyio()
-async def test_call_with_async_di_with_annotated_natural_defaulting_union_type_dependency(
-    context: alluka.BasicContext,
-):
-    mock_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockOtherType, mock_value)
+async def test_call_with_async_di_with_annotated_natural_defaulting_union_type_dependency(context: alluka.BasicContext):
+    value = mock.Mock()
+    context.injection_client.set_type_dependency(MockOtherType, value)
 
     async def callback(
-        vvvvv: int,
-        value: typing.Annotated[str, alluka.inject(type=typing.Union[MockType, MockOtherType])] = "default",
+        vvvvv: int, value: typing.Annotated[str, alluka.inject(type=typing.Union[MockType, MockOtherType])] = "default"
     ) -> str:
         assert vvvvv == 123
-        assert value is mock_value
+        assert value is value
         return "ea sports"
 
     result = await context.call_with_async_di(callback, 123)
@@ -798,7 +764,7 @@ async def test_call_with_async_di_with_annotated_natural_defaulting_union_type_d
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_shorthand_annotated_type_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_other_value = mock.Mock()
 
     async def callback(
@@ -806,13 +772,11 @@ async def test_call_with_async_di_with_shorthand_annotated_type_dependency(conte
     ) -> str:
         assert rawr == 1233212
         assert xd == "seee"
-        assert meowmeow is mock_value
+        assert meowmeow is value
         assert other is mock_other_value
         return "eeesss"
 
-    context.injection_client.set_type_dependency(MockType, mock_value).set_type_dependency(
-        MockOtherType, mock_other_value
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_type_dependency(MockOtherType, mock_other_value)
 
     result = await context.call_with_async_di(callback, 1233212, xd="seee")
 
@@ -824,10 +788,7 @@ async def test_call_with_async_di_with_shorthand_annotated_type_dependency_not_f
     mock_other_value = mock.Mock()
 
     async def callback(
-        meow: int,
-        nyaa: float,
-        meowmeow: alluka.Injected[MockType],
-        imacow: alluka.Injected[MockOtherType],
+        meow: int, nyaa: float, meowmeow: alluka.Injected[MockType], imacow: alluka.Injected[MockOtherType]
     ) -> str:
         raise NotImplementedError
 
@@ -844,22 +805,16 @@ async def test_call_with_async_di_with_shorthand_annotated_type_dependency_not_f
 if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for |?
 
     @pytest.mark.anyio()
-    async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency(
-        context: alluka.BasicContext,
-    ):
-        mock_value = MockType()
+    async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency(context: alluka.BasicContext):
+        value = MockType()
 
-        async def callback(
-            yeee: str,
-            nyaa: bool,
-            yeet: alluka.Injected[MockType | MockOtherType],
-        ) -> str:
+        async def callback(yeee: str, nyaa: bool, yeet: alluka.Injected[MockType | MockOtherType]) -> str:
             assert yeee == "yeee"
             assert nyaa is True
-            assert yeet is mock_value
+            assert yeet is value
             return "hey"
 
-        context.injection_client.set_type_dependency(MockOtherType, mock_value)
+        context.injection_client.set_type_dependency(MockOtherType, value)
 
         result = await context.call_with_async_di(callback, yeee="yeee", nyaa=True)
 
@@ -869,7 +824,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
     async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency_not_found(
         context: alluka.BasicContext,
     ):
-        async def callback(bar: int, baz: str, cope: alluka.Injected[MockOtherType | MockType]) -> float:
+        async def callback(_: int, __: str, cope: alluka.Injected[MockOtherType | MockType]) -> float:
             raise NotImplementedError
 
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
@@ -883,14 +838,14 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
     async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency_defaulting(
         context: alluka.BasicContext,
     ):
-        mock_value = MockType()
+        value = MockType()
 
-        context.injection_client.set_type_dependency(MockType, mock_value)
+        context.injection_client.set_type_dependency(MockType, value)
 
-        async def callback(bar: int, baz: str, cope: alluka.Injected[MockOtherType | MockType | None]) -> float:
-            assert bar == 123
-            assert baz == "ok"
-            assert cope is mock_value
+        async def callback(value_1: int, value_2: str, cope: alluka.Injected[MockOtherType | MockType | None]) -> float:
+            assert value_1 == 123
+            assert value_2 == "ok"
+            assert cope is value
             return 451.123
 
         result = await context.call_with_async_di(callback, 123, "ok")
@@ -901,9 +856,9 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
     async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency_defaulting_not_found(
         context: alluka.BasicContext,
     ):
-        async def callback(bar: int, baz: str, cope: alluka.Injected[MockOtherType | MockType | None]) -> float:
-            assert bar == 123
-            assert baz == "ok"
+        async def callback(value_1: int, value_2: str, cope: alluka.Injected[MockOtherType | MockType | None]) -> float:
+            assert value_1 == 123
+            assert value_2 == "ok"
             assert cope is None
             return 451.123
 
@@ -915,16 +870,16 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
     async def test_call_with_async_di_with_shorthand_annotated_3_10_union_type_dependency_natural_defaulting(
         context: alluka.BasicContext,
     ):
-        mock_value = MockType()
+        value = MockType()
 
-        context.injection_client.set_type_dependency(MockType, mock_value)
+        context.injection_client.set_type_dependency(MockType, value)
 
         async def callback(
-            bar: int, baz: str, cope: alluka.Injected[MockOtherType | MockType | None] = MockOtherType()
+            value_1: int, value_2: str, cope: alluka.Injected[MockOtherType | MockType | None] = MockOtherType()
         ) -> float:
-            assert bar == 123
-            assert baz == "ok"
-            assert cope is mock_value
+            assert value_1 == 123
+            assert value_2 == "ok"
+            assert cope is value
             return 451.123
 
         result = await context.call_with_async_di(callback, 123, "ok")
@@ -937,9 +892,11 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
     ):
         mock_default = mock.Mock()
 
-        async def callback(bar: int, baz: str, cope: alluka.Injected[MockOtherType | MockType] = mock_default) -> float:
-            assert bar == 123
-            assert baz == "ok"
+        async def callback(
+            value_1: int, value_2: str, cope: alluka.Injected[MockOtherType | MockType] = mock_default
+        ) -> float:
+            assert value_1 == 123
+            assert value_2 == "ok"
             assert cope is mock_default
             return 451.123
 
@@ -950,17 +907,14 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_shorthand_annotated_union_type_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
 
-    async def callback(
-        meow: int,
-        meowmeow: alluka.Injected[typing.Union[MockType, MockOtherType]],
-    ) -> str:
+    async def callback(meow: int, meowmeow: alluka.Injected[typing.Union[MockType, MockOtherType]]) -> str:
         assert meow == 1233212
-        assert meowmeow is mock_value
+        assert meowmeow is value
         return "yay"
 
-    context.injection_client.set_type_dependency(MockOtherType, mock_value)
+    context.injection_client.set_type_dependency(MockOtherType, value)
 
     result = await context.call_with_async_di(callback, 1233212)
 
@@ -971,11 +925,7 @@ async def test_call_with_async_di_with_shorthand_annotated_union_type_dependency
 async def test_call_with_async_di_with_shorthand_annotated_union_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
-    async def callback(
-        yeee: str,
-        nyaa: bool,
-        yeet: alluka.Injected[typing.Union[MockType, MockOtherType]],
-    ) -> str:
+    async def callback(yeee: str, nyaa: bool, yeet: alluka.Injected[typing.Union[MockType, MockOtherType]]) -> str:
         raise NotImplementedError
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
@@ -988,17 +938,13 @@ async def test_call_with_async_di_with_shorthand_annotated_union_type_dependency
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_shorthand_annotated_defaulting_type_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockType, mock_value)
+    value = mock.Mock()
+    context.injection_client.set_type_dependency(MockType, value)
 
-    async def callback(
-        eaaaa: str,
-        nyaa: bool,
-        yeet: alluka.Injected[typing.Optional[MockType]],
-    ) -> str:
+    async def callback(eaaaa: str, nyaa: bool, yeet: alluka.Injected[typing.Optional[MockType]]) -> str:
         assert eaaaa == "easd"
         assert nyaa is False
-        assert yeet is mock_value
+        assert yeet is value
         return "aaaaa"
 
     result = await context.call_with_async_di(callback, "easd", nyaa=False)
@@ -1010,11 +956,7 @@ async def test_call_with_async_di_with_shorthand_annotated_defaulting_type_depen
 async def test_call_with_async_di_with_shorthand_annotated_defaulting_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
-    async def callback(
-        eaaaa: str,
-        nyaa: bool,
-        yeet: alluka.Injected[typing.Optional[MockType]],
-    ) -> str:
+    async def callback(eaaaa: str, nyaa: bool, yeet: alluka.Injected[typing.Optional[MockType]]) -> str:
         assert eaaaa == "easd"
         assert nyaa is False
         assert yeet is None
@@ -1029,17 +971,13 @@ async def test_call_with_async_di_with_shorthand_annotated_defaulting_type_depen
 async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_type_dependency(
     context: alluka.BasicContext,
 ):
-    mock_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockType, mock_value)
+    value = mock.Mock()
+    context.injection_client.set_type_dependency(MockType, value)
 
-    async def callback(
-        eaaaa: str,
-        nyaa: bool,
-        yeet: alluka.Injected[MockType] = MockType(43123123),
-    ) -> str:
+    async def callback(eaaaa: str, nyaa: bool, yeet: alluka.Injected[MockType] = MockType(43123123)) -> str:
         assert eaaaa == "easd"
         assert nyaa is False
-        assert yeet is mock_value
+        assert yeet is value
         return "aaaaa"
 
     result = await context.call_with_async_di(callback, "easd", nyaa=False)
@@ -1051,11 +989,7 @@ async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_ty
 async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
-    async def callback(
-        eaaaa: str,
-        nyaa: bool,
-        yeet: alluka.Injected[MockType] = MockType(123),
-    ) -> str:
+    async def callback(eaaaa: str, nyaa: bool, yeet: alluka.Injected[MockType] = MockType(123)) -> str:
         assert eaaaa == "easd"
         assert nyaa is False
         assert yeet == 123
@@ -1070,15 +1004,12 @@ async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_ty
 async def test_call_with_async_di_with_shorthand_annotated_defaulting_union_type_dependency(
     context: alluka.BasicContext,
 ):
-    mock_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockOtherType, mock_value)
+    value = mock.Mock()
+    context.injection_client.set_type_dependency(MockOtherType, value)
 
-    async def callback(
-        vvvvv: int,
-        value: alluka.Injected[typing.Union[MockType, MockOtherType]],
-    ) -> str:
+    async def callback(vvvvv: int, value: alluka.Injected[typing.Union[MockType, MockOtherType]]) -> str:
         assert vvvvv == 123
-        assert value is mock_value
+        assert value is value
         return "ea sports"
 
     result = await context.call_with_async_di(callback, 123)
@@ -1090,10 +1021,7 @@ async def test_call_with_async_di_with_shorthand_annotated_defaulting_union_type
 async def test_call_with_async_di_with_shorthand_annotated_defaulting_union_type_dependency_not_found(
     context: alluka.BasicContext,
 ):
-    async def callback(
-        vvvvv: int,
-        value: alluka.Injected[typing.Optional[MockType]],
-    ) -> str:
+    async def callback(vvvvv: int, value: alluka.Injected[typing.Optional[MockType]]) -> str:
         assert vvvvv == 123
         assert value is None
         return "yeeee"
@@ -1107,15 +1035,14 @@ async def test_call_with_async_di_with_shorthand_annotated_defaulting_union_type
 async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_union_type_dependency(
     context: alluka.BasicContext,
 ):
-    mock_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockOtherType, mock_value)
+    value = mock.Mock()
+    context.injection_client.set_type_dependency(MockOtherType, value)
 
     async def callback(
-        vvvvv: int,
-        value: alluka.Injected[typing.Union[MockType, MockOtherType]] = MockType(43123123),
+        vvvvv: int, value: alluka.Injected[typing.Union[MockType, MockOtherType]] = MockType(43123123)
     ) -> str:
         assert vvvvv == 123
-        assert value is mock_value
+        assert value is value
         return "ea sports"
 
     result = await context.call_with_async_di(callback, 123)
@@ -1128,8 +1055,7 @@ async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_un
     context: alluka.BasicContext,
 ):
     async def callback(
-        vvvvv: int,
-        value: alluka.Injected[typing.Union[MockType, MockOtherType, None]] = MockType(54123123),
+        vvvvv: int, value: alluka.Injected[typing.Union[MockType, MockOtherType, None]] = MockType(54123123)
     ) -> str:
         assert vvvvv == 123
         assert value == 54123123
@@ -1144,8 +1070,8 @@ async def test_call_with_async_di_with_shorthand_annotated_natural_defaulting_un
 async def test_call_with_async_di_with_callback_dependency(context: alluka.BasicContext):
     mock_callback = mock.AsyncMock()
 
-    async def callback(foo: int, result: int = alluka.inject(callback=mock_callback)) -> int:
-        assert foo == 123
+    async def callback(value_1: int, result: int = alluka.inject(callback=mock_callback)) -> int:
+        assert value_1 == 123
         assert result is mock_callback.return_value
         return 43123
 
@@ -1163,8 +1089,8 @@ async def test_call_with_async_di_with_sub_callback_dependency(context: alluka.B
         assert result is mock_callback.return_value
         return 541232
 
-    async def callback(foo: int, result: int = alluka.inject(callback=dependency)) -> str:
-        assert foo == 123
+    async def callback(value_1: int, result: int = alluka.inject(callback=dependency)) -> str:
+        assert value_1 == 123
         assert result == 541232
         return "43123"
 
@@ -1178,8 +1104,8 @@ async def test_call_with_async_di_with_sub_callback_dependency(context: alluka.B
 async def test_call_with_async_di_with_annotated_callback_dependency(context: alluka.BasicContext):
     mock_callback = mock.AsyncMock()
 
-    async def callback(foo: int, result: typing.Annotated[int, alluka.inject(callback=mock_callback)]) -> int:
-        assert foo == 123
+    async def callback(value_1: int, result: typing.Annotated[int, alluka.inject(callback=mock_callback)]) -> int:
+        assert value_1 == 123
         assert result is mock_callback.return_value
         return 43123
 
@@ -1197,8 +1123,8 @@ async def test_call_with_async_di_with_annotated_sub_callback_dependency(context
         assert result is mock_callback.return_value
         return 541232
 
-    async def callback(foo: int, result: typing.Annotated[int, alluka.inject(callback=dependency)]) -> str:
-        assert foo == 123
+    async def callback(value_1: int, result: typing.Annotated[int, alluka.inject(callback=dependency)]) -> str:
+        assert value_1 == 123
         assert result == 541232
         return "43123"
 
@@ -1210,15 +1136,15 @@ async def test_call_with_async_di_with_annotated_sub_callback_dependency(context
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_sub_type_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockType, mock_value)
+    value = mock.Mock()
+    context.injection_client.set_type_dependency(MockType, value)
 
     async def dependency(result: int = alluka.inject(type=MockType)) -> int:
-        assert result is mock_value
+        assert result is value
         return 123321
 
-    async def callback(foo: int, result: int = alluka.inject(callback=dependency)) -> str:
-        assert foo == 54123
+    async def callback(value_1: int, result: int = alluka.inject(callback=dependency)) -> str:
+        assert value_1 == 54123
         assert result == 123321
         return "asddsa"
 
@@ -1232,7 +1158,7 @@ async def test_call_with_async_di_with_sub_type_dependency_not_found(context: al
     async def dependency(result: int = alluka.inject(type=MockType)) -> int:
         raise NotImplementedError
 
-    async def callback(foo: int, result: int = alluka.inject(callback=dependency)) -> str:
+    async def callback(_: int, result: int = alluka.inject(callback=dependency)) -> str:
         raise NotImplementedError
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
@@ -1244,24 +1170,27 @@ async def test_call_with_async_di_with_sub_type_dependency_not_found(context: al
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_when_sync_callback(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_callback = mock.AsyncMock()
-    context.injection_client.set_type_dependency(MockType, mock_value)
+    context.injection_client.set_type_dependency(MockType, value)
 
-    async def dependency(foo: int = alluka.inject(callback=mock_callback)) -> str:
-        assert foo is mock_callback.return_value
+    async def dependency(value_1: int = alluka.inject(callback=mock_callback)) -> str:
+        assert value_1 is mock_callback.return_value
         return "Ok"
 
     def callback(
-        baz: int, bar: str, foo: alluka.Injected[MockType], bat: str = alluka.inject(callback=dependency)
+        value_1: int,
+        value_2: str,
+        value_3: alluka.Injected[MockType],
+        value_4: str = alluka.inject(callback=dependency),
     ) -> float:
-        assert baz == 1234321
-        assert bar == "meow meow"
-        assert foo is mock_value
-        assert bat == "Ok"
+        assert value_1 == 1234321
+        assert value_2 == "meow meow"
+        assert value_3 is value
+        assert value_4 == "Ok"
         return 123.321
 
-    result = await context.call_with_async_di(callback, 1234321, bar="meow meow")
+    result = await context.call_with_async_di(callback, 1234321, value_2="meow meow")
 
     assert result == 123.321
     mock_callback.assert_awaited_once_with()
@@ -1269,19 +1198,17 @@ async def test_call_with_async_di_when_sync_callback(context: alluka.BasicContex
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_sync_dependency_callback(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_other_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockType, mock_value).set_type_dependency(
-        MockOtherType, mock_other_value
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_type_dependency(MockOtherType, mock_other_value)
 
-    def dependency(foo: alluka.Injected[MockOtherType]) -> str:
-        assert foo is mock_other_value
+    def dependency(value_1: alluka.Injected[MockOtherType]) -> str:
+        assert value_1 is mock_other_value
         return "eeeeaaaa"
 
-    async def callback(foo: alluka.Injected[MockType], bar: str = alluka.inject(callback=dependency)) -> str:
-        assert foo is mock_value
-        assert bar == "eeeeaaaa"
+    async def callback(value_1: alluka.Injected[MockType], value_2: str = alluka.inject(callback=dependency)) -> str:
+        assert value_1 is value
+        assert value_2 == "eeeeaaaa"
         return "bye bye"
 
     result = await context.call_with_async_di(callback)
@@ -1291,16 +1218,14 @@ async def test_call_with_async_di_with_sync_dependency_callback(context: alluka.
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_overridden_sync_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_callback = mock.AsyncMock()
     mock_override = mock.Mock()
-    context.injection_client.set_type_dependency(MockType, mock_value).set_callback_override(
-        mock_callback, mock_override
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_callback_override(mock_callback, mock_override)
 
-    async def callback(foo: alluka.Injected[MockType], bar: str = alluka.inject(callback=mock_callback)) -> str:
-        assert foo is mock_value
-        assert bar is mock_override.return_value
+    async def callback(value_1: alluka.Injected[MockType], value_2: str = alluka.inject(callback=mock_callback)) -> str:
+        assert value_1 is value
+        assert value_2 is mock_override.return_value
         return "bye bye"
 
     result = await context.call_with_async_di(callback)
@@ -1311,17 +1236,17 @@ async def test_call_with_async_di_with_overridden_sync_dependency(context: alluk
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_sub_sync_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_callback = mock.AsyncMock()
-    context.injection_client.set_type_dependency(MockType, mock_value)
+    context.injection_client.set_type_dependency(MockType, value)
 
     def dependency(result: str = alluka.inject(callback=mock_callback)) -> str:
         assert result is mock_callback.return_value
         return "go home"
 
-    async def callback(foo: alluka.Injected[MockType], bar: str = alluka.inject(callback=dependency)) -> str:
-        assert foo is mock_value
-        assert bar == "go home"
+    async def callback(value_1: alluka.Injected[MockType], value_2: str = alluka.inject(callback=dependency)) -> str:
+        assert value_1 is value
+        assert value_2 == "go home"
         return "bye bye"
 
     result = await context.call_with_async_di(callback)
@@ -1332,20 +1257,18 @@ async def test_call_with_async_di_with_sub_sync_dependency(context: alluka.Basic
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_overridden_sub_sync_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_callback = mock.AsyncMock()
     mock_override = mock.Mock()
-    context.injection_client.set_type_dependency(MockType, mock_value).set_callback_override(
-        mock_callback, mock_override
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_callback_override(mock_callback, mock_override)
 
     def dependency(result: typing.Annotated[str, alluka.inject(callback=mock_callback)]) -> str:
         assert result is mock_override.return_value
         return "go home"
 
-    async def callback(foo: alluka.Injected[MockType], bar: str = alluka.inject(callback=dependency)) -> str:
-        assert foo is mock_value
-        assert bar == "go home"
+    async def callback(value_1: alluka.Injected[MockType], value_2: str = alluka.inject(callback=dependency)) -> str:
+        assert value_1 is value
+        assert value_2 == "go home"
         return "bye bye"
 
     result = await context.call_with_async_di(callback)
@@ -1356,21 +1279,19 @@ async def test_call_with_async_di_with_overridden_sub_sync_dependency(context: a
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_sync_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_other_value = mock.Mock()
-    context.injection_client.set_type_dependency(MockType, mock_value).set_type_dependency(
-        MockOtherType, mock_other_value
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_type_dependency(MockOtherType, mock_other_value)
 
-    def dependency(foo: alluka.Injected[MockOtherType]) -> str:
-        assert foo is mock_other_value
+    def dependency(value_1: alluka.Injected[MockOtherType]) -> str:
+        assert value_1 is mock_other_value
         return "eeeeaaaa"
 
     async def callback(
-        foo: alluka.Injected[MockType], bar: typing.Annotated[str, alluka.inject(callback=dependency)]
+        value_1: alluka.Injected[MockType], value_2: typing.Annotated[str, alluka.inject(callback=dependency)]
     ) -> str:
-        assert foo is mock_value
-        assert bar == "eeeeaaaa"
+        assert value_1 is value
+        assert value_2 == "eeeeaaaa"
         return "bye bye"
 
     result = await context.call_with_async_di(callback)
@@ -1380,18 +1301,16 @@ async def test_call_with_async_di_with_annotated_sync_dependency(context: alluka
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_overridden_annotated_sync_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_callback = mock.AsyncMock()
     mock_override = mock.Mock()
-    context.injection_client.set_type_dependency(MockType, mock_value).set_callback_override(
-        mock_callback, mock_override
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_callback_override(mock_callback, mock_override)
 
     async def callback(
-        foo: alluka.Injected[MockType], bar: typing.Annotated[str, alluka.inject(callback=mock_callback)]
+        value_1: alluka.Injected[MockType], value_2: typing.Annotated[str, alluka.inject(callback=mock_callback)]
     ) -> str:
-        assert foo is mock_value
-        assert bar is mock_override.return_value
+        assert value_1 is value
+        assert value_2 is mock_override.return_value
         return "bye bye"
 
     result = await context.call_with_async_di(callback)
@@ -1402,19 +1321,19 @@ async def test_call_with_async_di_with_overridden_annotated_sync_dependency(cont
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_sub_sync_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_callback = mock.AsyncMock()
-    context.injection_client.set_type_dependency(MockType, mock_value)
+    context.injection_client.set_type_dependency(MockType, value)
 
     def dependency(result: str = alluka.inject(callback=mock_callback)) -> str:
         assert result is mock_callback.return_value
         return "go home"
 
     async def callback(
-        foo: alluka.Injected[MockType], bar: typing.Annotated[str, alluka.inject(callback=dependency)]
+        value_1: alluka.Injected[MockType], value_2: typing.Annotated[str, alluka.inject(callback=dependency)]
     ) -> str:
-        assert foo is mock_value
-        assert bar == "go home"
+        assert value_1 is value
+        assert value_2 == "go home"
         return "bye bye"
 
     result = await context.call_with_async_di(callback)
@@ -1425,22 +1344,20 @@ async def test_call_with_async_di_with_annotated_sub_sync_dependency(context: al
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_overridden_annotated_sub_sync_dependency(context: alluka.BasicContext):
-    mock_value = mock.Mock()
+    value = mock.Mock()
     mock_callback = mock.AsyncMock()
     mock_override = mock.Mock()
-    context.injection_client.set_type_dependency(MockType, mock_value).set_callback_override(
-        mock_callback, mock_override
-    )
+    context.injection_client.set_type_dependency(MockType, value).set_callback_override(mock_callback, mock_override)
 
     def dependency(result: typing.Annotated[str, alluka.inject(callback=mock_callback)]) -> str:
         assert result is mock_override.return_value
         return "go home"
 
     async def callback(
-        foo: alluka.Injected[MockType], bar: typing.Annotated[str, alluka.inject(callback=dependency)]
+        value_1: alluka.Injected[MockType], value_2: typing.Annotated[str, alluka.inject(callback=dependency)]
     ) -> str:
-        assert foo is mock_value
-        assert bar == "go home"
+        assert value_1 is value
+        assert value_2 == "go home"
         return "bye bye"
 
     result = await context.call_with_async_di(callback)
@@ -1456,9 +1373,7 @@ async def test_call_with_async_di_with_overridden_annotated_sub_sync_dependency(
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_positional_only_type_dependency(context: alluka.BasicContext):
-    async def callback(
-        foo: int, bar: str = alluka.inject(type=float), /, baz: float = alluka.inject(type=float)
-    ) -> None:
+    async def callback(_: int, __: str = alluka.inject(type=float), /, ___: float = alluka.inject(type=float)) -> None:
         raise NotImplementedError
 
     with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
@@ -1470,7 +1385,7 @@ async def test_call_with_async_di_with_positional_only_callback_dependency(conte
     mock_dependency = mock.Mock()
 
     async def callback(
-        foo: int, bar: str = alluka.inject(callback=mock_dependency), /, baz: float = alluka.inject(type=float)
+        _: int, __: str = alluka.inject(callback=mock_dependency), /, ___: float = alluka.inject(type=float)
     ) -> None:
         raise NotImplementedError
 
@@ -1482,11 +1397,11 @@ async def test_call_with_async_di_with_positional_only_callback_dependency(conte
 async def test_call_with_async_di_with_sub_positional_only_callback_dependency(context: alluka.BasicContext):
     sub_dependency = mock.Mock()
 
-    async def dependency(baz: str = alluka.inject(callback=sub_dependency), /) -> str:
+    async def dependency(_: str = alluka.inject(callback=sub_dependency), /) -> str:
         raise NotImplementedError
 
     async def callback(
-        foo: int, bar: str = alluka.inject(callback=dependency), /, baz: float = alluka.inject(type=float)
+        _: int, __: str = alluka.inject(callback=dependency), /, ___: float = alluka.inject(type=float)
     ) -> None:
         raise NotImplementedError
 
@@ -1496,11 +1411,11 @@ async def test_call_with_async_di_with_sub_positional_only_callback_dependency(c
 
 @pytest.mark.anyio()
 async def test_call_with_async_di_with_sub_positional_only_type_dependency(context: alluka.BasicContext):
-    async def dependency(baz: str = alluka.inject(type=int), /) -> str:
+    async def dependency(_: str = alluka.inject(type=int), /) -> str:
         raise NotImplementedError
 
     async def callback(
-        foo: int, bar: str = alluka.inject(callback=dependency), /, baz: float = alluka.inject(type=float)
+        _: int, __: str = alluka.inject(callback=dependency), /, ___: float = alluka.inject(type=float)
     ) -> None:
         raise NotImplementedError
 

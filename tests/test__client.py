@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -111,10 +110,10 @@ class TestClient:
         mock_override = mock.Mock()
 
         def callback(
-            foo: int,
-            bar: str,
-            bam: alluka.Injected[MockType1],
-            baz: alluka.Injected[typing.Union[int, str, None]],
+            value_1: int,
+            value_2: str,
+            value_3: alluka.Injected[MockType1],
+            value_4: alluka.Injected[typing.Union[int, str, None]],
             other_result: typing.Annotated[int, alluka.inject(callback=lambda: "no you")],
             overridden: typing.Annotated[int, alluka.inject(callback=mock_callback)],
             bart_man: alluka.Injected[int] = 123,
@@ -122,10 +121,10 @@ class TestClient:
             nyaa: typing.Optional[bool] = alluka.inject(type=typing.Optional[bool]),
             result: typing.Optional[str] = alluka.inject(callback=lambda: "hi"),
         ) -> str:
-            assert foo == 43234
-            assert bar == "nyaa"
-            assert bam is mock_value_1
-            assert baz is None
+            assert value_1 == 43234
+            assert value_2 == "nyaa"
+            assert value_3 is mock_value_1
+            assert value_4 is None
             assert other_result == "no you"
             assert overridden is mock_override.return_value
             assert bart_man == 123

@@ -38,7 +38,7 @@ Documentation = "https://alluka.cursed.solutions/"
 Changelog = "https://github.com/FasterSpeeding/Alluka/blob/master/CHANGELOG.md"
 
 [tool.black]
-extend-exclude = ["^/alluka/_vendor/.*$"]
+extend-exclude = "^\\/alluka\\/_internal\\/vendor\\/.*$"
 include = ".*pyi?$"
 line-length = 120
 skip-magic-trailing-comma = true
@@ -67,7 +67,7 @@ accept-encodings = "utf-8"
 count = true
 docstring-convention = "numpy"
 eradicate-aggressive = true
-exclude = ["alluka/_vendor/"]
+exclude = ["alluka/_vendor/**"]
 # extend-select = ["TC100", "TC101"]
 force-future-annotations = true
 ignore-decorators = "overload"
@@ -101,7 +101,11 @@ ignore = [
     "E231",    # missing whitespace after ','
 ]
 # Doc errors don't matter in the tests
-per-file-ignores = ["tests/*.py: D100, D104"]
+per-file-ignores = [
+    "noxfile.py: D100, D101, D103, INP001",
+    "alluka/py.typed: D100",
+    "tests/*.py: CCE002, D100, D101, D103, D104, FA100, FA101"
+]
 
 [tool.isort]
 profile = "black"
