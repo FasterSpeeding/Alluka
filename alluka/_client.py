@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -78,9 +77,7 @@ def inject(*, type: typing.Any = None) -> typing.Any:  # noqa: A002
 
 
 def inject(
-    *,
-    callback: typing.Optional[alluka.CallbackSig[_T]] = None,
-    type: typing.Any = None,  # noqa: A002
+    *, callback: typing.Optional[alluka.CallbackSig[_T]] = None, type: typing.Any = None  # noqa: A002
 ) -> typing.Any:
     """Decare a keyword-argument as requiring an injected dependency.
 

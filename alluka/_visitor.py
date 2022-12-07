@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -51,6 +50,8 @@ else:
 
 
 class Node(abc.ABC):
+    """Represents a node which may hold parameter injection information."""
+
     __slots__ = ()
 
     @abc.abstractmethod
@@ -59,6 +60,8 @@ class Node(abc.ABC):
 
 
 class Annotation(Node):
+    """Node which represent's a parameter's type-hint."""
+
     __slots__ = ("_callback", "_name", "_raw_annotation")
 
     def __init__(self, callback: Callback, name: str, /):
@@ -79,6 +82,8 @@ class Annotation(Node):
 
 
 class Callback:
+    """Represents a callback being scanned for DI."""
+
     __slots__ = ("_callback", "_resolved", "_signature")
 
     def __init__(self, callback: collections.Callable[..., typing.Any], /) -> None:
@@ -115,6 +120,8 @@ class Callback:
 
 
 class Default(Node):
+    """Node which represent a parameter's default value."""
+
     __slots__ = ("_callback", "_default", "_name")
 
     def __init__(self, callback: Callback, name: str, /) -> None:
@@ -143,6 +150,8 @@ class Default(Node):
 
 
 class ParameterVisitor:
+    """Visitor class for parsing a callback for injected parameters."""
+
     __slots__ = ()
 
     _NODES: list[collections.Callable[[Callback, str], Node]] = [Default, Annotation]

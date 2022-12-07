@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -204,7 +203,7 @@ class InjectedDescriptor(typing.Generic[_T]):
     If this is `None` then this is a type dependency.
     """
 
-    type: typing.Optional[_TypeT[_T]]
+    type: typing.Optional[_TypeT[_T]]  # noqa: VNE003
     """The type to use to resolve the parameter's value.
 
     If both this and `callback` are `None`, then this is a type dependency
