@@ -38,7 +38,7 @@ Documentation = "https://alluka.cursed.solutions/"
 Changelog = "https://github.com/FasterSpeeding/Alluka/blob/master/CHANGELOG.md"
 
 [tool.black]
-extend-exclude = "^\\/alluka\\/_internal\\/vendor\\/.*$"
+extend-exclude = "^\\/alluka\\/_vendor\\/.*$"
 include = ".*pyi?$"
 line-length = 120
 skip-magic-trailing-comma = true
