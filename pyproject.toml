@@ -102,8 +102,8 @@ ignore = [
 ]
 # Doc errors don't matter in the tests
 per-file-ignores = [
-    "noxfile.py: D100, D101, D103, INP001",
     "alluka/py.typed: D100",
+    "noxfile.py: D100, D101, D103, INP001",
     "tests/*.py: CCE002, D100, D101, D103, D104, FA100, FA101"
 ]
 
