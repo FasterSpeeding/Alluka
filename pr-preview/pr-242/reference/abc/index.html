@@ -402,15 +402,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#alluka.abc.AsyncSelfInjecting.__call__" class="md-nav__link">
-    __call__()
+  <a href="#alluka.abc.AsyncSelfInjecting.callback" class="md-nav__link">
+    callback
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#alluka.abc.AsyncSelfInjecting.callback" class="md-nav__link">
-    callback()
+  <a href="#alluka.abc.AsyncSelfInjecting.__call__" class="md-nav__link">
+    __call__()
   </a>
   
 </li>
@@ -526,6 +526,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#alluka.abc.Context.injection_client" class="md-nav__link">
+    injection_client
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#alluka.abc.Context.cache_result" class="md-nav__link">
     cache_result()
   </a>
@@ -560,13 +567,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#alluka.abc.Context.injection_client" class="md-nav__link">
-    injection_client()
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -581,15 +581,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#alluka.abc.SelfInjecting.__call__" class="md-nav__link">
-    __call__()
+  <a href="#alluka.abc.SelfInjecting.callback" class="md-nav__link">
+    callback
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#alluka.abc.SelfInjecting.callback" class="md-nav__link">
-    callback()
+  <a href="#alluka.abc.SelfInjecting.__call__" class="md-nav__link">
+    __call__()
   </a>
   
 </li>
@@ -677,15 +677,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#alluka.abc.AsyncSelfInjecting.__call__" class="md-nav__link">
-    __call__()
+  <a href="#alluka.abc.AsyncSelfInjecting.callback" class="md-nav__link">
+    callback
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#alluka.abc.AsyncSelfInjecting.callback" class="md-nav__link">
-    callback()
+  <a href="#alluka.abc.AsyncSelfInjecting.__call__" class="md-nav__link">
+    __call__()
   </a>
   
 </li>
@@ -801,6 +801,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#alluka.abc.Context.injection_client" class="md-nav__link">
+    injection_client
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#alluka.abc.Context.cache_result" class="md-nav__link">
     cache_result()
   </a>
@@ -835,13 +842,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#alluka.abc.Context.injection_client" class="md-nav__link">
-    injection_client()
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -856,15 +856,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#alluka.abc.SelfInjecting.__call__" class="md-nav__link">
-    __call__()
+  <a href="#alluka.abc.SelfInjecting.callback" class="md-nav__link">
+    callback
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#alluka.abc.SelfInjecting.callback" class="md-nav__link">
-    callback()
+  <a href="#alluka.abc.SelfInjecting.__call__" class="md-nav__link">
+    __call__()
   </a>
   
 </li>
@@ -1016,6 +1016,30 @@ a coroutine or raw value may lead to errors.</p>
 
 
 
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="alluka.abc.AsyncSelfInjecting.callback" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">callback</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+<a href="#alluka.abc.AsyncSelfInjecting.callback" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">callback</span><span class="p">:</span> <span class="n">_CallbackT</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>The callback this wraps.</p>
+  </div>
+
+</div>
+
 
 
 <div class="doc doc-object doc-function">
@@ -1124,31 +1148,6 @@ by the client.</p>
         </tr>
     </tbody>
   </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="alluka.abc.AsyncSelfInjecting.callback" class="doc doc-heading">
-        <span class="doc doc-object-name doc-function-name">callback</span>
-
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
-  </span>
-
-<a href="#alluka.abc.AsyncSelfInjecting.callback" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">callback</span><span class="p">()</span>
-</code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>The callback this wraps.</p>
 
   </div>
 
@@ -2422,6 +2421,30 @@ will be returned if it is provided, else <a class="autorefs autorefs-internal" h
 
 
 
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="alluka.abc.Context.injection_client" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">injection_client</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+<a href="#alluka.abc.Context.injection_client" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">injection_client</span><span class="p">:</span> <span class="n">Client</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Injection client this context is bound to.</p>
+  </div>
+
+</div>
+
 
 
 <div class="doc doc-object doc-function">
@@ -2925,31 +2948,6 @@ will be returned if it is provided, else <a class="autorefs autorefs-internal" h
 
 </div>
 
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="alluka.abc.Context.injection_client" class="doc doc-heading">
-        <span class="doc doc-object-name doc-function-name">injection_client</span>
-
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
-  </span>
-
-<a href="#alluka.abc.Context.injection_client" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">injection_client</span><span class="p">()</span>
-</code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>Injection client this context is bound to.</p>
-
-  </div>
-
-</div>
-
 
 
   </div>
@@ -3000,6 +2998,30 @@ any of the callback's dependencies are async.</p>
 
 
 
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="alluka.abc.SelfInjecting.callback" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">callback</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+<a href="#alluka.abc.SelfInjecting.callback" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">callback</span><span class="p">:</span> <span class="n">_SyncCallbackT</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>The callback this wraps.</p>
+  </div>
+
+</div>
 
 
 
@@ -3118,31 +3140,6 @@ by the client.</p>
         </tr>
     </tbody>
   </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="alluka.abc.SelfInjecting.callback" class="doc doc-heading">
-        <span class="doc doc-object-name doc-function-name">callback</span>
-
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
-  </span>
-
-<a href="#alluka.abc.SelfInjecting.callback" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">callback</span><span class="p">()</span>
-</code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>The callback this wraps.</p>
 
   </div>
 
