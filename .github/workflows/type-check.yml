@@ -1,12 +1,22 @@
-name: Upgrade dev dependencies
+name: Type check
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
   schedule:
-    - cron: "0 12 1 * *"
+    - cron: "0 12 * * 6"
   workflow_dispatch:
 
 jobs:
-  upgrade-dev-deps:
+  type-check:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,13 +34,5 @@ jobs:
           python -m pip install --upgrade pip wheel
           python -m pip install -r ./piped/python/base-requirements/nox.txt
 
-      - name: Upgrade dev dependencies
-        run: python -m nox -s freeze-dev-deps
-
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v4
-        with:
-          branch: task/upgrade-dev-deps
-          commit-message: Upgrade dev dependencies
-          title: Upgrade dev dependencies
-          token: ${{ secrets.ACTIONS_TOKEN }}
+      - name: Run type checker
+        run: python -m nox -s type-check

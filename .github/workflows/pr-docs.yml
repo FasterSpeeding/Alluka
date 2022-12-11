@@ -1,7 +1,7 @@
 name: Deploy PR preview docs
 
 concurrency:
-  group: preview-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 on:
@@ -25,6 +25,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          submodules: "true"
 
       - name: Set up Python 3.9
         if: github.event.action != 'closed'
@@ -36,7 +37,7 @@ jobs:
         if: github.event.action != 'closed'
         run: |
           python -m pip install --upgrade pip wheel
-          python -m pip install -r ./dev-requirements/nox.txt
+          python -m pip install -r ./piped/python/base-requirements/nox.txt
 
       - name: Build docs
         if: github.event.action != 'closed'
