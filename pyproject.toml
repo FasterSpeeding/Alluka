@@ -112,25 +112,6 @@ profile = "black"
 force_single_line = true
 skip = ["alluka/_vendor"]
 
-[tool.pyright]
-exclude = ["alluka/_vendor"]
-include = ["alluka", "noxfile.py", "tests"]
-
-pythonVersion = "3.9"
-typeCheckingMode = "strict"
-reportMissingModuleSource = "error"
-reportMissingTypeStubs = "error"
-
-reportUnknownMemberType = "warning"             # This messes with instance checking generic objects
-reportUnknownArgumentType = "warning"           # Pretty much the same as reportUnknownMemberType
-reportImportCycles = "warning"                  # This isn't necessarily an issue if it's type checking only.
-reportUnknownVariableType = "warning"           # Lotta false-positives, might fix/change later.
-reportPrivateUsage = "none"                     # Leads to funky false-positives around private module imports.
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-required_plugins = ["anyio"]
-
 [tool.mypy]
 # some good strict settings
 strict = true
@@ -183,6 +164,25 @@ python_versions = "[3.9, 3.10.5, 3.11]"
 [tool.piped.github_actions.upgrade_locks]
 [tool.piped.github_actions.verify_locks]
 [tool.piped.github_actions.verify_types]
+
+[tool.pyright]
+exclude = ["alluka/_vendor"]
+include = ["alluka", "noxfile.py", "tests"]
+
+pythonVersion = "3.9"
+typeCheckingMode = "strict"
+reportMissingModuleSource = "error"
+reportMissingTypeStubs = "error"
+
+reportUnknownMemberType = "warning"             # This messes with instance checking generic objects
+reportUnknownArgumentType = "warning"           # Pretty much the same as reportUnknownMemberType
+reportImportCycles = "warning"                  # This isn't necessarily an issue if it's type checking only.
+reportUnknownVariableType = "warning"           # Lotta false-positives, might fix/change later.
+reportPrivateUsage = "none"                     # Leads to funky false-positives around private module imports.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+required_plugins = ["anyio"]
 
 [tool.slotscheck]
 strict-imports = true
