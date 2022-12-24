@@ -103,7 +103,7 @@ ignore = [
 # Doc errors don't matter in the tests
 per-file-ignores = [
     "alluka/py.typed: D100",
-    "noxfile.py: D100, D101, D103, INP001",
+    "noxfile.py: D100, FA101, F401, F403, INP001",
     "tests/*.py: CCE002, D100, D101, D103, D104, FA100, FA101"
 ]
 
@@ -111,6 +111,58 @@ per-file-ignores = [
 profile = "black"
 force_single_line = true
 skip = ["alluka/_vendor"]
+
+[tool.mypy]
+# some good strict settings
+strict = true
+warn_unreachable = true
+
+# more narrow type ignores
+show_error_codes = true
+
+# these are used by pyright
+warn_unused_ignores = false
+warn_redundant_casts = false
+
+# compatibility with pyright
+allow_redefinition = true
+
+# Ignore vendored modules
+exclude = ["alluka/_vendor/"]
+
+[tool.piped]
+default_sessions = [
+    "reformat",
+    "verify-markup",
+    "flake8",
+    "spell-check",
+    "slot-check",
+    "type-check",
+    "test",
+    "verify-types",
+]
+extra_test_installs = ["."]
+mypy_allowed_to_fail = true
+mypy_targets = ["alluka"]
+path_ignore = "^alluka\\/_vendor\\/"
+project_name = "alluka"
+top_level_targets = ["./alluka", "./noxfile.py", "./tests"]
+
+[tool.piped.github_actions.freeze_for_pr]
+[tool.piped.github_actions.lint]
+[tool.piped.github_actions.pr_docs]
+[tool.piped.github_actions.publish]
+[tool.piped.github_actions.py_test]
+codeclimate_token = "a965935acdc9066802d7201945219784c0f24d22e8a2dff0e6529207726bc8af"
+python_versions = "[3.9, 3.10.5, 3.11]"
+
+[tool.piped.github_actions.reformat]
+[tool.piped.github_actions.release_docs]
+[tool.piped.github_actions.resync_piped]
+[tool.piped.github_actions.type_check]
+[tool.piped.github_actions.upgrade_locks]
+[tool.piped.github_actions.verify_locks]
+[tool.piped.github_actions.verify_types]
 
 [tool.pyright]
 exclude = ["alluka/_vendor"]
@@ -130,24 +182,6 @@ reportPrivateUsage = "none"                     # Leads to funky false-positives
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 required_plugins = ["anyio"]
-
-[tool.mypy]
-# some good strict settings
-strict = true
-warn_unreachable = true
-
-# more narrow type ignores
-show_error_codes = true
-
-# these are used by pyright
-warn_unused_ignores = false
-warn_redundant_casts = false
-
-# compatibility with pyright
-allow_redefinition = true
-
-# Ignore vendored modules
-exclude = ["alluka/_vendor/"]
 
 [tool.slotscheck]
 strict-imports = true
