@@ -538,7 +538,6 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         assert result == 451.123
 
     def test_call_with_di_with_annotated_3_10_union_type_dependency_natural_defaulting(context: alluka.BasicContext):
-
         mock_value = MockType()
 
         context.injection_client.set_type_dependency(MockType, mock_value)
