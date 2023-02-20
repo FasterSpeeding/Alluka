@@ -131,7 +131,7 @@ def inject(
     ValueError
         If both `type` and `callback` are provided.
     """
-    return typing.cast(_T, _types.InjectedDescriptor(callback=callback, type=type))
+    return typing.cast("_T", _types.InjectedDescriptor(callback=callback, type=type))
 
 
 class Client(alluka.Client):
@@ -220,7 +220,7 @@ class Client(alluka.Client):
 
     async def call_with_async_di(self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
-        return typing.cast(_T, await BasicContext(self).call_with_async_di(callback, *args, **kwargs))
+        return typing.cast("_T", await BasicContext(self).call_with_async_di(callback, *args, **kwargs))
 
     async def call_with_ctx_async(
         self, ctx: alluka.Context, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
@@ -236,9 +236,9 @@ class Client(alluka.Client):
 
         result = callback(*args, **kwargs)
         if asyncio.iscoroutine(result):
-            return typing.cast(_T, await result)
+            return typing.cast("_T", await result)
 
-        return typing.cast(_T, result)
+        return typing.cast("_T", result)
 
     def set_type_dependency(self, type_: type[_T], value: _T, /) -> Self:
         # <<inherited docstring from alluka.abc.Client>>.
@@ -324,7 +324,7 @@ class BasicContext(alluka.Context):
 
     async def call_with_async_di(self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Context>>.
-        return typing.cast(_T, await self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs))
+        return typing.cast("_T", await self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs))
 
     @typing.overload
     def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> _UndefinedOr[_T]:
@@ -355,7 +355,7 @@ class BasicContext(alluka.Context):
     ) -> typing.Union[_T, _DefaultT, alluka.Undefined]:
         # <<inherited docstring from alluka.abc.Context>>.
         if self._special_case_types and (value := self._special_case_types.get(type_, default)) is not default:
-            return typing.cast(_T, value)
+            return typing.cast("_T", value)
 
         return self._injection_client.get_type_dependency(type_, default=default)
 
