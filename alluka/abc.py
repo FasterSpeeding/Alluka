@@ -37,8 +37,6 @@ __all__: list[str] = [
     "Client",
     "Context",
     "SelfInjecting",
-    "UNDEFINED",
-    "Undefined",
 ]
 
 import abc
