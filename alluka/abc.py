@@ -31,13 +31,7 @@
 """Alluka's abstract interfaces."""
 from __future__ import annotations
 
-__all__: list[str] = [
-    "AsyncSelfInjecting",
-    "CallbackSig",
-    "Client",
-    "Context",
-    "SelfInjecting",
-]
+__all__: list[str] = ["AsyncSelfInjecting", "CallbackSig", "Client", "Context", "SelfInjecting"]
 
 import abc
 import typing
