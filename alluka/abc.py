@@ -65,7 +65,7 @@ class Undefined:
     """
 
     __slots__ = ()
-    __instance: Undefined
+    __instance: Undefined  # pyright: ignore [ reportUninitializedInstanceVariable ]
 
     def __bool__(self) -> typing.Literal[False]:
         return False

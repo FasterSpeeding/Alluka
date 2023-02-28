@@ -37,7 +37,7 @@ import enum
 import typing
 from collections import abc as collections
 
-from . import _errors
+from . import _errors  # pyright: ignore [ reportPrivateUsage ]
 from . import abc as alluka
 
 _T = typing.TypeVar("_T")
