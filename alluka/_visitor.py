@@ -37,8 +37,8 @@ import types
 import typing
 from collections import abc as collections
 
-from . import _types
-from ._vendor import inspect
+from . import _types  # pyright: ignore [ reportPrivateUsage ]
+from ._vendor import inspect  # pyright: ignore [ reportPrivateUsage ]
 
 if sys.version_info >= (3, 10):
     _UnionTypes = frozenset((typing.Union, types.UnionType))
