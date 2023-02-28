@@ -38,10 +38,10 @@ import typing
 import weakref
 from collections import abc as collections
 
-from . import _errors
-from . import _self_injecting
-from . import _types
-from . import _visitor
+from . import _errors  # pyright: ignore [ reportPrivateUsage ]
+from . import _self_injecting  # pyright: ignore [ reportPrivateUsage ]
+from . import _types  # pyright: ignore [ reportPrivateUsage ]
+from . import _visitor  # pyright: ignore [ reportPrivateUsage ]
 from . import abc as alluka
 
 if typing.TYPE_CHECKING:
