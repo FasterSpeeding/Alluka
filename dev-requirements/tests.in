@@ -1,3 +1,4 @@
+-r ./constraints.in
 -r ../piped/python/base-requirements/tests.in
 
 # Comes with a builtin pytest plugin.
