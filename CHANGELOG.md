@@ -56,8 +56,8 @@ part of Tanjun.
 - Support for inferring the type of a parameter from its type hint
   when no `type` or `callback` is explicitly provided.
 - Support for using `typing.Annotated` to declare parameter DI. This takes two forms:
-  * `parameter: alluka.Inject[Type]` to infer specifically a type dependency.
-  * `parameter: typing.Annotated(Type, alluka.inject(type=.../callback=...))`.
+    * `parameter: alluka.Inject[Type]` to infer specifically a type dependency.
+    * `parameter: typing.Annotated(Type, alluka.inject(type=.../callback=...))`.
 
 ### Changed
 - Passed keyword arguments are now prioritised over dependency injection.
