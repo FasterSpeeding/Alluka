@@ -194,6 +194,7 @@ reportUnknownVariableType = "warning"           # Lotta false-positives, might f
 testpaths = ["tests"]
 timeout = 15
 required_plugins = ["anyio"]
+filterwarnings = ["error::DeprecationWarning"]
 
 [tool.slotscheck]
 strict-imports = true
