@@ -34,8 +34,8 @@ from __future__ import annotations
 import sys
 import typing
 import warnings
-import mock
 
+import mock
 import pytest
 
 import alluka
