@@ -34,7 +34,7 @@ from __future__ import annotations
 import sys
 import typing
 import warnings
-from unittest import mock
+import mock
 
 import pytest
 
