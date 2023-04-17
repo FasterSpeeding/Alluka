@@ -31,7 +31,7 @@
 
 import sys
 import typing
-from unittest import mock
+import mock
 
 import pytest
 
