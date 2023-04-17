@@ -31,7 +31,7 @@
 
 import typing
 import warnings
-from unittest import mock
+import mock
 
 import pytest
 
