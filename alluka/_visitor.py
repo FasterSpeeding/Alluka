@@ -37,7 +37,7 @@ import types
 import typing
 from collections import abc as collections
 
-from . import _types  # pyright: ignore [ reportPrivateUsage ]
+from . import _types  # pyright: ignore[reportPrivateUsage]
 from ._vendor import inspect
 
 if sys.version_info >= (3, 10):
