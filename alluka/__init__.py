@@ -37,6 +37,7 @@ __all__: list[str] = [
     "AsyncSelfInjecting",
     "BasicContext",
     "Client",
+    "ICallback",
     "Injected",
     "InjectedDescriptor",
     "MissingDependencyError",
@@ -55,6 +56,7 @@ from ._errors import MissingDependencyError
 from ._errors import SyncOnlyError
 from ._self_injecting import AsyncSelfInjecting
 from ._self_injecting import SelfInjecting
+from ._types import ICallback
 from ._types import Injected
 from ._types import InjectedDescriptor
 

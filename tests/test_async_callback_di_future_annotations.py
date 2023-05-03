@@ -1136,6 +1136,32 @@ async def test_call_with_async_di_with_annotated_callback_dependency(context: al
 
 
 @pytest.mark.anyio()
+async def test_call_with_async_di_with_shorthand_annotated_callback_dependency(context: alluka.BasicContext):
+    global mock_callback_1
+    global mock_callback_2
+    mock_callback_1 = mock.AsyncMock()
+    mock_callback_2 = mock.Mock()
+    mock_override = mock.Mock()
+
+    def callback(
+        meow: bool, bye: str, value_1: alluka.ICallback[mock_callback_1], value_2: alluka.ICallback[mock_callback_2]
+    ) -> str:
+        assert meow is True
+        assert bye == "54123"
+        assert value_1 is mock_callback_1.return_value
+        assert value_2 is mock_override.return_value
+        return "eeesss"
+
+    context.injection_client.set_callback_override(mock_callback_2, mock_override)
+
+    result = await context.call_with_async_di(callback, True, "54123")
+
+    mock_callback_1.assert_awaited_once_with()
+    mock_override.assert_called_once_with()
+    assert result == "eeesss"
+
+
+@pytest.mark.anyio()
 async def test_call_with_async_di_with_annotated_sub_callback_dependency(context: alluka.BasicContext):
     global mock_callback
     mock_callback = mock.AsyncMock()

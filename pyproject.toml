@@ -114,6 +114,7 @@ skip = ["alluka/_vendor"]
 
 [tool.mypy]
 # some good strict settings
+python_version = 3.9
 strict = true
 warn_unreachable = true
 
