@@ -42,7 +42,7 @@ from ._vendor import inspect
 if typing.TYPE_CHECKING:
     from collections import abc as collections
 
-    
+
 if sys.version_info >= (3, 10):
     _UnionTypes = frozenset((typing.Union, types.UnionType))
     _NoneType = types.NoneType
