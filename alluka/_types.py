@@ -35,10 +35,13 @@ __all__ = ["Injected", "InjectedDescriptor"]
 
 import enum
 import typing
-from collections import abc as collections
 
 from . import _errors  # pyright: ignore[reportPrivateUsage]
 from . import abc as alluka
+
+if typing.TYPE_CHECKING:
+    from collections import abc as collections
+
 
 _T = typing.TypeVar("_T")
 
