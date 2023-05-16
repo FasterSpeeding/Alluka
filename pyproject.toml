@@ -191,6 +191,7 @@ reportUnknownVariableType = "warning"           # Lotta false-positives, might f
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+timeout = 15
 required_plugins = ["anyio"]
 
 [tool.slotscheck]
