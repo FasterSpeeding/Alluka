@@ -31,7 +31,7 @@
 """Internal types used by Alluka."""
 from __future__ import annotations
 
-__all__ = ["Injected", "InjectedDescriptor"]
+__all__: list= ["Injected", "InjectedDescriptor"]
 
 import enum
 import typing
