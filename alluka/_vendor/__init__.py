@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__all__ = ["inspect"]
+__all__: list[str] = ["inspect"]
 
 import sys
 
