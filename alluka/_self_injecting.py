@@ -104,7 +104,7 @@ class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
     ) -> _T:
         ...
 
-    async def __call__(
+    async def __call__(  # pyright: ignore[reportIncompatibleMethodOverride]
         self: typing.Union[
             AsyncSelfInjecting[collections.Callable[..., _T]], AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]]
         ],
