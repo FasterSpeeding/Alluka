@@ -220,7 +220,7 @@ class Client(alluka.Client):
 
     async def call_with_async_di(self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
-        return typing.cast("_T", await BasicContext(self).call_with_async_di(callback, *args, **kwargs))
+        return await BasicContext(self).call_with_async_di(callback, *args, **kwargs)
 
     async def call_with_ctx_async(
         self, ctx: alluka.Context, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
@@ -324,7 +324,7 @@ class BasicContext(alluka.Context):
 
     async def call_with_async_di(self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Context>>.
-        return typing.cast("_T", await self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs))
+        return await self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs)
 
     @typing.overload
     def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> _UndefinedOr[_T]:
