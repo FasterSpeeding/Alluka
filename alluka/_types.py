@@ -45,12 +45,15 @@ _T = typing.TypeVar("_T")
 
 class _UndefinedEnum(enum.Enum):
     UNDEFINED = object()
+    NO_PASS = object()
 
 
 UNDEFINED = _UndefinedEnum.UNDEFINED
 """Singleton used internally to indicate that a value is undefined."""
 UndefinedOr = typing.Union[_T, typing.Literal[_UndefinedEnum.UNDEFINED]]
 """Union for a value which may be undefined."""
+NO_PASS = _UndefinedEnum.NO_PASS
+""""Singleton used internally to mark as don't pass when no value was assigned."""
 
 
 class InjectedCallback:

@@ -40,6 +40,8 @@ from collections import abc as collections
 from . import _types  # pyright: ignore [ reportPrivateUsage ]
 from ._vendor import inspect
 
+import typing_extensions
+
 if sys.version_info >= (3, 10):
     _UnionTypes = frozenset((typing.Union, types.UnionType))
     _NoneType = types.NoneType
@@ -175,11 +177,10 @@ class ParameterVisitor:
     def _annotation_to_type(
         self, value: typing.Any, /, default: _types.UndefinedOr[typing.Any] = _types.UNDEFINED
     ) -> _types.InjectedTuple:
-        if typing.get_origin(value) is typing.Annotated:
+        origin = typing.get_origin(value)
+        if origin is typing.Annotated:
             args = typing.get_args(value)
-            # The first "type" arg of annotated will always be flatterned to a type.
-            # so we don't have to deal with Annotated nesting".
-            value = args[0]
+            return self._annotation_to_type(args[0], default=default)
 
         return self._parse_type(value, default=default)
 
@@ -214,6 +215,19 @@ class ParameterVisitor:
     def visit_callback(self, callback: Callback, /) -> dict[str, _types.InjectedTuple]:
         results: dict[str, _types.InjectedTuple] = {}
         for name, value in callback.parameters.items():
+            if value.kind is value.POSITIONAL_OR_KEYWORD:
+                annotation = typing_extensions.get_origin(callback.resolve_annotation(name))
+                if annotation is not typing_extensions.Unpack:
+                    continue
+
+                typed_dict = typing_extensions.get_args(annotation)[0]
+                if not typing_extensions.is_typeddict(typed_dict):
+                    continue
+
+                
+                continue
+
+
             for node in self._NODES:
                 result = node(callback, name).accept(self)
                 if not result:
