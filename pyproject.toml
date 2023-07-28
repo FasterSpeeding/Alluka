@@ -35,7 +35,7 @@ dynamic = ["description"]
 Homepage = "https://github.com/FasterSpeeding/Alluka"
 Repository = "https://github.com/FasterSpeeding/Alluka"
 Documentation = "https://alluka.cursed.solutions/"
-Changelog = "https://github.com/FasterSpeeding/Alluka/blob/master/CHANGELOG.md"
+Changelog = "https://alluka.cursed.solutions/changelog"
 
 [tool.black]
 extend-exclude = "^\\/alluka\\/_vendor\\/.*$"
