@@ -1,5 +1,6 @@
 # mkdocs.yml
 site_name: "Alluka docs"
+repo_url: https://github.com/FasterSpeeding/Alluka
 theme:
   name: material
   icon:
