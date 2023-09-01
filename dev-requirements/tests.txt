@@ -4,9 +4,9 @@
 #
 #    pip-compile-cross-platform dev-requirements/tests.in --output-file dev-requirements/tests.txt --min-python-version 3.9.0,<3.13
 #
-anyio==3.7.1 ; python_full_version >= "3.9.0" and python_version < "3.13" \
-    --hash=sha256:44a3c9aba0f5defa43261a8b3efb97891f2bd7d804e0e1f56419befa1adfc780 \
-    --hash=sha256:91dee416e570e92c64041bd18b900d1d6fa78dff7048769ce5ac5ddad004fbb5
+anyio==4.0.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
+    --hash=sha256:cfdb2b588b9fc25ede96d8db56ed50848b0b649dca3dd1df0b11f683bb9e0b5f \
+    --hash=sha256:f7ed51751b2c2add651e5747c891b47e26d2a21be5d32d9311dfe9692f3e5d7a
 attrs==23.1.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
     --hash=sha256:1f28b4522cdc2fb4256ac1a020c78acf9cba2c6b461ccd2c126f3aa8e8335d04 \
     --hash=sha256:6279836d581513a26f1bf235f9acd333bc9115683f14f7e8fae46c98fc50e015
