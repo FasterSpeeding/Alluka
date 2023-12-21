@@ -143,7 +143,7 @@ async def bar(ctx: alluka.Inject[alluka.abc.Context]) -> None:
 client = (
     alluka.Client()
     .set_type_dependency(TypeA, type_a_impl)
-    .set_type_dependencu(TypeB, type_b_impl)
+    .set_type_dependency(TypeB, type_b_impl)
 )
 ```
 
