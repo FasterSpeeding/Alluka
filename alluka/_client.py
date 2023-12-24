@@ -79,9 +79,9 @@ def inject(*, type: typing.Any = None) -> typing.Any:  # noqa: A002
 def inject(
     *, callback: typing.Optional[alluka.CallbackSig[_T]] = None, type: typing.Any = None  # noqa: A002
 ) -> typing.Any:
-    """Decare a keyword-argument as requiring an injected dependency.
+    """Declare a keyword-argument as requiring an injected dependency.
 
-    This may be assigned to an arugment's default value to declare injection
+    This may be assigned to an argument's default value to declare injection
     or as a part of its Annotated metadata.
 
     !!! note
