@@ -85,8 +85,8 @@ ignore = [
     "CFQ002",  # Function has too many arguments.
     "D102",    # Missing docstring in public method.
     "D105",    # Magic methods not having a docstring.
-    "D401",    # Conflits with property doc-strings too much.
-    "D404",    # Conflits with property doc-strings too much.
+    "D401",    # Conflicts with property doc-strings too much.
+    "D404",    # Conflicts with property doc-strings too much.
     "D412",    # No blank lines allowed between a section header and its content
     "E402",    # Module level import not at top of file (isn't compatible with our import style).
     "IFS001",  # "use a oneliner here".
@@ -104,7 +104,7 @@ ignore = [
 per-file-ignores = [
     "alluka/py.typed: D100",
     "noxfile.py: D100, FA101, F401, F403, INP001",
-    "tests/*.py: CCE002, DALL000, D100, D101, D103, D104, FA100, FA101"
+    "tests/*.py: CCE002, DALL000, D100, D101, D103, D104, FA100, FA101, M511"
 ]
 
 [tool.isort]
