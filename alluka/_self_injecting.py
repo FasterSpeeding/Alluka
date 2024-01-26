@@ -38,13 +38,15 @@ from collections import abc as collections
 from . import abc as alluka
 
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=alluka.CallbackSig[typing.Any])
-_SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
+_SyncCallbackT = typing.TypeVar(
+    "_SyncCallbackT", bound=collections.Callable[..., typing.Any]
+)
 _T = typing.TypeVar("_T")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
 
 class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
-    """Class used to link a sync function to a client to make it self-injecting.
+    """Class used to link an async function to a client to make it self-injecting.
 
     Examples
     --------
@@ -94,19 +96,24 @@ class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
 
     @typing.overload
     async def __call__(
-        self: AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]], *args: typing.Any, **kwargs: typing.Any
+        self: AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]],
+        *args: typing.Any,
+        **kwargs: typing.Any,
     ) -> _T:
         ...
 
     @typing.overload
     async def __call__(
-        self: AsyncSelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any
+        self: AsyncSelfInjecting[collections.Callable[..., _T]],
+        *args: typing.Any,
+        **kwargs: typing.Any,
     ) -> _T:
         ...
 
     async def __call__(  # pyright: ignore[reportIncompatibleMethodOverride]
         self: typing.Union[
-            AsyncSelfInjecting[collections.Callable[..., _T]], AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]]
+            AsyncSelfInjecting[collections.Callable[..., _T]],
+            AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]],
         ],
         *args: typing.Any,
         **kwargs: typing.Any,
@@ -171,7 +178,11 @@ class SelfInjecting(alluka.SelfInjecting[_SyncCallbackT]):
         self._callback = callback
         self._client = client
 
-    def __call__(self: SelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    def __call__(
+        self: SelfInjecting[collections.Callable[..., _T]],
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> _T:
         # <<inherited docstring from alluka.abc.SelfInjecting>>.
         return self._client.call_with_di(self._callback, *args, **kwargs)
 
