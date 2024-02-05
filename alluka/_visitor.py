@@ -60,8 +60,7 @@ class Node(abc.ABC):
     __slots__ = ()
 
     @abc.abstractmethod
-    def accept(self, visitor: ParameterVisitor, /) -> typing.Optional[_types.InjectedTuple]:
-        ...
+    def accept(self, visitor: ParameterVisitor, /) -> typing.Optional[_types.InjectedTuple]: ...
 
 
 class Annotation(Node):

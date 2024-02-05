@@ -62,8 +62,7 @@ _UndefinedOr = typing.Union[alluka.Undefined, _T]
 
 
 @typing.overload
-def inject(*, callback: alluka.CallbackSig[_T]) -> _T:
-    ...
+def inject(*, callback: alluka.CallbackSig[_T]) -> _T: ...
 
 
 @typing.overload
@@ -176,12 +175,10 @@ class Client(alluka.Client):
     @typing.overload
     def call_with_di(
         self, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
-    ) -> typing.NoReturn:
-        ...
+    ) -> typing.NoReturn: ...
 
     @typing.overload
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        ...
+    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T: ...
 
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
@@ -194,14 +191,12 @@ class Client(alluka.Client):
         callback: collections.Callable[..., _AnyCoro],
         *args: typing.Any,
         **kwargs: typing.Any,
-    ) -> typing.NoReturn:
-        ...
+    ) -> typing.NoReturn: ...
 
     @typing.overload
     def call_with_ctx(
         self, ctx: alluka.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
-    ) -> _T:
-        ...
+    ) -> _T: ...
 
     def call_with_ctx(
         self, ctx: alluka.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
@@ -246,12 +241,10 @@ class Client(alluka.Client):
         return self
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
-        ...
+    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]: ...
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
-        ...
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     def get_type_dependency(
         self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = alluka.UNDEFINED
@@ -311,12 +304,10 @@ class BasicContext(alluka.Context):
     @typing.overload
     def call_with_di(
         self, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
-    ) -> typing.NoReturn:
-        ...
+    ) -> typing.NoReturn: ...
 
     @typing.overload
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        ...
+    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T: ...
 
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         # <<inherited docstring from alluka.abc.Context>>.
@@ -327,14 +318,12 @@ class BasicContext(alluka.Context):
         return await self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs)
 
     @typing.overload
-    def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> _UndefinedOr[_T]:
-        ...
+    def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> _UndefinedOr[_T]: ...
 
     @typing.overload
     def get_cached_result(
         self, callback: alluka.CallbackSig[_T], /, *, default: _DefaultT
-    ) -> typing.Union[_T, _DefaultT]:
-        ...
+    ) -> typing.Union[_T, _DefaultT]: ...
 
     def get_cached_result(
         self, callback: alluka.CallbackSig[_T], /, *, default: _UndefinedOr[_DefaultT] = alluka.UNDEFINED
@@ -343,12 +332,10 @@ class BasicContext(alluka.Context):
         return self._result_cache.get(callback, default) if self._result_cache else default
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
-        ...
+    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]: ...
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
-        ...
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     def get_type_dependency(
         self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = alluka.UNDEFINED

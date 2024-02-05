@@ -43,12 +43,10 @@ from alluka._vendor import inspect
 # pyright: reportIncompatibleMethodOverride=none
 
 
-class MockType(int):
-    ...
+class MockType(int): ...
 
 
-class MockOtherType(int):
-    ...
+class MockOtherType(int): ...
 
 
 @pytest.fixture()

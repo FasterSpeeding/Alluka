@@ -94,14 +94,11 @@ class TestClient:
         assert result._client is client
 
     def test_call_with_di(self):
-        class MockType1:
-            ...
+        class MockType1: ...
 
-        class MockType2:
-            ...
+        class MockType2: ...
 
-        class MockType3:
-            ...
+        class MockType3: ...
 
         mock_value_1 = MockType1()
         mock_value_2 = MockType2()
@@ -146,8 +143,7 @@ class TestClient:
         assert result == "ok"
 
     def test_call_with_di_when_type_not_found(self):
-        class MockType:
-            ...
+        class MockType: ...
 
         def callback(value: alluka.Injected[MockType]) -> typing.NoReturn:
             raise NotImplementedError
@@ -170,8 +166,7 @@ class TestClient:
                 client.call_with_di(callback)
 
     def test_call_with_di_when_type_not_found_when_async_dependency(self):
-        class MockType:
-            ...
+        class MockType: ...
 
         def callback(
             value: alluka.Injected[MockType], dep: int = alluka.inject(callback=mock.AsyncMock())
@@ -188,14 +183,11 @@ class TestClient:
 
     @pytest.mark.anyio()
     async def test_call_with_async_di(self):
-        class MockType1:
-            ...
+        class MockType1: ...
 
-        class MockType2:
-            ...
+        class MockType2: ...
 
-        class MockType3:
-            ...
+        class MockType3: ...
 
         mock_value_1 = MockType1()
         mock_value_2 = MockType2()
@@ -246,8 +238,7 @@ class TestClient:
 
     @pytest.mark.anyio()
     async def test_call_with_async_di_when_type_not_found(self):
-        class MockType:
-            ...
+        class MockType: ...
 
         def callback(value: alluka.Injected[MockType]) -> typing.NoReturn:
             raise NotImplementedError
