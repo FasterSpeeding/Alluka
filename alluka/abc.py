@@ -153,13 +153,11 @@ class Client(abc.ABC):
     @abc.abstractmethod
     def call_with_di(
         self, callback: collections.Callable[..., _CoroT[typing.Any]], *args: typing.Any, **kwargs: typing.Any
-    ) -> typing.NoReturn:
-        ...
+    ) -> typing.NoReturn: ...
 
     @typing.overload
     @abc.abstractmethod
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        ...
+    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T: ...
 
     @abc.abstractmethod
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
@@ -198,15 +196,13 @@ class Client(abc.ABC):
         callback: collections.Callable[..., _CoroT[typing.Any]],
         *args: typing.Any,
         **kwargs: typing.Any,
-    ) -> typing.NoReturn:
-        ...
+    ) -> typing.NoReturn: ...
 
     @typing.overload
     @abc.abstractmethod
     def call_with_ctx(
         self, ctx: Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
-    ) -> _T:
-        ...
+    ) -> _T: ...
 
     @abc.abstractmethod
     def call_with_ctx(
@@ -324,13 +320,11 @@ class Client(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
-        ...
+    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]: ...
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
-        ...
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     @abc.abstractmethod
     def get_type_dependency(
@@ -457,13 +451,11 @@ class Context(abc.ABC):
     @abc.abstractmethod
     def call_with_di(
         self, callback: collections.Callable[..., _CoroT[typing.Any]], *args: typing.Any, **kwargs: typing.Any
-    ) -> typing.NoReturn:
-        ...
+    ) -> typing.NoReturn: ...
 
     @typing.overload
     @abc.abstractmethod
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        ...
+    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T: ...
 
     @abc.abstractmethod
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
@@ -523,13 +515,11 @@ class Context(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_cached_result(self, callback: CallbackSig[_T], /) -> _UndefinedOr[_T]:
-        ...
+    def get_cached_result(self, callback: CallbackSig[_T], /) -> _UndefinedOr[_T]: ...
 
     @typing.overload
     @abc.abstractmethod
-    def get_cached_result(self, callback: CallbackSig[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
-        ...
+    def get_cached_result(self, callback: CallbackSig[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     @abc.abstractmethod
     def get_cached_result(
@@ -560,13 +550,11 @@ class Context(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]:
-        ...
+    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]: ...
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
-        ...
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     @abc.abstractmethod
     def get_type_dependency(
@@ -623,15 +611,13 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
     @abc.abstractmethod
     async def __call__(
         self: AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]], *args: typing.Any, **kwargs: typing.Any
-    ) -> _T:
-        ...
+    ) -> _T: ...
 
     @typing.overload
     @abc.abstractmethod
     async def __call__(
         self: AsyncSelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any
-    ) -> _T:
-        ...
+    ) -> _T: ...
 
     @abc.abstractmethod
     async def __call__(
