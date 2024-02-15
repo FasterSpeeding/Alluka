@@ -44,7 +44,7 @@ _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
 
 class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
-    """Class used to link a sync function to a client to make it self-injecting.
+    """Class used to link an async function to a client to make it self-injecting.
 
     Examples
     --------

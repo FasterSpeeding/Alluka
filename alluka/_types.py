@@ -31,6 +31,8 @@
 """Internal types used by Alluka."""
 from __future__ import annotations
 
+from typing import Any
+
 __all__: list[str] = ["Injected", "InjectedDescriptor"]
 
 import enum
@@ -255,6 +257,11 @@ class InjectedDescriptor(typing.Generic[_T]):
 
         self.callback = callback
         self.type = type
+
+    def __getattr__(self, __name: str) -> Any:
+        raise AttributeError(
+            "Tried accessing a parameter that was not injected yet. Did you forget to inject dependencies?"
+        )
 
 
 Injected = typing.Annotated[_T, InjectedTypes.TYPE]
