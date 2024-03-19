@@ -217,7 +217,7 @@ class Client(alluka.Client):
         # <<inherited docstring from alluka.abc.Client>>.
         return await BasicContext(self).call_with_async_di(callback, *args, **kwargs)
 
-    async def call_with_ctx_async(
+    async def call_with_ctx_async(  # noqa: ASYNC910  # This is ignored for performance's sake.
         self, ctx: alluka.Context, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
