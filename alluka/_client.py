@@ -233,7 +233,7 @@ class Client(alluka.Client):
         if asyncio.iscoroutine(result):
             return typing.cast("_T", await result)
 
-        return typing.cast("_T", result)
+        return typing.cast("_T", result)  # noqa: ASYNC910  # This is ignored for performance's sake.
 
     def set_type_dependency(self, type_: type[_T], value: _T, /) -> Self:
         # <<inherited docstring from alluka.abc.Client>>.

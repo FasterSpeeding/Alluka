@@ -107,7 +107,7 @@ ignore = [
 per-file-ignores = [
     "alluka/py.typed: D100",
     "noxfile.py: D100, FA101, F401, F403, INP001",
-    "tests/*.py: CCE002, DALL000, D100, D101, D103, D104, FA100, FA101, M511"
+    "tests/*.py: ASYNC910, CCE002, DALL000, D100, D101, D103, D104, FA100, FA101, M511"
 ]
 
 [tool.isort]
