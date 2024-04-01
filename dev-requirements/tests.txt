@@ -143,9 +143,9 @@ packaging==24.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
 pluggy==1.4.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
     --hash=sha256:7db9f7b503d67d1c5b95f59773ebb58a8c1c288129a88665838012cfb07b8981 \
     --hash=sha256:8c85c2876142a764e5b7548e7d9a0e0ddb46f5185161049a79b7e974454223be
-pycparser==2.21 ; python_full_version >= "3.9.0" and os_name == "nt" and implementation_name != "pypy" and python_version < "3.13" \
-    --hash=sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9 \
-    --hash=sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206
+pycparser==2.22 ; os_name == "nt" and implementation_name != "pypy" and python_full_version >= "3.9.0" and python_version < "3.13" \
+    --hash=sha256:491c8be9c040f5390f5bf44a5b07752bd07f56edf992381b05c701439eec10f6 \
+    --hash=sha256:c3702b6d3dd8c7abc1afa565d7e63d53a1d0bd86cdc24edd75470f4de499cfcc
 pytest-cov==5.0.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
     --hash=sha256:4f0764a1219df53214206bf1feea4633c3b558a2925c8b59f144f682861ce652 \
     --hash=sha256:5837b58e9f6ebd335b0f8060eecce69b662415b16dc503883a02f45dfeb14857
