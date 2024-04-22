@@ -181,7 +181,7 @@ class TestClient:
             with pytest.raises(alluka.SyncOnlyError):
                 client.call_with_di(callback)
 
-    @pytest.mark.anyio()
+    @pytest.mark.anyio
     async def test_call_with_async_di(self):
         class MockType1: ...
 
@@ -236,7 +236,7 @@ class TestClient:
 
         assert result == "ok"
 
-    @pytest.mark.anyio()
+    @pytest.mark.anyio
     async def test_call_with_async_di_when_type_not_found(self):
         class MockType: ...
 
