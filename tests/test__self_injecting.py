@@ -35,7 +35,7 @@ import alluka
 
 
 class TestAsyncSelfInjecting:
-    @pytest.mark.anyio()
+    @pytest.mark.anyio
     async def test_call_dunder_method(self):
         mock_callback = mock.Mock()
         mock_client = mock.AsyncMock()

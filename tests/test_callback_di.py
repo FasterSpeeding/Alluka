@@ -50,12 +50,12 @@ class MockType(int): ...
 class MockOtherType(int): ...
 
 
-@pytest.fixture()
+@pytest.fixture
 def client() -> alluka.Client:
     return alluka.Client()
 
 
-@pytest.fixture()
+@pytest.fixture
 def context(client: alluka.Client) -> alluka.BasicContext:
     return alluka.BasicContext(client)
 
@@ -225,7 +225,7 @@ def test_call_with_di_with_type_dependency_inferred_from_annotated_type(context:
     assert result == "heeee"
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 def test_call_with_di_with_type_dependency_inferred_from_missing_type(context: alluka.BasicContext):
     def callback(nyaa: str, meow: int, _: MockType = alluka.inject(), value_1=alluka.inject()) -> str:  # type: ignore
         raise NotImplementedError
