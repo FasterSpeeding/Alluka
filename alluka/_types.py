@@ -29,9 +29,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """Internal types used by Alluka."""
-from __future__ import annotations
 
-from typing import Any
+from __future__ import annotations
 
 __all__: list[str] = ["Injected", "InjectedDescriptor"]
 
@@ -93,10 +92,14 @@ class InjectedCallback:
             If any of the callback's type dependencies aren't implemented by
             the context's client.
         """
-        callback = ctx.injection_client.get_callback_override(self.callback) or self.callback
+        callback = (
+            ctx.injection_client.get_callback_override(self.callback) or self.callback
+        )
         return ctx.injection_client.call_with_ctx(ctx, callback)
 
-    def resolve_async(self, ctx: alluka.Context) -> collections.Coroutine[typing.Any, typing.Any, typing.Any]:
+    def resolve_async(
+        self, ctx: alluka.Context
+    ) -> collections.Coroutine[typing.Any, typing.Any, typing.Any]:
         """Asynchronously resolve the callback.
 
         Parameters
@@ -110,7 +113,9 @@ class InjectedCallback:
             If any of the callback's type dependencies aren't implemented by
             the context's client.
         """
-        callback = ctx.injection_client.get_callback_override(self.callback) or self.callback
+        callback = (
+            ctx.injection_client.get_callback_override(self.callback) or self.callback
+        )
         return ctx.injection_client.call_with_ctx_async(ctx, callback)
 
 
@@ -157,14 +162,17 @@ class InjectedType:
             The resolved type.
         """
         for cls in self.types:
-            if (result := ctx.get_type_dependency(cls, default=UNDEFINED)) is not UNDEFINED:
+            if (
+                result := ctx.get_type_dependency(cls, default=UNDEFINED)
+            ) is not UNDEFINED:
                 return result
 
         if self.default is not UNDEFINED:
             return self.default
 
         raise _errors.MissingDependencyError(
-            f"Couldn't resolve injected type(s) {self.repr_type} to actual value", self.repr_type
+            f"Couldn't resolve injected type(s) {self.repr_type} to actual value",
+            self.repr_type,
         ) from None
 
 
@@ -258,7 +266,7 @@ class InjectedDescriptor(typing.Generic[_T]):
         self.callback = callback
         self.type = type
 
-    def __getattr__(self, __name: str) -> Any:
+    def __getattr__(self, __name: str) -> typing.NoReturn:
         raise AttributeError(
             "Tried accessing a parameter that was not injected yet. Did you forget to inject dependencies?"
         )
