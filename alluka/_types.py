@@ -29,6 +29,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """Internal types used by Alluka."""
+
 from __future__ import annotations
 
 __all__: list[str] = ["Injected", "InjectedDescriptor"]
@@ -255,6 +256,11 @@ class InjectedDescriptor(typing.Generic[_T]):
 
         self.callback = callback
         self.type = type
+
+    def __getattr__(self, __name: str) -> typing.NoReturn:
+        raise AttributeError(
+            "Tried accessing a parameter that was not injected yet. Did you forget to inject dependencies?"
+        )
 
 
 Injected = typing.Annotated[_T, InjectedTypes.TYPE]
