@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no value is found and no default was provided.
 
 ### Removed
-- `alluka.abc.UNDEFINED`.
+- `alluka.abc.UNDEFINED` and `alluka.abc.Undefined`.
 
 ## [0.1.5] - 2024-04-22
 - Improve error message when attempting to use [alluka.inject][] without DI.
