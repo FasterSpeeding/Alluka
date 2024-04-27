@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2022, Faster Speeding
+# Copyright (c) 2020-2024, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -94,7 +93,7 @@ def test_call_with_di():
     mock_client.call_with_di.assert_called_once_with(mock_callback, 123, 321, 123, 321, hello="Ok", bye="meow")
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 async def test_call_with_async_di():
     mock_client = mock.AsyncMock()
     alluka.local.initialize(mock_client)
@@ -106,7 +105,7 @@ async def test_call_with_async_di():
     mock_client.call_with_async_di.assert_awaited_once_with(mock_callback, 69, 320, hello="goodbye")
 
 
-@pytest.mark.anyio()
+@pytest.mark.anyio
 async def test_auto_inject_async():
     mock_client = mock.AsyncMock()
     alluka.local.initialize(mock_client)

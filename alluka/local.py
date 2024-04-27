@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2022, Faster Speeding
+# Copyright (c) 2020-2024, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -41,6 +40,7 @@ from __future__ import annotations
 
 __all__ = ["auto_inject", "auto_inject_async", "call_with_async_di", "call_with_di", "get", "initialize"]
 
+import contextlib
 import contextvars
 import functools
 import typing
@@ -64,7 +64,7 @@ _CVAR_NAME: typing.Final[str] = "alluka_injector"
 _injector = contextvars.ContextVar[abc.Client](_CVAR_NAME)
 
 
-def initialize(client: typing.Optional[abc.Client] = None, /) -> None:
+def initialize(client: typing.Optional[abc.Client] = None, /) -> abc.Client:
     """Link or initialise an injection client for the current context.
 
     This uses the contextvars package to store the client.
@@ -74,6 +74,11 @@ def initialize(client: typing.Optional[abc.Client] = None, /) -> None:
     client
         If provided, this will be set as the client for the current context.
         If not provided, a new client will be created.
+
+    Returns
+    -------
+    alluka.abc.Client
+        The created alluka client.
 
     Raises
     ------
@@ -85,6 +90,48 @@ def initialize(client: typing.Optional[abc.Client] = None, /) -> None:
 
     client = client or _client.Client()
     _injector.set(client)
+    return client
+
+
+@contextlib.contextmanager
+def scope_client(client: typing.Optional[abc.Client] = None, /) -> collections.Generator[abc.Client, None, None]:
+    """Declare a client for the scope within a context manager.
+
+    Examples
+    --------
+    ```py
+    def uses_di() -> None:
+        alluka.local.call_with_di(other_callback)
+
+    with alluka.local.scope_client() as client:
+        client.set_type_dependency(Type, value)
+        uses_di()
+
+    client = alluka.Client()
+    client.set_type_dependency(Type, value)
+
+    with alluka.local.scope_client(client):
+        uses_di()
+    ```
+
+    Parameters
+    ----------
+    client
+        The client to set for the context manager's scope.
+
+        If not provided then a new client will be created.
+
+    Returns
+    -------
+    contextlib.AbstractContextManager[alluka.abc.Client]
+        Context manager which returns the scoped client.
+    """
+    client = client or _client.Client()
+    token = _injector.set(client)
+
+    yield client
+
+    _injector.reset(token)
 
 
 @typing.overload
