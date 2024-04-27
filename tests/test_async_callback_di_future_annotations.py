@@ -45,6 +45,7 @@ import pytest
 import alluka
 from alluka._vendor import inspect
 
+
 class MockType(int): ...
 
 
