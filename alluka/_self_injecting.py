@@ -36,8 +36,8 @@ from __future__ import annotations
 __all__: list[str] = ["AsyncSelfInjecting", "SelfInjecting"]
 
 import typing
-from collections import abc as collections
 import warnings
+from collections import abc as collections
 
 import typing_extensions
 
@@ -50,7 +50,7 @@ _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
 
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=DeprecationWarning)
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     @typing_extensions.deprecated("Use client.auto_inject_async")
     class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
@@ -114,7 +114,8 @@ with warnings.catch_warnings():
 
         async def __call__(  # pyright: ignore[reportIncompatibleMethodOverride]
             self: typing.Union[
-                AsyncSelfInjecting[collections.Callable[..., _T]], AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]]
+                AsyncSelfInjecting[collections.Callable[..., _T]],
+                AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]],
             ],
             *args: typing.Any,
             **kwargs: typing.Any,
@@ -126,7 +127,6 @@ with warnings.catch_warnings():
         def callback(self) -> _CallbackSigT:
             # <<inherited docstring from alluka.abc.AsyncSelfInjecting>>.
             return self._callback
-
 
     @typing_extensions.deprecated("Use client.inject_async")
     class SelfInjecting(alluka.SelfInjecting[_SyncCallbackT]):

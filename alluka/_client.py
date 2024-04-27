@@ -36,10 +36,10 @@ from __future__ import annotations
 
 __all__: list[str] = ["BasicContext", "Client", "inject"]
 
-import warnings
 import asyncio
 import enum
 import typing
+import warnings
 import weakref
 from collections import abc as collections
 
@@ -183,7 +183,7 @@ class Client(alluka.Client):
     ) -> alluka.AsyncSelfInjecting[_CallbackSigT]:  # pyright: ignore[reportDeprecated]
         # <<inherited docstring from alluka.abc.Client>>.
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore",category=DeprecationWarning)
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
 
             return _self_injecting.AsyncSelfInjecting(self, callback)  # pyright: ignore[reportDeprecated]
 
@@ -193,7 +193,7 @@ class Client(alluka.Client):
     ) -> alluka.SelfInjecting[_SyncCallbackSigT]:  # pyright: ignore[reportDeprecated]
         # <<inherited docstring from alluka.abc.Client>>.
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore",category=DeprecationWarning)
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
 
             return _self_injecting.SelfInjecting(self, callback)  # pyright: ignore[reportDeprecated]
 
