@@ -250,13 +250,10 @@ class TestClient:
 
     def test_set_type_dependency_when_not_found(self):
         mock_type: typing.Any = mock.Mock()
-        mock_value = mock.Mock()
         client = alluka.Client()
 
-        result = client.set_type_dependency(mock_type, mock_value)
-
-        assert result is client
-        assert client.get_type_dependency(mock_type) is mock_value
+        with pytest.raises(KeyError):
+            client.get_type_dependency(mock_type)
 
     def test_get_type_dependency_when_not_found_and_default(self):
         mock_type: typing.Any = mock.Mock()
@@ -275,7 +272,9 @@ class TestClient:
         result = client.remove_type_dependency(mock_type)
 
         assert result is client
-        assert client.get_type_dependency(mock_type) is alluka.abc.UNDEFINED
+
+        with pytest.raises(KeyError):
+            assert client.get_type_dependency(mock_type)
 
     def test_remove_type_dependency_when_not_set(self):
         mock_type: typing.Any = mock.Mock()
@@ -335,7 +334,8 @@ class TestBasicContext:
     def test_get_cached_result_when_not_found(self):
         ctx = alluka.BasicContext(alluka.Client())
 
-        assert ctx.get_cached_result(mock.Mock()) is alluka.abc.UNDEFINED
+        with pytest.raises(KeyError):
+            ctx.get_cached_result(mock.Mock())
 
     def test_get_cached_result_when_not_found_and_default(self):
         ctx = alluka.BasicContext(alluka.Client())

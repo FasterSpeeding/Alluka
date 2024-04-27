@@ -34,6 +34,7 @@ from __future__ import annotations
 __all__: list[str] = ["BasicContext", "Client", "inject"]
 
 import asyncio
+import enum
 import typing
 import weakref
 from collections import abc as collections
@@ -58,7 +59,14 @@ _DefaultT = typing.TypeVar("_DefaultT")
 _SyncCallbackSigT = typing.TypeVar("_SyncCallbackSigT", bound=collections.Callable[..., typing.Any])
 
 _TypeT = type[_T]
-_UndefinedOr = typing.Union[alluka.Undefined, _T]
+
+
+class _NoDefaultEnum(enum.Enum):
+    VALUE = object()
+
+
+_NO_VALUE: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
+_NoValueOr = typing.Union[_T, typing.Literal[_NoDefaultEnum.VALUE]]
 
 
 @typing.overload
@@ -241,16 +249,21 @@ class Client(alluka.Client):
         return self
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]: ...
+    def get_type_dependency(self, type_: type[_T], /) -> _T: ...
 
     @typing.overload
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = alluka.UNDEFINED
-    ) -> typing.Union[_T, _DefaultT, alluka.Undefined]:
+        self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+    ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Client>>.
-        return self._type_dependencies.get(type_, default)
+        result = self._type_dependencies.get(type_, default)
+
+        if result is _NO_VALUE:
+            raise KeyError()
+
+        return result
 
     def remove_type_dependency(self, type_: type[typing.Any], /) -> Self:
         # <<inherited docstring from alluka.abc.Client>>.
@@ -318,7 +331,7 @@ class BasicContext(alluka.Context):
         return await self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs)
 
     @typing.overload
-    def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> _UndefinedOr[_T]: ...
+    def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> _T: ...
 
     @typing.overload
     def get_cached_result(
@@ -326,25 +339,35 @@ class BasicContext(alluka.Context):
     ) -> typing.Union[_T, _DefaultT]: ...
 
     def get_cached_result(
-        self, callback: alluka.CallbackSig[_T], /, *, default: _UndefinedOr[_DefaultT] = alluka.UNDEFINED
-    ) -> typing.Union[_T, _DefaultT, alluka.Undefined]:
+        self, callback: alluka.CallbackSig[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+    ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Context>>.
-        return self._result_cache.get(callback, default) if self._result_cache else default
+        result = self._result_cache.get(callback, default) if self._result_cache else default
+
+        if result is _NO_VALUE:
+            raise KeyError()
+
+        return result
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]: ...
+    def get_type_dependency(self, type_: type[_T], /) -> _T: ...
 
     @typing.overload
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = alluka.UNDEFINED
-    ) -> typing.Union[_T, _DefaultT, alluka.Undefined]:
+        self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+    ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Context>>.
         if self._special_case_types and (value := self._special_case_types.get(type_, default)) is not default:
             return typing.cast("_T", value)
 
-        return self._injection_client.get_type_dependency(type_, default=default)
+        result = self._injection_client.get_type_dependency(type_, default=default)
+
+        if result is _NO_VALUE:
+            raise KeyError()
+
+        return result
 
     def _set_type_special_case(self, type_: type[_T], value: _T, /) -> Self:
         if not self._special_case_types:

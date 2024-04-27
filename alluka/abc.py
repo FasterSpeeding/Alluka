@@ -31,15 +31,7 @@
 """Alluka's abstract interfaces."""
 from __future__ import annotations
 
-__all__: list[str] = [
-    "AsyncSelfInjecting",
-    "CallbackSig",
-    "Client",
-    "Context",
-    "SelfInjecting",
-    "UNDEFINED",
-    "Undefined",
-]
+__all__: list[str] = ["AsyncSelfInjecting", "CallbackSig", "Client", "Context", "SelfInjecting"]
 
 import abc
 import typing
@@ -55,39 +47,6 @@ _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 _CallbackT = typing.TypeVar("_CallbackT", bound="CallbackSig[typing.Any]")
 _DefaultT = typing.TypeVar("_DefaultT")
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
-
-
-class Undefined:
-    """Deprecated type of the [UNDEFINED][alluka.abc.UNDEFINED] constant.
-
-    !!! warning "deprecated"
-        This will be removed in `v0.2.0`.
-    """
-
-    __slots__ = ()
-    __instance: Undefined  # pyright: ignore[reportUninitializedInstanceVariable]
-
-    def __bool__(self) -> typing.Literal[False]:
-        return False
-
-    def __new__(cls) -> Undefined:
-        try:
-            return cls.__instance
-
-        except AttributeError:
-            new = super().__new__(cls)
-            assert isinstance(new, Undefined)
-            cls.__instance = new
-            return cls.__instance
-
-
-UNDEFINED: typing.Final[Undefined] = Undefined()
-"""Deprecated singleton value used to indicate that a value is undefined
-
-!!! warning "deprecated"
-    This will be removedin `v0.2.0`.
-"""
-_UndefinedOr = typing.Union[Undefined, _T]
 
 
 CallbackSig = collections.Callable[..., typing.Union[_CoroT[_T], _T]]
@@ -320,21 +279,15 @@ class Client(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]: ...
+    def get_type_dependency(self, type_: type[_T], /) -> _T: ...
 
     @typing.overload
     @abc.abstractmethod
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     @abc.abstractmethod
-    def get_type_dependency(
-        self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = UNDEFINED
-    ) -> typing.Union[_T, _DefaultT, Undefined]:
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> typing.Union[_T, _DefaultT]:
         """Get the implementation for an injected type.
-
-        !!! warning "deprecated"
-            Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
-            replaced by a [KeyError][] raise in `v0.2.0`.
 
         Parameters
         ----------
@@ -345,11 +298,16 @@ class Client(abc.ABC):
 
         Returns
         -------
-        _T | _DefaultT | alluka.abc.UNDEFINED
+        _T | _DefaultT
             The resolved type if found.
 
             If the type isn't implemented then the value of `default`
-            will be returned if it is provided, else [alluka.abc.UNDEFINED][].
+            will be returned if it is provided.
+
+        Raises
+        ------
+        KeyError
+            If no dependency was found when no default was provided.
         """
 
     @abc.abstractmethod
@@ -515,7 +473,7 @@ class Context(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_cached_result(self, callback: CallbackSig[_T], /) -> _UndefinedOr[_T]: ...
+    def get_cached_result(self, callback: CallbackSig[_T], /) -> _T: ...
 
     @typing.overload
     @abc.abstractmethod
@@ -523,13 +481,9 @@ class Context(abc.ABC):
 
     @abc.abstractmethod
     def get_cached_result(
-        self, callback: CallbackSig[_T], /, *, default: _UndefinedOr[_DefaultT] = UNDEFINED
-    ) -> typing.Union[_T, _DefaultT, Undefined]:
+        self, callback: CallbackSig[_T], /, *, default: _DefaultT = ...
+    ) -> typing.Union[_T, _DefaultT]:
         """Get the cached result of a callback.
-
-        !!! warning "deprecated"
-            Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
-            replaced by a [KeyError][] raise in `v0.2.0`.
 
         Parameters
         ----------
@@ -540,34 +494,33 @@ class Context(abc.ABC):
 
         Returns
         -------
-        _T | _DefaultT | alluka.abc.UNDEFINED
+        _T | _DefaultT
             The cached result of the callback if found.
 
             If the callback's result hasn't been cached or caching isn't
             implementing then this will return the value of `default` if it
-            is provided, else [alluka.abc.UNDEFINED][].
+            is provided.
+
+        Raises
+        ------
+        KeyError
+            If no value was found when no default was provided.
         """
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /) -> _UndefinedOr[_T]: ...
+    def get_type_dependency(self, type_: type[_T], /) -> _T: ...
 
     @typing.overload
     @abc.abstractmethod
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     @abc.abstractmethod
-    def get_type_dependency(
-        self, type_: type[_T], /, *, default: _UndefinedOr[_DefaultT] = UNDEFINED
-    ) -> typing.Union[_T, _DefaultT, Undefined]:
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> typing.Union[_T, _DefaultT]:
         """Get the implementation for an injected type.
 
         Unlike [Client.get_type_dependency][alluka.abc.Client.get_type_dependency],
         this method may also return context specific implementations of a type.
-
-        !!! warning "deprecated"
-            Defaulting to [alluka.abc.UNDEFINED][] is deprecated and will be
-            replaced by a [KeyError][] raise in `v0.2.0`.
 
         Parameters
         ----------
@@ -578,11 +531,16 @@ class Context(abc.ABC):
 
         Returns
         -------
-        _T | _DefaultT | alluka.abc.UNDEFINED
+        _T | _DefaultT
             The resolved type if found.
 
             If the type isn't implemented then the value of `default`
-            will be returned if it is provided, else [alluka.abc.UNDEFINED][].
+            will be returned if it is provided.
+
+        Raises
+        ------
+        KeyError
+            If no dependency was found when no default was provided.
         """
 
 
