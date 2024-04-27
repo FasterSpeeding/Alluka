@@ -29,6 +29,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """Alluka's standard injection client implementation."""
+
+# pyright: reportOverlappingOverload=warning
+
 from __future__ import annotations
 
 __all__: list[str] = ["BasicContext", "Client", "inject"]
@@ -39,6 +42,8 @@ import typing
 import weakref
 from collections import abc as collections
 
+import typing_extensions
+
 from . import _errors  # pyright: ignore[reportPrivateUsage]
 from . import _self_injecting  # pyright: ignore[reportPrivateUsage]
 from . import _types  # pyright: ignore[reportPrivateUsage]
@@ -48,7 +53,6 @@ from . import abc as alluka
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
-# pyright: reportOverlappingOverload=warning
 
 _T = typing.TypeVar("_T")
 
@@ -172,13 +176,19 @@ class Client(alluka.Client):
         descriptors = self._descriptors[callback] = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
         return descriptors
 
-    def as_async_self_injecting(self, callback: _CallbackSigT, /) -> alluka.AsyncSelfInjecting[_CallbackSigT]:
+    @typing_extensions.deprecated("Use .auto_inject")
+    def as_async_self_injecting(
+        self, callback: _CallbackSigT, /
+    ) -> alluka.AsyncSelfInjecting[_CallbackSigT]:  # pyright: ignore[reportDeprecated]
         # <<inherited docstring from alluka.abc.Client>>.
-        return _self_injecting.AsyncSelfInjecting(self, callback)
+        return _self_injecting.AsyncSelfInjecting(self, callback)  # pyright: ignore[reportDeprecated]
 
-    def as_self_injecting(self, callback: _SyncCallbackSigT, /) -> alluka.SelfInjecting[_SyncCallbackSigT]:
+    @typing_extensions.deprecated("Use .auto_inject_async")
+    def as_self_injecting(
+        self, callback: _SyncCallbackSigT, /
+    ) -> alluka.SelfInjecting[_SyncCallbackSigT]:  # pyright: ignore[reportDeprecated]
         # <<inherited docstring from alluka.abc.Client>>.
-        return _self_injecting.SelfInjecting(self, callback)
+        return _self_injecting.SelfInjecting(self, callback)  # pyright: ignore[reportDeprecated]
 
     @typing.overload
     def call_with_di(

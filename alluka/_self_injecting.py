@@ -28,12 +28,17 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# pyright: reportDeprecated=none
+
 from __future__ import annotations
 
 __all__: list[str] = ["AsyncSelfInjecting", "SelfInjecting"]
 
 import typing
 from collections import abc as collections
+
+import typing_extensions
 
 from . import abc as alluka
 
@@ -43,6 +48,7 @@ _T = typing.TypeVar("_T")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
 
+@typing_extensions.deprecated("Use client.auto_inject_async")
 class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
     """Class used to link an async function to a client to make it self-injecting.
 
@@ -118,6 +124,7 @@ class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
         return self._callback
 
 
+@typing_extensions.deprecated("Use client.inject_async")
 class SelfInjecting(alluka.SelfInjecting[_SyncCallbackT]):
     """Class used to link a sync function to a client to make it self-injecting.
 
