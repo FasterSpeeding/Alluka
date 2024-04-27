@@ -51,10 +51,9 @@ def test_initialize_when_passed_through():
 
 
 def test_initialize_when_already_set():
-    alluka.local.initialize()
-
-    with pytest.raises(RuntimeError, match="Alluka client already initialised in the current context"):
-        alluka.local.initialize()
+    with alluka.local.scope_client():
+        with pytest.raises(RuntimeError, match="Alluka client already initialised in the current context"):
+            alluka.local.initialize()
 
 
 def test_initialize_when_passed_through_and_already_set():
@@ -66,9 +65,9 @@ def test_initialize_when_passed_through_and_already_set():
 
 def test_get():
     mock_client = mock.Mock()
-    alluka.local.initialize(mock_client)
 
-    assert alluka.local.get() is mock_client
+    with alluka.local.scope_client(mock_client):
+        assert alluka.local.get() is mock_client
 
 
 def test_get_when_not_set():
@@ -84,48 +83,54 @@ def test_get_when_not_set_and_default():
 
 def test_call_with_di():
     mock_client = mock.Mock()
-    alluka.local.initialize(mock_client)
-    mock_callback = mock.Mock()
 
-    result = alluka.local.call_with_di(mock_callback, 123, 321, 123, 321, hello="Ok", bye="meow")
+    with alluka.local.scope_client(mock_client):
+        mock_callback = mock.Mock()
 
-    assert result is mock_client.call_with_di.return_value
-    mock_client.call_with_di.assert_called_once_with(mock_callback, 123, 321, 123, 321, hello="Ok", bye="meow")
+        result = alluka.local.call_with_di(mock_callback, 123, 321, 123, 321, hello="Ok", bye="meow")
+
+        assert result is mock_client.call_with_di.return_value
+        mock_client.call_with_di.assert_called_once_with(mock_callback, 123, 321, 123, 321, hello="Ok", bye="meow")
 
 
 @pytest.mark.anyio
 async def test_call_with_async_di():
     mock_client = mock.AsyncMock()
-    alluka.local.initialize(mock_client)
-    mock_callback = mock.Mock()
 
-    result = await alluka.local.call_with_async_di(mock_callback, 69, 320, hello="goodbye")
+    with alluka.local.scope_client(mock_client):
+        mock_callback = mock.Mock()
 
-    assert result is mock_client.call_with_async_di.return_value
-    mock_client.call_with_async_di.assert_awaited_once_with(mock_callback, 69, 320, hello="goodbye")
+        result = await alluka.local.call_with_async_di(mock_callback, 69, 320, hello="goodbye")
+
+        assert result is mock_client.call_with_async_di.return_value
+        mock_client.call_with_async_di.assert_awaited_once_with(mock_callback, 69, 320, hello="goodbye")
 
 
 @pytest.mark.anyio
 async def test_auto_inject_async():
     mock_client = mock.AsyncMock()
-    alluka.local.initialize(mock_client)
-    mock_callback = mock.Mock()
-    callback = alluka.local.auto_inject_async(mock_callback)
 
-    result = await callback(555, "320", goodbye="hello")
+    with alluka.local.scope_client(mock_client):
+        mock_callback = mock.Mock()
+        callback = alluka.local.auto_inject_async(mock_callback)
 
-    assert result is mock_client.call_with_async_di.return_value
-    mock_client.call_with_async_di.assert_awaited_once_with(mock_callback, 555, "320", goodbye="hello")
+        result = await callback(555, "320", goodbye="hello")
+
+        assert result is mock_client.call_with_async_di.return_value
+        mock_client.call_with_async_di.assert_awaited_once_with(mock_callback, 555, "320", goodbye="hello")
 
 
 def test_auto_inject():
     mock_client = mock.Mock()
-    alluka.local.initialize(mock_client)
-    mock_callback = mock.Mock()
 
-    callback = alluka.local.auto_inject(mock_callback)
+    with alluka.local.scope_client(mock_client):
+        mock_callback = mock.Mock()
 
-    result = callback(444, "321", 555, "asd", sneaky="NO", meep="meow")
+        callback = alluka.local.auto_inject(mock_callback)
 
-    assert result is mock_client.call_with_di.return_value
-    mock_client.call_with_di.assert_called_once_with(mock_callback, 444, "321", 555, "asd", sneaky="NO", meep="meow")
+        result = callback(444, "321", 555, "asd", sneaky="NO", meep="meow")
+
+        assert result is mock_client.call_with_di.return_value
+        mock_client.call_with_di.assert_called_once_with(
+            mock_callback, 444, "321", 555, "asd", sneaky="NO", meep="meow"
+        )
