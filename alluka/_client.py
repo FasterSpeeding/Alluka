@@ -261,7 +261,7 @@ class Client(alluka.Client):
         result = self._type_dependencies.get(type_, default)
 
         if result is _NO_VALUE:
-            raise KeyError()
+            raise KeyError
 
         return result
 
@@ -345,7 +345,7 @@ class BasicContext(alluka.Context):
         result = self._result_cache.get(callback, default) if self._result_cache else default
 
         if result is _NO_VALUE:
-            raise KeyError()
+            raise KeyError
 
         return result
 
@@ -365,7 +365,7 @@ class BasicContext(alluka.Context):
         result = self._injection_client.get_type_dependency(type_, default=default)
 
         if result is _NO_VALUE:
-            raise KeyError()
+            raise KeyError
 
         return result
 
