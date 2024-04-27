@@ -29,9 +29,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import contextvars
 from unittest import mock
 
-import contextvars
 import pytest
 
 import alluka
@@ -47,6 +47,7 @@ def test_initialize():
     alluka.local._injector = contextvars.ContextVar[alluka.abc.Client](  # pyright: ignore[reportPrivateUsage]
         "alluka_injector"
     )
+
 
 def test_initialize_when_passed_through():
     mock_client = mock.Mock()
