@@ -36,6 +36,7 @@ from __future__ import annotations
 
 __all__: list[str] = ["BasicContext", "Client", "inject"]
 
+import warnings
 import asyncio
 import enum
 import typing
@@ -181,14 +182,20 @@ class Client(alluka.Client):
         self, callback: _CallbackSigT, /
     ) -> alluka.AsyncSelfInjecting[_CallbackSigT]:  # pyright: ignore[reportDeprecated]
         # <<inherited docstring from alluka.abc.Client>>.
-        return _self_injecting.AsyncSelfInjecting(self, callback)  # pyright: ignore[reportDeprecated]
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",category=DeprecationWarning)
+
+            return _self_injecting.AsyncSelfInjecting(self, callback)  # pyright: ignore[reportDeprecated]
 
     @typing_extensions.deprecated("Use .auto_inject_async")
     def as_self_injecting(
         self, callback: _SyncCallbackSigT, /
     ) -> alluka.SelfInjecting[_SyncCallbackSigT]:  # pyright: ignore[reportDeprecated]
         # <<inherited docstring from alluka.abc.Client>>.
-        return _self_injecting.SelfInjecting(self, callback)  # pyright: ignore[reportDeprecated]
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",category=DeprecationWarning)
+
+            return _self_injecting.SelfInjecting(self, callback)  # pyright: ignore[reportDeprecated]
 
     @typing.overload
     def call_with_di(
