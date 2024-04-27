@@ -85,13 +85,11 @@ def initialize(client: typing.Optional[abc.Client] = None, /) -> None:
 
 
 @typing.overload
-def get() -> abc.Client:
-    ...
+def get() -> abc.Client: ...
 
 
 @typing.overload
-def get(*, default: _DefaultT) -> typing.Union[abc.Client, _DefaultT]:
-    ...
+def get(*, default: _DefaultT) -> typing.Union[abc.Client, _DefaultT]: ...
 
 
 def get(*, default: _DefaultT = ...) -> typing.Union[abc.Client, _DefaultT]:
@@ -150,13 +148,13 @@ async def call_with_async_di(
     callback: collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, _T]],
     *args: typing.Any,
     **kwargs: typing.Any,
-) -> _T:
-    ...
+) -> _T: ...
 
 
 @typing.overload
-async def call_with_async_di(callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-    ...
+async def call_with_async_di(
+    callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
+) -> _T: ...
 
 
 async def call_with_async_di(callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
