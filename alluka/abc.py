@@ -37,6 +37,7 @@ from __future__ import annotations
 __all__: list[str] = ["AsyncSelfInjecting", "CallbackSig", "Client", "Context", "SelfInjecting"]
 
 import abc
+import functools
 import typing
 from collections import abc as collections
 
@@ -80,19 +81,9 @@ class Client(abc.ABC):
     def as_async_self_injecting(
         self, callback: _CallbackT, /
     ) -> AsyncSelfInjecting[_CallbackT]:  # pyright: ignore[reportDeprecated]
-        """Link a function to a client to make it self-injecting.
+        """Deprecated callback for making async functions auto-inject.
 
-        Parameters
-        ----------
-        callback : CallbackSig
-            The callback to make self-injecting.
-
-            This may be sync or async.
-
-        Returns
-        -------
-        AsyncSelfInjecting
-            The async self-injecting callback.
+        Use [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
         """
 
     @abc.abstractmethod
@@ -100,26 +91,33 @@ class Client(abc.ABC):
     def as_self_injecting(
         self, callback: _SyncCallbackT, /
     ) -> SelfInjecting[_SyncCallbackT]:  # pyright: ignore[reportDeprecated]
-        """Link a sync function to a client to make it self-injecting.
+        """Deprecated callback for making functions auto-inject.
 
-        !!! note
-            This uses sync dependency injection and therefore will lead
-            to errors if any of the callback's dependencies are async.
-
-        Parameters
-        ----------
-        callback : collections.abc.Callable
-            The callback to make self-injecting.
-
-            This must be sync.
-
-        Returns
-        -------
-        SelfInjecting
-            The self-injecting callback.
+        Use [Client.auto_inject][alluka.abc.Client.auto_inject].
         """
 
     def auto_inject(self, callback: collections.Callable[_P, _T], /) -> collections.Callable[_P, _T]:
+        """Wrap a function to make calls to it always inject dependencies.
+
+        Examples
+        --------
+        ```py
+        @client.auto_inject
+        def callback(dep: Injected[Type]) -> None:
+            ...
+
+        callback()  # The requested dependencies will be passed.
+        ```
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        collections.Callable
+            The wrapped auto injecting callback.
+        """
+        @functools.wraps(callback)
         def wrapped_callback(*args: _P.args, **kwargs: _P.kwargs) -> _T:
             return self.call_with_di(callback, *args, **kwargs)
 
@@ -128,6 +126,27 @@ class Client(abc.ABC):
     def auto_inject_async(
         self, callback: collections.Callable[_P, _CoroT[_T]], /
     ) -> collections.Callable[_P, _CoroT[_T]]:
+        """Wrap an async function to make calls to it always inject dependencies.
+
+        Examples
+        --------
+        ```py
+        @client.auto_inject_async
+        async def callback(dep: Injected[Type]) -> None:
+            ...
+
+        await callback()  # The requested dependencies will be passed.
+        ```
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        collections.Callable
+            The wrapped auto injecting callback.
+        """
+        @functools.wraps(callback)
         def wrapped_callback(*args: _P.args, **kwargs: _P.kwargs) -> _CoroT[_T]:
             return self.call_with_async_di(callback, *args, **kwargs)
 
