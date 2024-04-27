@@ -39,22 +39,25 @@
 """
 from __future__ import annotations
 
-__all__ = ["as_self_async_injecting", "as_self_injecting", "call_with_async_di", "call_with_di", "get", "initialize"]
+__all__ = ["auto_inject", "auto_inject_async", "call_with_async_di", "call_with_di", "get", "initialize"]
 
 import contextvars
+import functools
 import typing
 
-from . import _client
-from . import _self_injecting
+from . import _client  # pyright: ignore[reportPrivateUsage]
 from . import abc
 
 if typing.TYPE_CHECKING:
     from collections import abc as collections
 
-    _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=abc.CallbackSig[typing.Any])
+    import typing_extensions
+
     _DefaultT = typing.TypeVar("_DefaultT")
-    _SyncCallbackSigT = typing.TypeVar("_SyncCallbackSigT", bound=collections.Callable[..., typing.Any])
+    _P = typing_extensions.ParamSpec("_P")
     _T = typing.TypeVar("_T")
+
+    _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
 
 _CVAR_NAME: typing.Final[str] = "alluka_injector"
@@ -177,7 +180,7 @@ async def call_with_async_di(callback: abc.CallbackSig[_T], *args: typing.Any, *
     return await get().call_with_async_di(callback, *args, **kwargs)
 
 
-def as_self_async_injecting(callback: _CallbackSigT, /) -> _self_injecting.AsyncSelfInjecting[_CallbackSigT]:
+def auto_inject_async(callback: collections.Callable[_P, _CoroT[_T]], /) -> collections.Callable[_P, _CoroT[_T]]:
     """Mark a callback as self async injecting using the local DI client.
 
     Parameters
@@ -187,13 +190,18 @@ def as_self_async_injecting(callback: _CallbackSigT, /) -> _self_injecting.Async
 
     Returns
     -------
-    alluka.self_injecting.AsyncSelfInjecting
+    collections.abc.Callable[_P, _CoroT[_T]]
         The self-injecting callback.
     """
-    return _self_injecting.AsyncSelfInjecting(get, callback)
+
+    @functools.wraps(callback)
+    async def wrapped_callback(*args: _P.args, **kwargs: _P.kwargs) -> _T:
+        return await get().call_with_async_di(callback, *args, **kwargs)
+
+    return wrapped_callback
 
 
-def as_self_injecting(callback: _SyncCallbackSigT, /) -> _self_injecting.SelfInjecting[_SyncCallbackSigT]:
+def auto_inject(callback: collections.Callable[_P, _T], /) -> collections.Callable[_P, _T]:
     """Mark a callback as self-injecting using the local DI client.
 
     Parameters
@@ -203,7 +211,12 @@ def as_self_injecting(callback: _SyncCallbackSigT, /) -> _self_injecting.SelfInj
 
     Returns
     -------
-    alluka.self_injecting.SelfInjecting
+    collections.abc.Callable[_P, _CoroT[_T]]
         The self-injecting callback.
     """
-    return _self_injecting.SelfInjecting(get, callback)
+
+    @functools.wraps(callback)
+    def wrapped_callback(*args: _P.args, **kwargs: _P.kwargs) -> _T:
+        return get().call_with_di(callback, *args, **kwargs)
+
+    return wrapped_callback

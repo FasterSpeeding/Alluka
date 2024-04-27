@@ -106,21 +106,27 @@ async def test_call_with_async_di():
     mock_client.call_with_async_di.assert_awaited_once_with(mock_callback, 69, 320, hello="goodbye")
 
 
-def test_as_self_async_injecting():
+@pytest.mark.anyio()
+async def test_auto_inject_async():
+    mock_client = mock.AsyncMock()
+    alluka.local.initialize(mock_client)
+    mock_callback = mock.Mock()
+    callback = alluka.local.auto_inject_async(mock_callback)
+
+    result = await callback(555, "320", goodbye="hello")
+
+    assert result is mock_client.call_with_async_di.return_value
+    mock_client.call_with_async_di.assert_awaited_once_with(mock_callback, 555, "320", goodbye="hello")
+
+
+def test_auto_inject():
+    mock_client = mock.Mock()
+    alluka.local.initialize(mock_client)
     mock_callback = mock.Mock()
 
-    result = alluka.local.as_self_async_injecting(mock_callback)
+    callback = alluka.local.auto_inject(mock_callback)
 
-    assert isinstance(result, alluka.AsyncSelfInjecting)
-    assert result._get_client is alluka.local.get
-    assert result.callback is mock_callback
+    result = callback(444, "321", 555, "asd", sneaky="NO", meep="meow")
 
-
-def test_as_self_injecting():
-    mock_callback = mock.Mock()
-
-    result = alluka.local.as_self_injecting(mock_callback)
-
-    assert isinstance(result, alluka.SelfInjecting)
-    assert result._get_client is alluka.local.get
-    assert result.callback is mock_callback
+    assert result is mock_client.call_with_di.return_value
+    mock_client.call_with_di.assert_called_once_with(mock_callback, 444, "321", 555, "asd", sneaky="NO", meep="meow")

@@ -51,18 +51,6 @@ class TestAsyncSelfInjecting:
         assert result is mock_client.call_with_async_di.return_value
         mock_client.call_with_async_di.assert_awaited_once_with(mock_callback)
 
-    @pytest.mark.anyio()
-    async def test_call_dunder_method_with_client_getter(self):
-        mock_callback = mock.Mock()
-        mock_client_getter = mock.Mock(return_value=mock.AsyncMock())
-        self_injecting = alluka.AsyncSelfInjecting(mock_client_getter, mock_callback)
-
-        result = await self_injecting()
-
-        assert result is mock_client_getter.return_value.call_with_async_di.return_value
-        mock_client_getter.return_value.call_with_async_di.assert_awaited_once_with(mock_callback)
-        mock_client_getter.assert_called_once_with()
-
     def test_callback_property(self):
         mock_callback = mock.Mock()
 
@@ -84,17 +72,6 @@ class TestSelfInjecting:
 
         assert result is mock_client.call_with_di.return_value
         mock_client.call_with_di.assert_called_once_with(mock_callback)
-
-    def test_call_dunder_method_with_client_getter(self):
-        mock_callback = mock.Mock()
-        mock_client_getter = mock.Mock()
-        self_injecting = alluka.SelfInjecting(mock_client_getter, mock_callback)
-
-        result = self_injecting()
-
-        assert result is mock_client_getter.return_value.call_with_di.return_value
-        mock_client_getter.return_value.call_with_di.assert_called_once_with(mock_callback)
-        mock_client_getter.assert_called_once_with()
 
     def test_callback_property(self):
         mock_callback = mock.Mock()
