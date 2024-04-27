@@ -117,6 +117,7 @@ class Client(abc.ABC):
         collections.Callable
             The wrapped auto injecting callback.
         """
+
         @functools.wraps(callback)
         def wrapped_callback(*args: _P.args, **kwargs: _P.kwargs) -> _T:
             return self.call_with_di(callback, *args, **kwargs)
@@ -146,6 +147,7 @@ class Client(abc.ABC):
         collections.Callable
             The wrapped auto injecting callback.
         """
+
         @functools.wraps(callback)
         def wrapped_callback(*args: _P.args, **kwargs: _P.kwargs) -> _CoroT[_T]:
             return self.call_with_async_di(callback, *args, **kwargs)
