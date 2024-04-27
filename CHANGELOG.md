@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Transparent auto injection methods on Client at `Client.auto_inject` and
+- Transparent auto injection methods on `Client` at `Client.auto_inject` and
   `Client.auto_inject_async`. These wrap functions to make calls to them
   automatically inject dependencies and are transparent replacements for the
   self injecting system.
@@ -16,9 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no value is found and no default was provided.
 
 ### Deprecated
-- `Client.as_self_injecting` in favour of `Client.auto_inject.
+- `Client.as_self_injecting` in favour of `Client.auto_inject`.
 - `Client.as_async_self_injecting` in favour of `Client.auto_inject_async`.
-- `alluka.SelfInjecting` in favour of `Client.auto_inject.
+- `alluka.SelfInjecting` in favour of `Client.auto_inject`.
 - `alluka.AsyncSelfInjecting` in favour of `Client.auto_inject_async`.
 
 ### Removed
