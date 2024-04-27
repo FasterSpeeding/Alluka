@@ -75,6 +75,43 @@ def test_initialize_when_passed_through_and_already_set():
             alluka.local.initialize(mock.Mock())
 
 
+def test_scope_client():
+    assert alluka.local.get(default=None) is None
+
+    with alluka.local.scope_client() as client:
+        assert isinstance(client, alluka.Client)
+        assert alluka.local.get() is client
+
+        with alluka.local.scope_client() as other_client:
+            assert isinstance(other_client, alluka.Client)
+            assert other_client is not client
+            assert alluka.local.get() is other_client
+
+        assert alluka.local.get() is client
+
+    assert alluka.local.get(default=None) is None
+
+
+def test_scope_client_when_passed_through():
+    mock_client = mock.Mock()
+    mock_other_client = mock.Mock()
+
+    assert alluka.local.get(default=None) is None
+
+    with alluka.local.scope_client(mock_client) as client:
+        assert client is mock_client
+        assert alluka.local.get() is mock_client
+
+        with alluka.local.scope_client(mock_other_client) as other_client:
+            assert other_client is mock_other_client
+            assert mock_other_client is not mock_client
+            assert alluka.local.get() is mock_other_client
+
+        assert alluka.local.get() is mock_client
+
+    assert alluka.local.get(default=None) is None
+
+
 def test_get():
     mock_client = mock.Mock()
 
