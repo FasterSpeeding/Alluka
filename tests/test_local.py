@@ -31,6 +31,7 @@
 
 from unittest import mock
 
+import contextvars
 import pytest
 
 import alluka
@@ -42,12 +43,21 @@ def test_initialize():
 
     assert isinstance(alluka.local.get(), alluka.Client)
 
+    # This needs to be reset to avoid an issue with Pytest's scoping.
+    alluka.local._injector = contextvars.ContextVar[alluka.abc.Client](  # pyright: ignore[reportPrivateUsage]
+        "alluka_injector"
+    )
 
 def test_initialize_when_passed_through():
     mock_client = mock.Mock()
     alluka.local.initialize(mock_client)
 
     assert alluka.local.get() is mock_client
+
+    # This needs to be reset to avoid an issue with Pytest's scoping.
+    alluka.local._injector = contextvars.ContextVar[alluka.abc.Client](  # pyright: ignore[reportPrivateUsage]
+        "alluka_injector"
+    )
 
 
 def test_initialize_when_already_set():
@@ -59,8 +69,9 @@ def test_initialize_when_already_set():
 def test_initialize_when_passed_through_and_already_set():
     alluka.local.initialize()
 
-    with pytest.raises(RuntimeError, match="Alluka client already initialised in the current context"):
-        alluka.local.initialize(mock.Mock())
+    with alluka.local.scope_client():
+        with pytest.raises(RuntimeError, match="Alluka client already initialised in the current context"):
+            alluka.local.initialize(mock.Mock())
 
 
 def test_get():
