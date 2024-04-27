@@ -31,10 +31,10 @@
 """Standard functions for using a context local dependency injection client.
 
 .. note::
-    This module's functionality will only work if `initialize` has been called
-    to set the DI client for the local scope and you will most likely want to
-    call this in your `__init__.py` file to set the DI client for the main
-    thread.
+    This module's functionality will only work if
+    [initialize][alluka.local.initialize] or
+    [scope_client][alluka.local.scope_client] has been called to set the DI
+    client for the local scope.
 """
 from __future__ import annotations
 
@@ -91,6 +91,10 @@ def initialize(client: typing.Optional[abc.Client] = None, /) -> abc.Client:
     client = client or _client.Client()
     _injector.set(client)
     return client
+
+
+initialise = initialize
+"""Alias of [initialize][alluka.local.initialize]."""
 
 
 @contextlib.contextmanager
