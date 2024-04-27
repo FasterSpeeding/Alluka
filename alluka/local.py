@@ -38,7 +38,15 @@
 """
 from __future__ import annotations
 
-__all__ = ["auto_inject", "auto_inject_async", "call_with_async_di", "scope_client", "call_with_di", "get", "initialize"]
+__all__ = [
+    "auto_inject",
+    "auto_inject_async",
+    "call_with_async_di",
+    "call_with_di",
+    "get",
+    "initialize",
+    "scope_client",
+]
 
 import contextlib
 import contextvars
