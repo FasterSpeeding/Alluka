@@ -54,29 +54,9 @@ with warnings.catch_warnings():
 
     @typing_extensions.deprecated("Use client.auto_inject_async")
     class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
-        """Class used to link an async function to a client to make it self-injecting.
+        """Deprecated class for marking async functions as self-injecting.
 
-        Examples
-        --------
-        ```py
-        async def callback(database: Database = alluka.inject(type=Database)) -> None:
-            await database.do_something()
-        ...
-
-        client = alluka.Client()
-        injecting_callback = alluka.AsyncSelfInjecting(callback, client)
-        await injecting_callback()
-        ```
-
-        Alternatively [alluka.abc.Client.as_async_self_injecting][] may be used:
-
-        ```py
-        client = alluka.Client()
-
-        @client.as_async_self_injecting
-        async def callback(database: Database = alluka.inject(type=Database)) -> None:
-            ...
-        ```
+        Use [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
         """
 
         __slots__ = ("_callback", "_client")
@@ -130,33 +110,9 @@ with warnings.catch_warnings():
 
     @typing_extensions.deprecated("Use client.inject_async")
     class SelfInjecting(alluka.SelfInjecting[_SyncCallbackT]):
-        """Class used to link a sync function to a client to make it self-injecting.
+        """Deprecated class for marking functions as self-injecting.
 
-        !!! note
-            This executes the callback synchronously and therefore will error if
-            any of the callback's dependencies are async.
-
-        Examples
-        --------
-        ```py
-        async def callback(database: Database = alluka.inject(type=Database)) -> None:
-            await database.do_something()
-        ...
-
-        client = alluka.Client()
-        injecting_callback = alluka.SelfInjecting(callback, client)
-        await injecting_callback()
-        ```
-
-        Alternatively [alluka.abc.Client.as_self_injecting][] may be used:
-
-        ```py
-        client = alluka.Client()
-
-        @client.as_self_injecting
-        async def callback(database: Database = alluka.inject(type=Database)) -> None:
-            ...
-        ```
+        Use [Client.auto_inject][alluka.abc.Client.auto_inject].
         """
 
         __slots__ = ("_callback", "_client")
