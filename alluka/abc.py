@@ -78,7 +78,13 @@ class Client(abc.ABC):
 
     @abc.abstractmethod
     def make_context(self) -> Context:
-        """Create a dependency injection context."""
+        """Create a dependency injection context.
+
+        Returns
+        -------
+        alluka.abc.Context
+            The created DI context, bound to the current client.
+        """
 
     @abc.abstractmethod
     @typing_extensions.deprecated("Use .auto_inject_async")
