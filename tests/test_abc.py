@@ -51,6 +51,9 @@ if typing.TYPE_CHECKING:
 
 
 class MockClient(alluka.abc.Client):
+    def make_context(self) -> alluka.abc.Context:
+        raise NotImplementedError
+
     def as_async_self_injecting(
         self, callback: _CallbackT, /
     ) -> alluka.abc.AsyncSelfInjecting[_CallbackT]:  # pyright: ignore[reportDeprecated]
@@ -59,17 +62,6 @@ class MockClient(alluka.abc.Client):
     def as_self_injecting(
         self, callback: _CallbackT, /
     ) -> alluka.abc.SelfInjecting[_CallbackT]:  # pyright: ignore[reportDeprecated]
-        raise NotImplementedError
-
-    @typing.overload
-    def call_with_di(
-        self, callback: collections.Callable[..., _CoroT[typing.Any]], *args: typing.Any, **kwargs: typing.Any
-    ) -> typing.NoReturn: ...
-
-    @typing.overload
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T: ...
-
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         raise NotImplementedError
 
     @typing.overload
@@ -88,11 +80,6 @@ class MockClient(alluka.abc.Client):
 
     def call_with_ctx(
         self, ctx: alluka.abc.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
-    ) -> _T:
-        raise NotImplementedError
-
-    async def call_with_async_di(
-        self, callback: alluka.abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         raise NotImplementedError
 
@@ -149,3 +136,29 @@ class TestClient:
 
         client.call_with_async_di.assert_awaited_once_with(mock_callback, "555", 12312, kill="the fuckers")
         assert result is client.call_with_async_di.return_value
+
+    def test_call_with_di(self):
+        client = MockClient()
+        client.make_context = mock.Mock()
+        mock_callback = mock.Mock()
+
+        result = client.call_with_di(mock_callback, 333, "lll", meep="boop")
+
+        assert result is client.make_context.return_value.call_with_di.return_value
+        client.make_context.assert_called_once_with()
+        client.make_context.return_value.call_with_di.assert_called_once_with(mock_callback, 333, "lll", meep="boop")
+
+    @pytest.mark.anyio
+    async def test_call_with_async_di(self):
+        client = MockClient()
+        client.make_context = mock.Mock()
+        client.make_context.return_value.call_with_async_di = mock.AsyncMock()
+        mock_callback = mock.AsyncMock()
+
+        result = await client.call_with_async_di(mock_callback, "777", 555, meep="3222")
+
+        assert result is client.make_context.return_value.call_with_async_di.return_value
+        client.make_context.assert_called_once_with()
+        client.make_context.return_value.call_with_async_di.assert_awaited_once_with(
+            mock_callback, "777", 555, meep="3222"
+        )

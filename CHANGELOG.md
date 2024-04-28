@@ -12,10 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   self injecting system.
 - A system for setting the injection client for a local scope (as defined by
   [contextvars][]) and making dependency injection calls based on said context.
+- [alluka.abc.Client.make_context][] method for creating a client bound context.
 
 ### Changed
 - `get_type_dependency` and `get_cached_value` both now raise a [KeyError][] when
   no value is found and no default was provided.
+- [alluka.abc.Client.call_with_di][] and [alluka.abc.Client.call_with_async_di][]
+  now provide default implementations which use
+  [Client.make_context][alluka.abc.Client.make_context].
+- [alluka.abc.Context.call_with_di][] and [alluka.abc.Context.call_with_async_di][]
+  now provide default implementations which use
+  [Context.injector_client][alluka.abc.Context.injector_client].
 
 ### Deprecated
 - `Client.as_self_injecting` in favour of `Client.auto_inject`.
