@@ -3,6 +3,10 @@ site_name: "Alluka docs"
 repo_url: https://github.com/FasterSpeeding/Alluka
 theme:
   name: material
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.prune
   icon:
     admonition:
       note: octicons/tag-16
