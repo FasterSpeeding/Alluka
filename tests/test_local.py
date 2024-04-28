@@ -63,13 +63,13 @@ def test_initialize_when_passed_through():
 
 def test_initialize_when_already_set():
     with alluka.local.scope_client():  # noqa: SIM117
-        with pytest.raises(RuntimeError, match="Alluka client already initialised in the current context"):
+        with pytest.raises(RuntimeError, match="Alluka client already initialised in the current scope"):
             alluka.local.initialize()
 
 
 def test_initialize_when_passed_through_and_already_set():
     with alluka.local.scope_client():  # noqa: SIM117
-        with pytest.raises(RuntimeError, match="Alluka client already initialised in the current context"):
+        with pytest.raises(RuntimeError, match="Alluka client already initialised in the current scope"):
             alluka.local.initialize(mock.Mock())
 
 
@@ -118,7 +118,7 @@ def test_get():
 
 
 def test_get_when_not_set():
-    with pytest.raises(RuntimeError, match="Alluka client not initialised in the current context"):
+    with pytest.raises(RuntimeError, match="Alluka client not initialised in the current scope"):
         alluka.local.get()
 
 

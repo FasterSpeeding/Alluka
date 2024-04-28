@@ -94,7 +94,7 @@ def initialize(client: typing.Optional[abc.Client] = None, /) -> abc.Client:
         If the local client is already initialised.
     """
     if _injector.get(None) is not None:
-        raise RuntimeError("Alluka client already initialised in the current context")
+        raise RuntimeError("Alluka client already initialised in the current scope")
 
     client = client or _client.Client()
     _injector.set(client)
@@ -180,7 +180,7 @@ def get(*, default: _DefaultT = ...) -> typing.Union[abc.Client, _DefaultT]:
         if default is not ...:
             return default
 
-        raise RuntimeError("Alluka client not initialised in the current context")
+        raise RuntimeError("Alluka client not initialised in the current scope")
 
     return client
 
