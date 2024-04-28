@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   automatically inject dependencies and are transparent replacements for the
   self injecting system.
 - A system for setting the injection client for a local scope (as defined by
-  [contextvar][]) and making dependency injection calls based on said context.
+  [contextvars][]) and making dependency injection calls based on said context.
 
 ### Changed
 - `get_type_dependency` and `get_cached_value` both now raise a [KeyError][] when
