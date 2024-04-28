@@ -52,7 +52,7 @@ _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-    @typing_extensions.deprecated("Use client.auto_inject_async")
+    @typing_extensions.deprecated("Use Client.auto_inject_async")
     class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
         """Deprecated class for marking async functions as self-injecting.
 
@@ -108,7 +108,7 @@ with warnings.catch_warnings():
             # <<inherited docstring from alluka.abc.AsyncSelfInjecting>>.
             return self._callback
 
-    @typing_extensions.deprecated("Use client.inject_async")
+    @typing_extensions.deprecated("Use Client.inject_async")
     class SelfInjecting(alluka.SelfInjecting[_SyncCallbackT]):
         """Deprecated class for marking functions as self-injecting.
 

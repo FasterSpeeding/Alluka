@@ -177,6 +177,10 @@ class Client(alluka.Client):
         descriptors = self._descriptors[callback] = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
         return descriptors
 
+    def make_context(self) -> alluka.Context:
+        # <<inherited docstring from alluka.abc.Client>>.
+        return BasicContext(self)
+
     @typing_extensions.deprecated("Use .auto_inject")
     def as_async_self_injecting(
         self, callback: _CallbackSigT, /
@@ -196,18 +200,6 @@ class Client(alluka.Client):
             warnings.filterwarnings("ignore", category=DeprecationWarning)
 
             return _self_injecting.SelfInjecting(self, callback)  # pyright: ignore[reportDeprecated]
-
-    @typing.overload
-    def call_with_di(
-        self, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
-    ) -> typing.NoReturn: ...
-
-    @typing.overload
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T: ...
-
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        # <<inherited docstring from alluka.abc.Client>>.
-        return BasicContext(self).call_with_di(callback, *args, **kwargs)
 
     @typing.overload
     def call_with_ctx(
@@ -237,10 +229,6 @@ class Client(alluka.Client):
             raise _errors.SyncOnlyError
 
         return result
-
-    async def call_with_async_di(self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        # <<inherited docstring from alluka.abc.Client>>.
-        return await BasicContext(self).call_with_async_di(callback, *args, **kwargs)
 
     async def call_with_ctx_async(
         self, ctx: alluka.Context, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
@@ -330,22 +318,6 @@ class BasicContext(alluka.Context):
             self._result_cache = {}
 
         self._result_cache[callback] = value
-
-    @typing.overload
-    def call_with_di(
-        self, callback: collections.Callable[..., _AnyCoro], *args: typing.Any, **kwargs: typing.Any
-    ) -> typing.NoReturn: ...
-
-    @typing.overload
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T: ...
-
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        # <<inherited docstring from alluka.abc.Context>>.
-        return self._injection_client.call_with_ctx(self, callback, *args, **kwargs)
-
-    async def call_with_async_di(self, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        # <<inherited docstring from alluka.abc.Context>>.
-        return await self._injection_client.call_with_ctx_async(self, callback, *args, **kwargs)
 
     @typing.overload
     def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> _T: ...
