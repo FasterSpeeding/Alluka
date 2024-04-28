@@ -29,7 +29,7 @@ classifiers = [
     "Topic :: Utilities",
     "Typing :: Typed"
 ]
-dependencies = []
+dependencies = ["typing-extensions>=4.5, <5"]
 dynamic = ["description"]
 
 [project.urls]

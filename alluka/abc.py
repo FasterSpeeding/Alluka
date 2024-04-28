@@ -29,18 +29,24 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """Alluka's abstract interfaces."""
+
+# pyright: reportOverlappingOverload=warning
+
 from __future__ import annotations
 
 __all__: list[str] = ["AsyncSelfInjecting", "CallbackSig", "Client", "Context", "SelfInjecting"]
 
 import abc
+import functools
 import typing
 from collections import abc as collections
+
+import typing_extensions
 
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
-# pyright: reportOverlappingOverload=warning
+    _P = typing_extensions.ParamSpec("_P")
 
 _T = typing.TypeVar("_T")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
@@ -71,42 +77,86 @@ class Client(abc.ABC):
     __slots__ = ()
 
     @abc.abstractmethod
-    def as_async_self_injecting(self, callback: _CallbackT, /) -> AsyncSelfInjecting[_CallbackT]:
-        """Link a function to a client to make it self-injecting.
+    @typing_extensions.deprecated("Use .auto_inject_async")
+    def as_async_self_injecting(
+        self, callback: _CallbackT, /
+    ) -> AsyncSelfInjecting[_CallbackT]:  # pyright: ignore[reportDeprecated]
+        """Deprecated callback for making async functions auto-inject.
 
-        Parameters
-        ----------
-        callback : CallbackSig
-            The callback to make self-injecting.
-
-            This may be sync or async.
-
-        Returns
-        -------
-        AsyncSelfInjecting
-            The async self-injecting callback.
+        Use [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
         """
 
     @abc.abstractmethod
-    def as_self_injecting(self, callback: _SyncCallbackT, /) -> SelfInjecting[_SyncCallbackT]:
-        """Link a sync function to a client to make it self-injecting.
+    @typing_extensions.deprecated("Use .auto_inject")
+    def as_self_injecting(
+        self, callback: _SyncCallbackT, /
+    ) -> SelfInjecting[_SyncCallbackT]:  # pyright: ignore[reportDeprecated]
+        """Deprecated callback for making functions auto-inject.
 
-        !!! note
-            This uses sync dependency injection and therefore will lead
-            to errors if any of the callback's dependencies are async.
+        Use [Client.auto_inject][alluka.abc.Client.auto_inject].
+        """
+
+    def auto_inject(self, callback: collections.Callable[_P, _T], /) -> collections.Callable[_P, _T]:
+        """Wrap a function to make calls to it always inject dependencies.
+
+        Examples
+        --------
+        ```py
+        @client.auto_inject
+        def callback(dep: Injected[Type]) -> None:
+            ...
+
+        callback()  # The requested dependencies will be passed.
+        ```
 
         Parameters
         ----------
-        callback : collections.abc.Callable
-            The callback to make self-injecting.
-
-            This must be sync.
+        callback
+            The callback to wrap with DI.
 
         Returns
         -------
-        SelfInjecting
-            The self-injecting callback.
+        collections.Callable
+            The wrapped auto injecting callback.
         """
+
+        @functools.wraps(callback)
+        def wrapped_callback(*args: _P.args, **kwargs: _P.kwargs) -> _T:
+            return self.call_with_di(callback, *args, **kwargs)
+
+        return wrapped_callback
+
+    def auto_inject_async(
+        self, callback: collections.Callable[_P, _CoroT[_T]], /
+    ) -> collections.Callable[_P, _CoroT[_T]]:
+        """Wrap an async function to make calls to it always inject dependencies.
+
+        Examples
+        --------
+        ```py
+        @client.auto_inject_async
+        async def callback(dep: Injected[Type]) -> None:
+            ...
+
+        await callback()  # The requested dependencies will be passed.
+        ```
+
+        Parameters
+        ----------
+        callback
+            The callback to wrap with DI.
+
+        Returns
+        -------
+        collections.Callable
+            The wrapped auto injecting callback.
+        """
+
+        @functools.wraps(callback)
+        def wrapped_callback(*args: _P.args, **kwargs: _P.kwargs) -> _CoroT[_T]:
+            return self.call_with_async_di(callback, *args, **kwargs)
+
+        return wrapped_callback
 
     @typing.overload
     @abc.abstractmethod
@@ -544,6 +594,7 @@ class Context(abc.ABC):
         """
 
 
+@typing_extensions.deprecated("Use Client.auto_inject_async")
 class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
     """Interface of a class used to make an async self-injecting callback.
 
@@ -568,19 +619,24 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
     @typing.overload
     @abc.abstractmethod
     async def __call__(
-        self: AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]], *args: typing.Any, **kwargs: typing.Any
+        self: AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]],  # pyright: ignore[reportDeprecated]
+        *args: typing.Any,
+        **kwargs: typing.Any,
     ) -> _T: ...
 
     @typing.overload
     @abc.abstractmethod
     async def __call__(
-        self: AsyncSelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any
+        self: AsyncSelfInjecting[collections.Callable[..., _T]],  # pyright: ignore[reportDeprecated]
+        *args: typing.Any,
+        **kwargs: typing.Any,
     ) -> _T: ...
 
     @abc.abstractmethod
     async def __call__(
         self: typing.Union[
-            AsyncSelfInjecting[collections.Callable[..., _T]], AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]]
+            AsyncSelfInjecting[collections.Callable[..., _T]],  # pyright: ignore[reportDeprecated]
+            AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]],  # pyright: ignore[reportDeprecated]
         ],
         *args: typing.Any,
         **kwargs: typing.Any,
@@ -607,6 +663,7 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
         """
 
 
+@typing_extensions.deprecated("Use Client.auto_inject")
 class SelfInjecting(abc.ABC, typing.Generic[_SyncCallbackT]):
     """Interface of a class used to make a self-injecting callback.
 
@@ -633,7 +690,11 @@ class SelfInjecting(abc.ABC, typing.Generic[_SyncCallbackT]):
         """The callback this wraps."""
 
     @abc.abstractmethod
-    def __call__(self: SelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    def __call__(
+        self: SelfInjecting[collections.Callable[..., _T]],  # pyright: ignore[reportDeprecated]
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> _T:
         """Call this callback with the provided arguments + injected arguments.
 
         Parameters

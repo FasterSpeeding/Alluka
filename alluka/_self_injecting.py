@@ -28,12 +28,18 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# pyright: reportDeprecated=none
+
 from __future__ import annotations
 
 __all__: list[str] = ["AsyncSelfInjecting", "SelfInjecting"]
 
 import typing
+import warnings
 from collections import abc as collections
+
+import typing_extensions
 
 from . import abc as alluka
 
@@ -43,137 +49,98 @@ _T = typing.TypeVar("_T")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
 
-class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
-    """Class used to link an async function to a client to make it self-injecting.
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-    Examples
-    --------
-    ```py
-    async def callback(database: Database = alluka.inject(type=Database)) -> None:
-        await database.do_something()
-    ...
+    @typing_extensions.deprecated("Use client.auto_inject_async")
+    class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
+        """Deprecated class for marking async functions as self-injecting.
 
-    client = alluka.Client()
-    injecting_callback = alluka.AsyncSelfInjecting(callback, client)
-    await injecting_callback()
-    ```
-
-    Alternatively [alluka.abc.Client.as_async_self_injecting][] may be used:
-
-    ```py
-    client = alluka.Client()
-
-    @client.as_async_self_injecting
-    async def callback(database: Database = alluka.inject(type=Database)) -> None:
-        ...
-    ```
-    """
-
-    __slots__ = ("_callback", "_client")
-
-    def __init__(self, client: alluka.Client, callback: _CallbackSigT, /) -> None:
-        """Initialise a self injecting callback.
-
-        Parameters
-        ----------
-        client
-            The injection client to use to resolve dependencies.
-        callback : alluka.abc.CallbackSig
-            The callback to make self-injecting.
-
-            This may be sync or async.
-
-        Raises
-        ------
-        ValueError
-            If `callback` has any injected arguments which can only be passed
-            positionally.
+        Use [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
         """
-        self._callback = callback
-        self._client = client
 
-    @typing.overload
-    async def __call__(
-        self: AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]], *args: typing.Any, **kwargs: typing.Any
-    ) -> _T: ...
+        __slots__ = ("_callback", "_client")
 
-    @typing.overload
-    async def __call__(
-        self: AsyncSelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any
-    ) -> _T: ...
+        def __init__(self, client: alluka.Client, callback: _CallbackSigT, /) -> None:
+            """Initialise a self injecting callback.
 
-    async def __call__(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self: typing.Union[
-            AsyncSelfInjecting[collections.Callable[..., _T]], AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]]
-        ],
-        *args: typing.Any,
-        **kwargs: typing.Any,
-    ) -> _T:
-        # <<inherited docstring from alluka.abc.AsyncSelfInjecting>>.
-        return await self._client.call_with_async_di(self._callback, *args, **kwargs)
+            Parameters
+            ----------
+            client
+                The injection client to use to resolve dependencies.
+            callback : alluka.abc.CallbackSig
+                The callback to make self-injecting.
 
-    @property
-    def callback(self) -> _CallbackSigT:
-        # <<inherited docstring from alluka.abc.AsyncSelfInjecting>>.
-        return self._callback
+                This may be sync or async.
 
+            Raises
+            ------
+            ValueError
+                If `callback` has any injected arguments which can only be passed
+                positionally.
+            """
+            self._callback = callback
+            self._client = client
 
-class SelfInjecting(alluka.SelfInjecting[_SyncCallbackT]):
-    """Class used to link a sync function to a client to make it self-injecting.
+        @typing.overload
+        async def __call__(
+            self: AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]], *args: typing.Any, **kwargs: typing.Any
+        ) -> _T: ...
 
-    !!! note
-        This executes the callback synchronously and therefore will error if
-        any of the callback's dependencies are async.
+        @typing.overload
+        async def __call__(
+            self: AsyncSelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any
+        ) -> _T: ...
 
-    Examples
-    --------
-    ```py
-    async def callback(database: Database = alluka.inject(type=Database)) -> None:
-        await database.do_something()
-    ...
+        async def __call__(  # pyright: ignore[reportIncompatibleMethodOverride]
+            self: typing.Union[
+                AsyncSelfInjecting[collections.Callable[..., _T]],
+                AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]],
+            ],
+            *args: typing.Any,
+            **kwargs: typing.Any,
+        ) -> _T:
+            # <<inherited docstring from alluka.abc.AsyncSelfInjecting>>.
+            return await self._client.call_with_async_di(self._callback, *args, **kwargs)
 
-    client = alluka.Client()
-    injecting_callback = alluka.SelfInjecting(callback, client)
-    await injecting_callback()
-    ```
+        @property
+        def callback(self) -> _CallbackSigT:
+            # <<inherited docstring from alluka.abc.AsyncSelfInjecting>>.
+            return self._callback
 
-    Alternatively [alluka.abc.Client.as_self_injecting][] may be used:
+    @typing_extensions.deprecated("Use client.inject_async")
+    class SelfInjecting(alluka.SelfInjecting[_SyncCallbackT]):
+        """Deprecated class for marking functions as self-injecting.
 
-    ```py
-    client = alluka.Client()
-
-    @client.as_self_injecting
-    async def callback(database: Database = alluka.inject(type=Database)) -> None:
-        ...
-    ```
-    """
-
-    __slots__ = ("_callback", "_client")
-
-    def __init__(self, client: alluka.Client, callback: _SyncCallbackT, /) -> None:
-        """Initialise a sync self injecting callback.
-
-        Parameters
-        ----------
-        client
-            The injection client to use to resolve dependencies.
-        callback : collections.abc.Callable
-            The callback to make self-injecting.
-
-        Raises
-        ------
-        ValueError
-            If `callback` has any injected arguments which can only be passed
-            positionally.
+        Use [Client.auto_inject][alluka.abc.Client.auto_inject].
         """
-        self._callback = callback
-        self._client = client
 
-    def __call__(self: SelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
-        # <<inherited docstring from alluka.abc.SelfInjecting>>.
-        return self._client.call_with_di(self._callback, *args, **kwargs)
+        __slots__ = ("_callback", "_client")
 
-    @property
-    def callback(self) -> _SyncCallbackT:
-        # <<inherited docstring from alluka.abc.SelfInjecting>>.
-        return self._callback
+        def __init__(self, client: alluka.Client, callback: _SyncCallbackT, /) -> None:
+            """Initialise a sync self injecting callback.
+
+            Parameters
+            ----------
+            client
+                The injection client to use to resolve dependencies.
+            callback : collections.abc.Callable
+                The callback to make self-injecting.
+
+            Raises
+            ------
+            ValueError
+                If `callback` has any injected arguments which can only be passed
+                positionally.
+            """
+            self._callback = callback
+            self._client = client
+
+        def __call__(self: SelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any) -> _T:
+            # <<inherited docstring from alluka.abc.SelfInjecting>>.
+            return self._client.call_with_di(self._callback, *args, **kwargs)
+
+        @property
+        def callback(self) -> _SyncCallbackT:
+            # <<inherited docstring from alluka.abc.SelfInjecting>>.
+            return self._callback

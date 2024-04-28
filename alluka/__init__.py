@@ -53,8 +53,8 @@ from ._client import inject
 from ._errors import AllukaError
 from ._errors import MissingDependencyError
 from ._errors import SyncOnlyError
-from ._self_injecting import AsyncSelfInjecting
-from ._self_injecting import SelfInjecting
+from ._self_injecting import AsyncSelfInjecting  # pyright: ignore[reportDeprecated]
+from ._self_injecting import SelfInjecting  # pyright: ignore[reportDeprecated]
 from ._types import Injected
 from ._types import InjectedDescriptor
 

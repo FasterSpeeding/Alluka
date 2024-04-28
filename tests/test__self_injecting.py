@@ -28,6 +28,9 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# pyright: reportDeprecated=none
+
 import mock
 import pytest
 
@@ -39,7 +42,9 @@ class TestAsyncSelfInjecting:
     async def test_call_dunder_method(self):
         mock_callback = mock.Mock()
         mock_client = mock.AsyncMock()
-        self_injecting = alluka.AsyncSelfInjecting(mock_client, mock_callback)
+
+        with pytest.warns(DeprecationWarning):
+            self_injecting = alluka.AsyncSelfInjecting(mock_client, mock_callback)
 
         result = await self_injecting()
 
@@ -49,7 +54,8 @@ class TestAsyncSelfInjecting:
     def test_callback_property(self):
         mock_callback = mock.Mock()
 
-        self_injecting = alluka.AsyncSelfInjecting(mock.Mock(), mock_callback)
+        with pytest.warns(DeprecationWarning):
+            self_injecting = alluka.AsyncSelfInjecting(mock.Mock(), mock_callback)
 
         assert self_injecting.callback is mock_callback
 
@@ -58,7 +64,9 @@ class TestSelfInjecting:
     def test_call_dunder_method(self):
         mock_callback = mock.Mock()
         mock_client = mock.Mock()
-        self_injecting = alluka.SelfInjecting(mock_client, mock_callback)
+
+        with pytest.warns(DeprecationWarning):
+            self_injecting = alluka.SelfInjecting(mock_client, mock_callback)
 
         result = self_injecting()
 
@@ -68,6 +76,7 @@ class TestSelfInjecting:
     def test_callback_property(self):
         mock_callback = mock.Mock()
 
-        self_injecting = alluka.SelfInjecting(mock.Mock(), mock_callback)
+        with pytest.warns(DeprecationWarning):
+            self_injecting = alluka.SelfInjecting(mock.Mock(), mock_callback)
 
         assert self_injecting.callback is mock_callback

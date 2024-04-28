@@ -29,6 +29,11 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# pyright: reportUnknownMemberType=none
+# pyright: reportPrivateUsage=none
+# pyright: reportIncompatibleMethodOverride=none
+
+
 import sys
 import typing
 import warnings
@@ -38,10 +43,6 @@ import pytest
 
 import alluka
 from alluka._vendor import inspect
-
-# pyright: reportUnknownMemberType=none
-# pyright: reportPrivateUsage=none
-# pyright: reportIncompatibleMethodOverride=none
 
 
 class MockType(int): ...

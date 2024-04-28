@@ -29,6 +29,10 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# pyright: reportUnknownMemberType=none
+# pyright: reportPrivateUsage=none
+# pyright: reportIncompatibleMethodOverride=none
+
 import typing
 import warnings
 
@@ -36,10 +40,6 @@ import mock
 import pytest
 
 import alluka
-
-# pyright: reportUnknownMemberType=none
-# pyright: reportPrivateUsage=none
-# pyright: reportIncompatibleMethodOverride=none
 
 
 def test_inject():
@@ -77,9 +77,10 @@ class TestClient:
         mock_callback = mock.Mock()
         client = alluka.Client()
 
-        result = client.as_async_self_injecting(mock_callback)
+        with pytest.warns(DeprecationWarning):
+            result = client.as_async_self_injecting(mock_callback)  # pyright: ignore[reportDeprecated]
 
-        assert isinstance(result, alluka.AsyncSelfInjecting)
+        assert isinstance(result, alluka.AsyncSelfInjecting)  # pyright: ignore[reportDeprecated]
         assert result._callback is mock_callback
         assert result._client is client
 
@@ -87,9 +88,10 @@ class TestClient:
         mock_callback = mock.Mock()
         client = alluka.Client()
 
-        result = client.as_self_injecting(mock_callback)
+        with pytest.warns(DeprecationWarning):
+            result = client.as_self_injecting(mock_callback)  # pyright: ignore[reportDeprecated]
 
-        assert isinstance(result, alluka.SelfInjecting)
+        assert isinstance(result, alluka.SelfInjecting)  # pyright: ignore[reportDeprecated]
         assert result._callback is mock_callback
         assert result._client is client
 

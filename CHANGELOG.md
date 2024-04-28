@@ -5,9 +5,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Transparent auto injection methods on `Client` at `Client.auto_inject` and
+  `Client.auto_inject_async`. These wrap functions to make calls to them
+  automatically inject dependencies and are transparent replacements for the
+  self injecting system.
+
 ### Changed
 - `get_type_dependency` and `get_cached_value` both now raise a [KeyError][] when
   no value is found and no default was provided.
+
+### Deprecated
+- `Client.as_self_injecting` in favour of `Client.auto_inject`.
+- `Client.as_async_self_injecting` in favour of `Client.auto_inject_async`.
+- `alluka.SelfInjecting` in favour of `Client.auto_inject`.
+- `alluka.AsyncSelfInjecting` in favour of `Client.auto_inject_async`.
 
 ### Removed
 - `alluka.abc.UNDEFINED` and `alluka.abc.Undefined`.
