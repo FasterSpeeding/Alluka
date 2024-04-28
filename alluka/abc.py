@@ -111,6 +111,8 @@ class Client(abc.ABC):
 
         Parameters
         ----------
+        callback
+            The callback to wrap with DI.
 
         Returns
         -------
@@ -141,6 +143,8 @@ class Client(abc.ABC):
 
         Parameters
         ----------
+        callback
+            The callback to wrap with DI.
 
         Returns
         -------
