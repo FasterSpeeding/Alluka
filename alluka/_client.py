@@ -178,6 +178,7 @@ class Client(alluka.Client):
         return descriptors
 
     def make_context(self) -> alluka.Context:
+        # <<inherited docstring from alluka.abc.Client>>.
         return BasicContext(self)
 
     @typing_extensions.deprecated("Use .auto_inject")
