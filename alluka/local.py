@@ -240,17 +240,27 @@ async def call_with_async_di(callback: abc.CallbackSig[_T], *args: typing.Any, *
 
 
 def auto_inject_async(callback: collections.Callable[_P, _CoroT[_T]], /) -> collections.Callable[_P, _CoroT[_T]]:
-    """Mark a callback as self async injecting using the local DI client.
+    """Wrap an async function to make calls to it always inject dependencies.
+
+    Examples
+    --------
+    ```py
+    @alluka.local.auto_inject_async
+    async def callback(dep: Injected[Type]) -> None:
+        ...
+
+    await callback()  # The requested dependencies will be passed.
+    ```
 
     Parameters
     ----------
     callback
-        The callback to mark as self-injecting.
+        The callback to wrap with DI.
 
     Returns
     -------
-    collections.abc.Callable[_P, _CoroT[_T]]
-        The self-injecting callback.
+    collections.Callable
+        The wrapped auto injecting callback.
     """
 
     @functools.wraps(callback)
@@ -261,17 +271,27 @@ def auto_inject_async(callback: collections.Callable[_P, _CoroT[_T]], /) -> coll
 
 
 def auto_inject(callback: collections.Callable[_P, _T], /) -> collections.Callable[_P, _T]:
-    """Mark a callback as self-injecting using the local DI client.
+    """Wrap a function to make calls to it always inject dependencies.
+
+    Examples
+    --------
+    ```py
+    @alluka.local.auto_inject
+    def callback(dep: Injected[Type]) -> None:
+        ...
+
+    callback()  # The requested dependencies will be passed.
+    ```
 
     Parameters
     ----------
     callback
-        The callback to mark as self-injecting.
+        The callback to wrap with DI.
 
     Returns
     -------
-    collections.abc.Callable[_P, _CoroT[_T]]
-        The self-injecting callback.
+    collections.Callable
+        The wrapped auto injecting callback.
     """
 
     @functools.wraps(callback)
