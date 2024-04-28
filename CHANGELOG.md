@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Client.auto_inject_async`. These wrap functions to make calls to them
   automatically inject dependencies and are transparent replacements for the
   self injecting system.
-- A system for setting the injection client for a local "context" (as defined by
+- A system for setting the injection client for a local scope (as defined by
   [contextvar][]) and making dependency injection calls based on said context.
 
 ### Changed

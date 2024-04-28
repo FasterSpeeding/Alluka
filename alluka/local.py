@@ -28,7 +28,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""Standard functions for using a context local dependency injection client.
+"""Standard functions for using a scope local dependency injection client.
 
 .. note::
     This module's functionality will only work if
@@ -73,14 +73,14 @@ _injector = contextvars.ContextVar[abc.Client](_CVAR_NAME)
 
 
 def initialize(client: typing.Optional[abc.Client] = None, /) -> abc.Client:
-    """Link or initialise an injection client for the current context.
+    """Link or initialise an injection client for the current scope.
 
     This uses the contextvars package to store the client.
 
     Parameters
     ----------
     client
-        If provided, this will be set as the client for the current context.
+        If provided, this will be set as the client for the current scope.
         If not provided, a new client will be created.
 
     Returns
@@ -155,7 +155,7 @@ def get(*, default: _DefaultT) -> typing.Union[abc.Client, _DefaultT]: ...
 
 
 def get(*, default: _DefaultT = ...) -> typing.Union[abc.Client, _DefaultT]:
-    """Get the local client for the current context.
+    """Get the local client for the current scope.
 
     Parameters
     ----------
@@ -167,7 +167,7 @@ def get(*, default: _DefaultT = ...) -> typing.Union[abc.Client, _DefaultT]:
     Returns
     -------
     alluka.abc.Client | _DefaultT
-        The client for the local context, or the default value if the client
+        The client for the local scope, or the default value if the client
         is not initialised.
 
     Raises
