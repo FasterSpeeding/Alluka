@@ -31,17 +31,18 @@
 
 from __future__ import annotations
 
-import mock
-from collections import abc as collections
-import pytest
 import typing
+from collections import abc as collections
+
+import mock
+import pytest
 
 import alluka
 
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
-    _CallbackT= typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
+    _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
     _DefaultT = typing.TypeVar("_DefaultT")
     _T = typing.TypeVar("_T")
 
@@ -89,7 +90,9 @@ class MockClient(alluka.abc.Client):
     ) -> _T:
         raise NotImplementedError
 
-    async def call_with_async_di(self, callback: alluka.abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    async def call_with_async_di(
+        self, callback: alluka.abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
+    ) -> _T:
         raise NotImplementedError
 
     async def call_with_ctx_async(
@@ -106,15 +109,18 @@ class MockClient(alluka.abc.Client):
     def remove_type_dependency(self, type_: type[typing.Any], /) -> Self:
         raise NotImplementedError
 
-    def set_callback_override(self, callback: alluka.abc.CallbackSig[_T], override: alluka.abc.CallbackSig[_T], /) -> Self:
+    def set_callback_override(
+        self, callback: alluka.abc.CallbackSig[_T], override: alluka.abc.CallbackSig[_T], /
+    ) -> Self:
         raise NotImplementedError
 
-    def get_callback_override(self, callback: alluka.abc.CallbackSig[_T], /) -> typing.Optional[alluka.abc.CallbackSig[_T]]:
+    def get_callback_override(
+        self, callback: alluka.abc.CallbackSig[_T], /
+    ) -> typing.Optional[alluka.abc.CallbackSig[_T]]:
         raise NotImplementedError
 
     def remove_callback_override(self, callback: alluka.abc.CallbackSig[_T], /) -> Self:
         raise NotImplementedError
-
 
 
 class TestClient:
