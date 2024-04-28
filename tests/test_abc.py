@@ -32,7 +32,6 @@
 from __future__ import annotations
 
 import typing
-from collections import abc as collections
 
 import mock
 import pytest
@@ -40,6 +39,7 @@ import pytest
 import alluka
 
 if typing.TYPE_CHECKING:
+    from collections import abc as collections
     from typing_extensions import Self
 
     _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
