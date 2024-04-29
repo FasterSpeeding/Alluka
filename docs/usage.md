@@ -64,9 +64,9 @@ dependency.
 
 ```
 
-To execute a function with async dependency injection
-[Client.call_with_async_di][alluka.abc.Client.call_with_async_di] should be called with the function and
-any positional or keyword arguments to pass through alongside the the injected arguments.
+[Client.call_with_async_di][alluka.abc.Client.call_with_async_di] can be used to execute a
+function with async dependency injection. Any positional or keyword arguments which are passed
+with the function will be passed through to the function with the injected values.
 
 !!! note
     While both sync and async functions may be executed with `call_with_async_di`, you'll always have to
@@ -76,11 +76,11 @@ any positional or keyword arguments to pass through alongside the the injected a
 --8<-- "./docs_src/usage.py:75:87"
 ```
 
-To execute a function with purely sync dependency injection
-[Client.call_with_di][alluka.abc.Client.call_with_di] can be used with similar semantics to
-`call_with_async_di` for passed through arguments but this comes with the limitation that only sync
-functions may be used and any dependency on async callback dependencies will lead to
-[alluka.SyncOnlyError][] being raised.
+[Client.call_with_di][alluka.abc.Client.call_with_di] can be used to execute a function with
+purely sync dependency injection. This has similar semantics to
+`call_with_async_di` for passed through arguments but comes with the limitation that only sync
+functions may be used and any async callback dependencies will lead to [alluka.SyncOnlyError][]
+being raised.
 
 ```py
 --8<-- "./docs_src/usage.py:95:96"
@@ -105,7 +105,7 @@ with dependency injection while preserving the current injection context.
 [Client.auto_inject][alluka.abc.Client.auto_inject_async] and
 [Client.auto_inject_async][alluka.abc.Client.auto_inject_async] can be used to tie a callback to
 a specific dependency injection client to enable implicit dependency injection without the need
-to call `call_with_(async_)_di` everytime the called's called.
+to call `call_with_(async_)_di` everytime the callback is called.
 
 ```py
 --8<-- "./docs_src/usage.py:173:178"
@@ -163,7 +163,7 @@ While child async tasks and events will inherit the local client, child threads 
 
 Either [alluka.local.initialize][] or [alluka.local.scope_client][] needs to be called to
 declare a client within the current scope before the other functionality in [alluka.local][]
-can be used. These can be provided a client to declare but default to creating a new client.
+can be used. These can be passed a client to declare but default to creating a new client.
 
 These clients are then configured like normal clients and [alluka.local.get][] can then be
 used to get the set client for the current scope.
