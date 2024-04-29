@@ -155,7 +155,7 @@ lug around an injection client or context.
 The local "scope" will either be the current thread, an async event loop (e.g. asyncio event loop),
 an async task or an async future.
 
-While child async tasks and events will inherit the local client, child threads will not.
+While child async tasks and futures will inherit the local client, child threads will not.
 
 ```py
 --8<-- "./docs_src/usage.py:144:150"
