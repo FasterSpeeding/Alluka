@@ -3,7 +3,7 @@
 ## Function injection
 
 This form of dependency injection works by injecting values for keyword arguments during callback
-execution based on the linked client. This is the main form of dependency injection implemented by
+execution based on the linked client. This is the current form of dependency injection implemented by
 Alluka.
 
 ### Declaring a function's injected dependencies
@@ -13,21 +13,15 @@ There are two styles for declaring a function's injected dependencies in Alluka:
 #### Default descriptors
 
 ```py
-def callback(
-    foo: Foo = alluka.inject(type=Foo)
-    bar: BarResult = alluka.inject(callback=bar_callback)
-) -> None:
-    ...
+--8<-- "./docs_src/usage.py:32:36"
 ```
 
 Assigning the result of [alluka.inject][] to a parameter's default will declare it as requiring an
 injected type or callback.
 
 ```py
-async def callback(
-    foo: Foo = alluka.inject()
-) -> None:
-    ...
+--8<-- "./docs_src/usage.py:41:41"
+
 ```
 
 If neither `type` nor `callback` is passed to [alluka.inject][] then a type dependency will be
@@ -44,11 +38,7 @@ inferred from the parameter's annotation.
 for a function.
 
 ```py
-def callback(
-    foo: typing.Annotated[Foo, alluka.inject(type=Foo)],
-    bar: typing.Annotated[BarResult, alluka.inject(callback=bar_callback)]
-) -> None:
-    ...
+--8<-- "./docs_src/usage.py:45:48"
 ```
 
 Where passing the default descriptors returned by [alluka.inject][] to [typing.Annotated][] lets
@@ -56,10 +46,8 @@ you declare the type or callback dependency for an argument without effecting no
 function (by leaving these parameters required).
 
 ```py
-async def callback(
-    foo: alluka.Injected[Foo]
-) -> None:
-    ...
+--8<-- "./docs_src/usage.py:52:52"
+
 ```
 
 And [alluka.Injected][] provides a shorthand for using [typing.Annotated][] to declare a type
@@ -72,66 +60,60 @@ dependency.
 ### Calling functions with dependency injection
 
 ```py
-client: alluka.Client
+--8<-- "./docs_src/usage.py:57:69"
 
-async def callback(
-    argument: int,
-    /,
-    injected: alluka.Injected[Foo],
-    keyword_arg: str,
-) -> int:
-    ...
-
-...
-
-result = await client.call_with_async_di(callback, 123, keyword_arg="ok")
 ```
 
-To execute a function with async dependency injection [alluka.abc.Client.call_with_async_di][] should
-be called with the function and any positional or keyword arguments to pass through alongside the
-the injected arguments.
+[Client.call_with_async_di][alluka.abc.Client.call_with_async_di] can be used to execute a
+function with async dependency injection. Any positional or keyword arguments which are passed
+with the function will be passed through to the function with the injected values.
 
 !!! note
     While both sync and async functions may be executed with `call_with_async_di`, you'll always have to
     await `call_with_async_di` to get the result of the call.
 
 ```py
-client: alluka.Client
-
-def callback(
-    argument: int,
-    /,
-    injected: alluka.Injected[Foo],
-    keyword_arg: str,
-) -> int:
-    ...
-
-...
-
-result = client.call_with_di(callback, 123, keyword_arg="ok")
+--8<-- "./docs_src/usage.py:75:87"
 ```
 
-To execute a function with purely sync dependency injection [alluka.abc.Client.call_with_di][] can be
-used with similar semantics to `call_with_async_di` for passed through arguments but this comes with the
-limitation that only sync functions may be used and any dependency on async callback dependencies
-will lead to [alluka.SyncOnlyError][] being raised.
+[Client.call_with_di][alluka.abc.Client.call_with_di] can be used to execute a function with
+purely sync dependency injection. This has similar semantics to
+`call_with_async_di` for passed through arguments but comes with the limitation that only sync
+functions may be used and any async callback dependencies will lead to [alluka.SyncOnlyError][]
+being raised.
 
 ```py
-def foo(ctx: alluka.Inject[alluka.abc.Context]) -> None:
-    result = ctx.call_with_di(other_callback, 542, keyword_arg="meow")
-
+--8<-- "./docs_src/usage.py:95:96"
 ```
 
-Alternatively, [alluka.abc.Context.call_with_di][] and [alluka.abc.Context.call_with_async_di][] can be used
-to execute functions with dependency injection while preserving the current injection context.
+Alternatively, [Context.call_with_di][alluka.abc.Context.call_with_di] and
+[Context.call_with_async_di][alluka.abc.Context.call_with_async_di] can be used to execute functions
+with dependency injection while preserving the current injection context.
 
 ```py
-async def bar(ctx: alluka.Inject[alluka.abc.Context]) -> None:
-    result = await ctx.call_with_async_di(other_callback, 123, keyword_arg="ok")
+--8<-- "./docs_src/usage.py:100:101"
 ```
 
 <!-- TODO: revisit behaviour for when an async function with no async deps is passed to call_with_di--->
 
+### Automatic dependency injection
+
+```py
+--8<-- "./docs_src/usage.py:164:169"
+```
+
+[Client.auto_inject][alluka.abc.Client.auto_inject_async] and
+[Client.auto_inject_async][alluka.abc.Client.auto_inject_async] can be used to tie a callback to
+a specific dependency injection client to enable implicit dependency injection without the need
+to call `call_with_(async_)_di` every time the callback is called.
+
+```py
+--8<-- "./docs_src/usage.py:173:178"
+```
+
+[Client.auto_inject][alluka.abc.Client.auto_inject] comes with similar limitations to
+[Client.call_with_di][alluka.abc.Client.call_with_di] in that the auto-injecting callback it
+creates will fail if any of the callback dependencies are asynchronous.
 
 ## Using the client
 
@@ -140,29 +122,69 @@ async def bar(ctx: alluka.Inject[alluka.abc.Context]) -> None:
 ### Adding type dependencies
 
 ```py
-client = (
-    alluka.Client()
-    .set_type_dependency(TypeA, type_a_impl)
-    .set_type_dependency(TypeB, type_b_impl)
-)
+--8<-- "./docs_src/usage.py:114:118"
 ```
 
-For a type dependency to work, the linked client will have to have an implementation loaded for it.
-While right now the only way to load type dependencies is with the lower-level
-[alluka.abc.Client.set_type_dependency][] method, more approaches and helpers will be added in the
-future as Alluka is further developed.
+For a type dependency to work, the linked client has to have an implementation loaded for each type.
+[Client.set_type_dependency][alluka.abc.Client.set_type_dependency] is used to pair up the types
+you'll be using in [alluka.inject][] with initialised implementations of them.
+
 
 ### Overriding callback dependencies
 
 ```py
-client = alluka.Client().set_callback_override(callback, other_callback)
+--8<-- "./docs_src/usage.py:126:126"
 ```
 
-While (unlike type dependencies) callback dependencies can work on their own without being
-explicitly declared on the client unless they're relying on a type dependency themselves, they can
-still be overridden on a client level using [alluka.abc.Client.set_callback_override][].
+While callback dependencies can work on their own without being explicitly declared on the client
+(unless they're relying on a type dependency themselves), they can still be overridden on a client
+level using [Client.set_callback_override][alluka.abc.Client.set_callback_override].
 
-Generally speaking you should only ever override an injected callback with a callback which returns
-a compatible type but their signatures do not need to match and async callbacks can be overridden
-with sync with vice versa also working (although the latter will prevent callbacks from being
-used in an async context).
+Injected callbacks should only be overridden with a callback which returns a compatible type but
+their signatures do not need to match and async callbacks can be overridden
+with sync with vice versa also working (although overriding a sync callback with an async callback
+will prevent the callback from being used in a sync context).
+
+# Local client
+
+Alluka provides a system in [alluka.local][] which lets you associate an Alluka client with the local
+scope. This can make dependency injection easier for application code as it avoids the need to
+lug around an injection client or context.
+
+The local "scope" will either be the current thread, an async event loop (e.g. asyncio event loop),
+an async task, or an async future.
+
+While child async tasks and futures will inherit the local client, child threads will not.
+
+```py
+--8<-- "./docs_src/usage.py:144:150"
+```
+
+Either [alluka.local.initialize][] or [alluka.local.scope_client][] needs to be called to
+declare a client within the current scope before the other functionality in [alluka.local][]
+can be used. These can be passed a client to declare but default to creating a new client.
+
+These clients are then configured like normal clients and [alluka.local.get][] can then be
+used to get the set client for the current scope.
+
+`scope_client` is recommended over `initialize` as it avoids declaring the client globally.
+
+```py
+--8<-- "./docs_src/usage.py:130:137"
+```
+
+[alluka.local.call_with_async_di][], [alluka.local.call_with_di][] can be used to call a
+function with the dependency injection client that's set for the current scope.
+
+```py
+--8<-- "./docs_src/usage.py:154:160"
+```
+
+[alluka.local.auto_inject][], [alluka.local.auto_inject_async][] act a little different to
+the similar client methods: instead of binding a callback to a specific client to
+enable automatic dependency injection, these will get the local client when the
+auto-injecting callback is called and use this for dependency injection.
+
+As such `auto_inject` and `auto_inject_async` can be used to make an auto-injecting callback
+before a local client has been set but any calls to the returned auto-injecting callbacks
+will only work within a scope where `initialise` or `scope_client` is in effect.

@@ -37,6 +37,8 @@ theme:
 markdown_extensions:
   - admonition
   - pymdownx.details
+  - pymdownx.snippets:
+      dedent_subsections: true
   - pymdownx.superfences
   - markdown_include.include
   - toc:
@@ -65,4 +67,5 @@ plugins:
 watch:
   - alluka
   - CHANGELOG.md
+  - docs_src
   - README.md

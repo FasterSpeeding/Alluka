@@ -28,7 +28,10 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""Standard functions for using a scope local dependency injection client.
+"""Standard functions for using a local scope dependency injection client.
+
+The "scope" will either be the current thread, an asynchronous runtime or an
+asynchronous event/task.
 
 .. note::
     This module's functionality will only work if
@@ -75,7 +78,10 @@ _injector = contextvars.ContextVar[abc.Client](_CVAR_NAME)
 def initialize(client: typing.Optional[abc.Client] = None, /) -> abc.Client:
     """Link or initialise an injection client for the current scope.
 
-    This uses the contextvars package to store the client.
+    This uses [contextvars][] to store the client and therefore will not be
+    inherited by child threads.
+
+    [scope_client][alluka.local.scope_client] is recommended over this.
 
     Parameters
     ----------
@@ -108,6 +114,9 @@ initialise = initialize
 @contextlib.contextmanager
 def scope_client(client: typing.Optional[abc.Client] = None, /) -> collections.Generator[abc.Client, None, None]:
     """Declare a client for the scope within a context manager.
+
+    This uses [contextvars][] to store the client and therefore will not be
+    inherited by child threads.
 
     Examples
     --------
