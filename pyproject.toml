@@ -106,7 +106,7 @@ ignore = [
 # Doc errors don't matter in the tests
 per-file-ignores = [
     "alluka/py.typed: D100",
-    "docs_src/*.py: ASYNC910, ASYNC911, DALL000, D100, D101, D103, E800, FA100, FA101, F841, INP001, N806, TC001, TC101",
+    "docs_src/*.py: ASYNC910, ASYNC911, DALL000, D100, D101, D103, E800, FA100, FA101, F841, INP001, M511, N806, TC001, TC101, VNE002",
     "noxfile.py: D100, FA101, F401, F403, INP001",
     "tests/*.py: ASYNC910, CCE002, DALL000, D100, D101, D103, D104, FA100, FA101, M511"
 ]
