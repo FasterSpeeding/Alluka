@@ -164,9 +164,9 @@ def auto_inject_example() -> None:
     client = alluka.Client()
 
     @client.auto_inject
-    def callback(value: TypeA = alluka.inject()) -> None: ...
+    def callback(other_arg: str, value: TypeA = alluka.inject()) -> None: ...
 
-    callback()  # `value` will be injected.
+    callback(other_arg="beep")  # `value` will be injected.
 
 
 async def auto_inject_async_example() -> None:
