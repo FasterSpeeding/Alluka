@@ -186,5 +186,6 @@ the similar client methods: instead of binding a callback to a specific client t
 enable automatic dependency injection, these will get the local client and use this for
 automatic dependency injection.
 
-As such these will only work within a scope where `initialise` or `scope_client` is in
-effect.
+As such `auto_inject` and `auto_inject_async` can be used to make an auto-injecting callback
+before a local client has been set but any calls to the returned auto-injecting callbacks
+will only work within a scope where `initialise` or `scope_client` is in effect.
