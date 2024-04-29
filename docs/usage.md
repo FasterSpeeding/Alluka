@@ -183,8 +183,8 @@ function with the dependency injection client that's set for the current scope.
 
 [alluka.local.auto_inject][], [alluka.local.auto_inject_async][] act a little different to
 the similar client methods: instead of binding a callback to a specific client to
-enable automatic dependency injection, these will get the local client and use this for
-automatic dependency injection.
+enable automatic dependency injection, these will get the local client when the
+auto-injecting callback is called and use this for dependency injection.
 
 As such `auto_inject` and `auto_inject_async` can be used to make an auto-injecting callback
 before a local client has been set but any calls to the returned auto-injecting callbacks
