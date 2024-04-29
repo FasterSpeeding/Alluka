@@ -3,7 +3,7 @@
 ## Function injection
 
 This form of dependency injection works by injecting values for keyword arguments during callback
-execution based on the linked client. This is the main form of dependency injection implemented by
+execution based on the linked client. This is the current form of dependency injection implemented by
 Alluka.
 
 ### Declaring a function's injected dependencies
@@ -125,10 +125,9 @@ creates will fail if any of the callback dependencies are asynchronous.
 --8<-- "./docs_src/usage.py:114:118"
 ```
 
-For a type dependency to work, the linked client will have to have an implementation loaded for it.
-While right now the only way to load type dependencies is with the lower-level
-[Client.set_type_dependency][alluka.abc.Client.set_type_dependency] method, more approaches and
-helpers will be added in the future as Alluka is further developed.
+For a type dependency to work, the linked client has to have an implementation loaded for each type.
+[Client.set_type_dependency][alluka.abc.Client.set_type_dependency] is used to pair up the types
+you'll be using in [alluka.inject][] with initialised implementations of them.
 
 
 ### Overriding callback dependencies
@@ -153,7 +152,7 @@ scope. This can make dependency injection easier for application code as it avoi
 lug around an injection client or context.
 
 The local "scope" will either be the current thread, an async event loop (e.g. asyncio event loop),
-an async task or an async future.
+an async task, or an async future.
 
 While child async tasks and futures will inherit the local client, child threads will not.
 
@@ -168,7 +167,7 @@ can be used. These can be passed a client to declare but default to creating a n
 These clients are then configured like normal clients and [alluka.local.get][] can then be
 used to get the set client for the current scope.
 
-`scope_client` is recommended over `initialize` as this avoids declaring the client globally.
+`scope_client` is recommended over `initialize` as it avoids declaring the client globally.
 
 ```py
 --8<-- "./docs_src/usage.py:130:137"
