@@ -112,8 +112,8 @@ to call `call_with_(async_)_di` every time the callback is called.
 ```
 
 [Client.auto_inject][alluka.abc.Client.auto_inject] comes with similar limitations to
-[Client.call_with_di][alluka.abc.Client.call_with_di] in that it will fail if any of the callback
-dependencies are asynchronous.
+[Client.call_with_di][alluka.abc.Client.call_with_di] in that the auto-injecting callback it
+creates will fail if any of the callback dependencies are asynchronous.
 
 ## Using the client
 
