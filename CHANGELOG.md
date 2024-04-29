@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [Client.make_context][alluka.abc.Client.make_context].
 - [alluka.abc.Context.call_with_di][] and [alluka.abc.Context.call_with_async_di][]
   now provide default implementations which use
-  [Context.injector_client][alluka.abc.Context.injector_client].
+  [Context.injection_client][alluka.abc.Context.injection_client].
 
 ### Deprecated
 - `Client.as_self_injecting` in favour of `Client.auto_inject`.
