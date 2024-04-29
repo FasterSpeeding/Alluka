@@ -77,6 +77,16 @@ class Client(abc.ABC):
     __slots__ = ()
 
     @abc.abstractmethod
+    def make_context(self) -> Context:
+        """Create a dependency injection context.
+
+        Returns
+        -------
+        alluka.abc.Context
+            The created DI context, bound to the current client.
+        """
+
+    @abc.abstractmethod
     @typing_extensions.deprecated("Use .auto_inject_async")
     def as_async_self_injecting(
         self, callback: _CallbackT, /
@@ -159,16 +169,13 @@ class Client(abc.ABC):
         return wrapped_callback
 
     @typing.overload
-    @abc.abstractmethod
     def call_with_di(
         self, callback: collections.Callable[..., _CoroT[typing.Any]], *args: typing.Any, **kwargs: typing.Any
     ) -> typing.NoReturn: ...
 
     @typing.overload
-    @abc.abstractmethod
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T: ...
 
-    @abc.abstractmethod
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Call a function with sync dependency injection.
 
@@ -196,6 +203,7 @@ class Client(abc.ABC):
         alluka.SyncOnlyError
             If the callback or any of its callback dependencies are async.
         """
+        return self.make_context().call_with_di(callback, *args, **kwargs)
 
     @typing.overload
     @abc.abstractmethod
@@ -248,7 +256,6 @@ class Client(abc.ABC):
             If the callback or any of its callback dependencies are async.
         """
 
-    @abc.abstractmethod
     async def call_with_async_di(self, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Call a function with async dependency injection.
 
@@ -276,6 +283,7 @@ class Client(abc.ABC):
         alluka.SyncOnlyError
             If the callback or any of its callback dependencies are async.
         """
+        return await self.make_context().call_with_async_di(callback, *args, **kwargs)
 
     @abc.abstractmethod
     async def call_with_ctx_async(
@@ -456,16 +464,13 @@ class Context(abc.ABC):
         """
 
     @typing.overload
-    @abc.abstractmethod
     def call_with_di(
         self, callback: collections.Callable[..., _CoroT[typing.Any]], *args: typing.Any, **kwargs: typing.Any
     ) -> typing.NoReturn: ...
 
     @typing.overload
-    @abc.abstractmethod
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T: ...
 
-    @abc.abstractmethod
     def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Call a function with the current DI context.
 
@@ -493,8 +498,8 @@ class Context(abc.ABC):
         alluka.SyncOnlyError
             If the callback or any of its callback dependencies are async.
         """
+        return self.injection_client.call_with_ctx(self, callback, *args, **kwargs)
 
-    @abc.abstractmethod
     async def call_with_async_di(self, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Asynchronously call a function with the current DI context.
 
@@ -520,6 +525,7 @@ class Context(abc.ABC):
             If any of the callback's required type dependencies aren't implemented
             by the client.
         """
+        return await self.injection_client.call_with_ctx_async(self, callback, *args, **kwargs)
 
     @typing.overload
     @abc.abstractmethod

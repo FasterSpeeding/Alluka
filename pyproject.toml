@@ -106,6 +106,7 @@ ignore = [
 # Doc errors don't matter in the tests
 per-file-ignores = [
     "alluka/py.typed: D100",
+    "docs_src/*.py: ASYNC910, ASYNC911, DALL000, D100, D101, D103, E800, FA100, FA101, F841, INP001, M511, N806, TC001, TC101, VNE002",
     "noxfile.py: D100, FA101, F401, F403, INP001",
     "tests/*.py: ASYNC910, CCE002, DALL000, D100, D101, D103, D104, FA100, FA101, M511"
 ]
@@ -149,7 +150,7 @@ mypy_allowed_to_fail = true
 mypy_targets = ["alluka"]
 path_ignore = "^alluka\\/_vendor\\/"
 project_name = "alluka"
-top_level_targets = ["./alluka", "./noxfile.py", "./tests"]
+top_level_targets = ["./alluka", "./docs_src", "./noxfile.py", "./tests"]
 
 [tool.piped.github_actions.freeze_for_pr]
 [tool.piped.github_actions.lint]
@@ -168,9 +169,12 @@ python_versions = ["3.9", "3.10", "3.11", "3.12"]
 [tool.piped.github_actions.verify_locks]
 [tool.piped.github_actions.verify_types]
 
+[tool.pycln]
+exclude = "docs_src"
+
 [tool.pyright]
 exclude = ["alluka/_vendor"]
-include = ["alluka", "noxfile.py", "tests"]
+include = ["alluka", "docs_src", "noxfile.py", "tests"]
 
 pythonVersion = "3.9"
 typeCheckingMode = "strict"
