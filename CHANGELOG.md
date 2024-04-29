@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A system for setting the injection client for a local scope (as defined by
   [contextvars][]) and making dependency injection calls based on said context.
   More information on this can be found
-  [here]([/usage/](https://alluka.cursed.solutions/usage/)#local-client).
+  [here](https://alluka.cursed.solutions/usage/#local-client).
 - [alluka.abc.Client.make_context][] method for creating a client bound context.
 
 ### Changed
