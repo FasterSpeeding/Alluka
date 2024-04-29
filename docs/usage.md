@@ -105,7 +105,7 @@ with dependency injection while preserving the current injection context.
 [Client.auto_inject][alluka.abc.Client.auto_inject_async] and
 [Client.auto_inject_async][alluka.abc.Client.auto_inject_async] can be used to tie a callback to
 a specific dependency injection client to enable implicit dependency injection without the need
-to call `call_with_(async_)_di` everytime the callback is called.
+to call `call_with_(async_)_di` every time the callback is called.
 
 ```py
 --8<-- "./docs_src/usage.py:173:178"
