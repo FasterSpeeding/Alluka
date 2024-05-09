@@ -239,5 +239,5 @@ DI context.
 --8<-- "./docs_src/usage.py:193:197"
 ```
 
-[alluka.OverrideContext.from_client][] lets you create a context with type dependency overrides
-straight from an Alluka client.
+[alluka.OverridingContext.from_client][] lets you create a context with type dependency
+overrides straight from an Alluka client.
