@@ -187,7 +187,7 @@ class Client(alluka.Client):
         return descriptors
 
     def set_make_context(self, make_context: collections.Callable[[Self], alluka.Context], /) -> Self:
-        """Set the function used to make DI contexts for this client.
+        """Set the callback used to make DI contexts for this client.
 
         Parameters
         ----------
