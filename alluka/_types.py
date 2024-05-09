@@ -93,7 +93,14 @@ class InjectedCallback:
             the context's client.
         """
         callback = ctx.injection_client.get_callback_override(self.callback) or self.callback
-        return ctx.injection_client.call_with_ctx(ctx, callback)
+        cached = ctx.get_cached_result(callback, default=UNDEFINED)
+
+        if cached is UNDEFINED:
+            result = ctx.injection_client.call_with_ctx(ctx, callback)
+            ctx.cache_result(callback, result)
+            return result
+
+        return cached
 
     def resolve_async(self, ctx: alluka.Context) -> collections.Coroutine[typing.Any, typing.Any, typing.Any]:
         """Asynchronously resolve the callback.
@@ -110,7 +117,14 @@ class InjectedCallback:
             the context's client.
         """
         callback = ctx.injection_client.get_callback_override(self.callback) or self.callback
-        return ctx.injection_client.call_with_ctx_async(ctx, callback)
+        cached = ctx.get_cached_result(callback, default=UNDEFINED)
+
+        if cached is UNDEFINED:
+            result = ctx.injection_client.call_with_ctx_async(ctx, callback)
+            ctx.cache_result(callback, result)
+            return result
+
+        return cached
 
 
 class InjectedType:

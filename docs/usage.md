@@ -188,3 +188,56 @@ auto-injecting callback is called and use this for dependency injection.
 As such `auto_inject` and `auto_inject_async` can be used to make an auto-injecting callback
 before a local client has been set but any calls to the returned auto-injecting callbacks
 will only work within a scope where `initialise` or `scope_client` is in effect.
+
+# Custom injection contexts
+
+Under the hood Alluka builds a [alluka.abc.Context][] for each call to a `call_with_{async}_di`
+method.
+
+```py
+--8<-- "./docs_src/usage.py:182:182"
+```
+
+[alluka.Client.set_make_context][] can be used to change how the client creates DI contexts
+to customise how dependency injection behaves.
+
+### Caching injected callback results
+
+By default, injected callbacks are called every time they're found within the context of a
+dependency injection call.
+
+[alluka.CachingContext][] can be set as the component maker to enable the caching of the
+result of callback dependencies.
+
+```py
+--8<-- "./docs_src/usage.py:201:219"
+```
+
+This example will result in the following output where `state` is only injected once per
+top-level call with `call_with_di`.
+
+```py
+>>> 1
+>>> -
+>>> 1
+```
+
+This caches the results in a DI context so if the same DI context is used to call multiple
+callbacks with dependency injection then these cached values will be persisted between
+those calls.
+
+### Context-specific type dependencies
+
+```py
+--8<-- "./docs_src/usage.py:186:189"
+```
+
+[alluka.OverridingContext][] to add context specific type dependency overrides to an existing
+DI context.
+
+```py
+--8<-- "./docs_src/usage.py:193:197"
+```
+
+[alluka.OverridingContext.from_client][] lets you create a context with type dependency
+overrides straight from an Alluka client.
