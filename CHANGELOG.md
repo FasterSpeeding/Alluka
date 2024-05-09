@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   behaviour set [alluka.CachingContext][] as the context maker.
 
 ### Deprecated
-- [alluka.BasicContext][] has been replaced by [alluka.CachingContext][].
+- `alluka.BasicContext` has been replaced by [alluka.CachingContext][].
 
 ## [0.2.0] - 2024-04-29
 ### Added
