@@ -176,3 +176,44 @@ async def auto_inject_async_example() -> None:
     async def callback(value: TypeA = alluka.inject()) -> None: ...
 
     await callback()  # `value` will be injected.
+
+
+def set_component_maker_example() -> None:
+    client = alluka.Client().set_make_context(alluka.CachingContext)
+
+
+def overriding_context_example() -> None:
+    def callback(ctx: alluka.Injected[alluka.abc.Context]) -> None:
+        ctx = alluka.OverridingContext(ctx).set_type_dependency(TypeA, type_a_impl)
+
+        ctx.call_with_di(other_callback)
+
+
+def overriding_context_from_client_example() -> None:
+    client = alluka.Client().set_type_dependency(TypeA, type_a_impl)
+
+    ctx = alluka.OverridingContext.from_client(client).set_type_dependency(TypeB, type_b_impl)
+
+    ctx.call_with_di(other_callback)
+
+
+def caching_example() -> None:
+    client = alluka.Client().set_make_context(alluka.CachingContext)
+    state = 0
+
+    def injected_callback() -> int:
+        nonlocal state
+        state += 1
+
+        return state
+
+    def callback(
+        result: int = alluka.inject(callback=injected_callback),
+        other_result: int = alluka.inject(callback=injected_callback),
+    ) -> None:
+        print(result)
+        print(other_result)
+
+    client.call_with_di(callback)
+    print("-")
+    client.call_with_di(callback)

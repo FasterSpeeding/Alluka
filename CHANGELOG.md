@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 - `alluka.BasicContext` has been replaced by [alluka.CachingContext][].
 
+### Fixed
+- Injected callback results are now properly cached when [alluka.CachingContext][]
+  is set as the context.
+
 ## [0.2.0] - 2024-04-29
 ### Added
 - Transparent auto injection methods on `Client` at `Client.auto_inject` and
