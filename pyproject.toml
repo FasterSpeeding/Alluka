@@ -202,7 +202,7 @@ timeout = 15
 required_plugins = ["anyio"]
 filterwarnings = [
     "error",
-    "ignore:Use CachingContext and OverridingContext:DeprecationWarning",
+    "ignore:Use CachingContext:DeprecationWarning",
     "ignore:Use ContextOverride:DeprecationWarning",
 ]
 

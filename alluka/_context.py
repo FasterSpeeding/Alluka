@@ -116,18 +116,10 @@ class CachingContext(Context):
             The injection client this context is bound to.
         """
         super().__init__(client)
-        self._result_cache: typing.Optional[dict[alluka.CallbackSig[typing.Any], typing.Any]] = None
-
-    @property
-    def injection_client(self) -> alluka.Client:
-        # <<inherited docstring from alluka.abc.Context>>.
-        return self._client
+        self._result_cache: dict[alluka.CallbackSig[typing.Any], typing.Any] = {}
 
     def cache_result(self, callback: alluka.CallbackSig[_T], value: _T, /) -> None:
         # <<inherited docstring from alluka.abc.Context>>.
-        if self._result_cache is None:
-            self._result_cache = {}
-
         self._result_cache[callback] = value
 
     @typing.overload
@@ -142,7 +134,7 @@ class CachingContext(Context):
         self, callback: alluka.CallbackSig[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
     ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Context>>.
-        result = self._result_cache.get(callback, default) if self._result_cache else default
+        result = self._result_cache.get(callback, default)
 
         if result is _NO_VALUE:
             raise KeyError
@@ -211,6 +203,27 @@ class OverridingContext(alluka.Context):
         return self._context.injection_client
 
     @typing.overload
+    def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> _T: ...
+
+    @typing.overload
+    def get_cached_result(
+        self, callback: alluka.CallbackSig[_T], /, *, default: _DefaultT
+    ) -> typing.Union[_T, _DefaultT]: ...
+
+    def get_cached_result(
+        self, callback: alluka.CallbackSig[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+    ) -> typing.Union[_T, _DefaultT]:
+        value = self._context.get_cached_result(callback, default=default)
+
+        if value is _NO_VALUE:
+            raise KeyError
+
+        return value
+
+    def cache_result(self, callback: alluka.CallbackSig[_T], value: _T, /) -> None:
+        self._context.cache_result(callback, value)
+
+    @typing.overload
     def get_type_dependency(self, type_: type[_T], /) -> _T: ...
 
     @typing.overload
@@ -248,7 +261,7 @@ class OverridingContext(alluka.Context):
         return self
 
 
-@typing_extensions.deprecated("Use CachingContext and OverridingContext")
+@typing_extensions.deprecated("Use CachingContext")
 class BasicContext(CachingContext):
     """Deprecated alias of [alluka.CachingContext][].
 

@@ -73,6 +73,21 @@ def test_inject_when_both_callback_and_type():
 
 
 class TestClient:
+    def test_make_context(self):
+        client = alluka.Client()
+
+        context = client.make_context()
+
+        assert isinstance(context, alluka.Context)
+        assert context.injection_client is client
+
+    def test_make_context_when_overridden(self):
+        mock_maker = mock.Mock()
+        client = alluka.Client().set_make_context(mock_maker)
+
+        assert client.make_context() is mock_maker.return_value
+        mock_maker.assert_called_once_with(client)
+
     def test_as_async_self_injecting(self):
         mock_callback = mock.Mock()
         client = alluka.Client()

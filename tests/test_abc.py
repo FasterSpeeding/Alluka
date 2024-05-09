@@ -46,6 +46,7 @@ if typing.TYPE_CHECKING:
     _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
     _DefaultT = typing.TypeVar("_DefaultT")
     _T = typing.TypeVar("_T")
+    _DefaultT = typing.TypeVar("_DefaultT")
 
     _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
@@ -162,3 +163,37 @@ class TestClient:
         client.make_context.return_value.call_with_async_di.assert_awaited_once_with(
             mock_callback, "777", 555, meep="3222"
         )
+
+
+class MockContext(alluka.abc.Context):
+    @property
+    def injection_client(self) -> alluka.abc.Client:
+        raise NotImplementedError
+
+    @typing.overload
+    def get_type_dependency(self, type_: type[_T], /) -> _T: ...
+    @typing.overload
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> typing.Union[_T, _DefaultT]:
+        raise NotImplementedError
+
+
+class TestContext:
+    def test_cache_result(self):
+        mock_callback = mock.Mock()
+        ctx = MockContext()
+        ctx.cache_result(mock_callback, mock.Mock())
+
+    def test_get_cached_result(self):
+        ctx = alluka.Context(alluka.Client())
+
+        with pytest.raises(KeyError):
+            ctx.get_cached_result(mock.Mock())
+
+    def test_get_cached_result_when_defaulting(self):
+        ctx = alluka.Context(alluka.Client())
+        default = mock.Mock()
+
+        value = ctx.get_cached_result(mock.Mock(), default=default)
+
+        assert value is default
