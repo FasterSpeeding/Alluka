@@ -44,9 +44,11 @@ __all__: list[str] = [
     "SyncOnlyError",
     "abc",
     "inject",
+    "local",
 ]
 
 from . import abc
+from . import local
 from ._client import BasicContext
 from ._client import Client
 from ._client import inject
