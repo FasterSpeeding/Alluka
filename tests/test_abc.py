@@ -172,8 +172,10 @@ class MockContext(alluka.abc.Context):
 
     @typing.overload
     def get_type_dependency(self, type_: type[_T], /) -> _T: ...
+
     @typing.overload
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
+
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> typing.Union[_T, _DefaultT]:
         raise NotImplementedError
 
