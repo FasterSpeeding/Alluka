@@ -160,6 +160,7 @@ class OverridingContext(alluka.Context):
     ```py
     client = alluka.abc.Client().set_type_dependency(Type, value)
     ctx = alluka.OverridingContext.from_client(client).set_type_dependency(OtherType, value)
+    ```
     """
 
     __slots__ = ("_context", "_overrides")
