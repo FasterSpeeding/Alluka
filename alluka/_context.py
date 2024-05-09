@@ -67,7 +67,7 @@ class Context(alluka.Context):
     __slots__ = ("_client",)
 
     def __init__(self, client: alluka.Client, /) -> None:
-        """Initialise a basic injection context.
+        """Initialise an injection context.
 
         Parameters
         ----------
@@ -108,7 +108,7 @@ class CachingContext(Context):
     __slots__ = ("_result_cache",)
 
     def __init__(self, client: alluka.Client, /) -> None:
-        """Initialise a basic injection context.
+        """Initialise a caching injection context.
 
         Parameters
         ----------
