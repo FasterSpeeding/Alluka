@@ -73,6 +73,21 @@ def test_inject_when_both_callback_and_type():
 
 
 class TestClient:
+    def test_make_context(self):
+        client = alluka.Client()
+
+        context = client.make_context()
+
+        assert isinstance(context, alluka.Context)
+        assert context.injection_client is client
+
+    def test_make_context_when_overridden(self):
+        mock_maker = mock.Mock()
+        client = alluka.Client().set_make_context(mock_maker)
+
+        assert client.make_context() is mock_maker.return_value
+        mock_maker.assert_called_once_with(client)
+
     def test_as_async_self_injecting(self):
         mock_callback = mock.Mock()
         client = alluka.Client()
@@ -316,71 +331,3 @@ class TestClient:
 
         with pytest.raises(KeyError):
             client.remove_callback_override(mock_callback)
-
-
-class TestBasicContext:
-    def test_injection_client_property(self):
-        mock_client = alluka.Client()
-        ctx = alluka.BasicContext(mock_client)
-
-        assert ctx.injection_client is mock_client
-
-    def test_cache_result(self):
-        mock_callback = mock.Mock()
-        mock_result = mock.Mock()
-        ctx = alluka.BasicContext(alluka.Client())
-        ctx.cache_result(mock_callback, mock_result)
-
-        assert ctx.get_cached_result(mock_callback) is mock_result
-
-    def test_get_cached_result_when_not_found(self):
-        ctx = alluka.BasicContext(alluka.Client())
-
-        with pytest.raises(KeyError):
-            ctx.get_cached_result(mock.Mock())
-
-    def test_get_cached_result_when_not_found_and_default(self):
-        ctx = alluka.BasicContext(alluka.Client())
-        default = object()
-
-        assert ctx.get_cached_result(mock.Mock(), default=default) is default
-
-    def test_get_type_dependency(self):
-        mock_type: typing.Any = mock.Mock()
-        mock_value = mock.Mock()
-        mock_client = alluka.Client().set_type_dependency(mock_type, mock_value)
-        ctx = alluka.BasicContext(mock_client)
-
-        result = ctx.get_type_dependency(mock_type)
-
-        assert result is mock_value
-
-    def test_get_type_dependency_with_default(self):
-        default = object()
-        mock_type: typing.Any = mock.Mock()
-        mock_value = mock.Mock()
-        mock_client = alluka.Client().set_type_dependency(mock_type, mock_value)
-        ctx = alluka.BasicContext(mock_client)
-
-        result = ctx.get_type_dependency(mock_type, default=default)
-
-        assert result is mock_value
-
-    def test_get_type_dependency_with_default_and_defaulting(self):
-        default = object()
-        mock_type: typing.Any = mock.Mock()
-        ctx = alluka.BasicContext(alluka.Client())
-
-        result = ctx.get_type_dependency(mock_type, default=default)
-
-        assert result is default
-
-    def test_get_type_dependency_when_special_cased(self):
-        mock_type: typing.Any = mock.Mock()
-        mock_value = mock.Mock()
-        mock_client = alluka.Client().set_type_dependency(mock_type, mock_value)
-        ctx = alluka.BasicContext(mock_client)._set_type_special_case(mock_type, mock_value)
-
-        result = ctx.get_type_dependency(mock_type)
-
-        assert result is mock_value

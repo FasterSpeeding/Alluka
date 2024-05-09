@@ -33,7 +33,7 @@
 The "scope" will either be the current thread, an asynchronous runtime or an
 asynchronous event/task.
 
-.. note::
+!!! note
     This module's functionality will only work if
     [initialize][alluka.local.initialize] or
     [scope_client][alluka.local.scope_client] has been called to set the DI

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - [alluka.local][] is now directly exported on [alluka][].
+- [alluka.Context][] implementation of [alluka.abc.Context][] which is a basic
+  DI context implementation with no callback dependency result caching.
+- [alluka.CachingContext][] which extends [alluka.Context][] to add callback
+  dependency result caching.
+- [alluka.OverridingContext][] shallow DI context implementation for adding
+  context specific type dependencies to an existing context.
+- [alluka.Client.set_make_context][] method for setting the callback used by
+  the client to make DI contexts.
+
+### Changed
+- Callback dependency results are no-longer cached by default. To return this
+  behaviour set [alluka.CachingContext][] as the context maker.
+
+### Deprecated
+- `alluka.BasicContext` has been replaced by [alluka.CachingContext][].
 
 ## [0.2.0] - 2024-04-29
 ### Added

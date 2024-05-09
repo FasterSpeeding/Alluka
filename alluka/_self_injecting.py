@@ -92,7 +92,7 @@ with warnings.catch_warnings():
             self: AsyncSelfInjecting[collections.Callable[..., _T]], *args: typing.Any, **kwargs: typing.Any
         ) -> _T: ...
 
-        async def __call__(  # pyright: ignore[reportIncompatibleMethodOverride]
+        async def __call__(
             self: typing.Union[
                 AsyncSelfInjecting[collections.Callable[..., _T]],
                 AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]],

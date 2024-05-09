@@ -200,7 +200,11 @@ reportUnknownVariableType = "warning"           # Lotta false-positives, might f
 testpaths = ["tests"]
 timeout = 15
 required_plugins = ["anyio"]
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    "ignore:Use CachingContext:DeprecationWarning",
+    "ignore:Use ContextOverride:DeprecationWarning",
+]
 
 [tool.slotscheck]
 strict-imports = true

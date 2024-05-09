@@ -36,10 +36,13 @@ __all__: list[str] = [
     "AsyncOnlyError",
     "AsyncSelfInjecting",
     "BasicContext",
+    "CachingContext",
     "Client",
+    "Context",
     "Injected",
     "InjectedDescriptor",
     "MissingDependencyError",
+    "OverridingContext",
     "SelfInjecting",
     "SyncOnlyError",
     "abc",
@@ -49,9 +52,12 @@ __all__: list[str] = [
 
 from . import abc
 from . import local
-from ._client import BasicContext
 from ._client import Client
 from ._client import inject
+from ._context import BasicContext  # pyright: ignore[reportDeprecated]
+from ._context import CachingContext
+from ._context import Context
+from ._context import OverridingContext
 from ._errors import AllukaError
 from ._errors import MissingDependencyError
 from ._errors import SyncOnlyError

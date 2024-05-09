@@ -34,7 +34,7 @@
 
 from __future__ import annotations
 
-__all__: list[str] = ["BasicContext", "Client", "inject"]
+__all__: list[str] = ["Client", "inject"]
 
 import asyncio
 import enum
@@ -45,6 +45,7 @@ from collections import abc as collections
 
 import typing_extensions
 
+from . import _context  # pyright: ignore[reportPrivateUsage]
 from . import _errors  # pyright: ignore[reportPrivateUsage]
 from . import _self_injecting  # pyright: ignore[reportPrivateUsage]
 from . import _types  # pyright: ignore[reportPrivateUsage]
@@ -152,7 +153,13 @@ class Client(alluka.Client):
     This is used to track type dependencies and execute callbacks.
     """
 
-    __slots__ = ("_callback_overrides", "_descriptors", "_introspect_annotations", "_type_dependencies")
+    __slots__ = (
+        "_callback_overrides",
+        "_descriptors",
+        "_introspect_annotations",
+        "_make_context",
+        "_type_dependencies",
+    )
 
     def __init__(self, *, introspect_annotations: bool = True) -> None:
         """Initialise an injector client."""
@@ -164,6 +171,8 @@ class Client(alluka.Client):
             alluka.CallbackSig[typing.Any], dict[str, _types.InjectedTuple]
         ] = weakref.WeakKeyDictionary()
         self._introspect_annotations = introspect_annotations
+        static_context = _context.Context(self)
+        self._make_context: collections.Callable[[Self], alluka.Context] = lambda _: static_context
         self._type_dependencies: dict[type[typing.Any], typing.Any] = {alluka.Client: self, Client: self}
 
     def _build_descriptors(self, callback: alluka.CallbackSig[typing.Any], /) -> dict[str, _types.InjectedTuple]:
@@ -177,9 +186,25 @@ class Client(alluka.Client):
         descriptors = self._descriptors[callback] = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
         return descriptors
 
+    def set_make_context(self, make_context: collections.Callable[[Self], alluka.Context], /) -> Self:
+        """Set the callback used to make DI contexts for this client.
+
+        Parameters
+        ----------
+        make_context
+            Callback to use to create DI contexts.
+
+        Returns
+        -------
+        Self
+            The client to enable chained calls.
+        """
+        self._make_context = make_context
+        return self
+
     def make_context(self) -> alluka.Context:
         # <<inherited docstring from alluka.abc.Client>>.
-        return BasicContext(self)
+        return self._make_context(self)
 
     @typing_extensions.deprecated("Use .auto_inject")
     def as_async_self_injecting(
@@ -287,87 +312,4 @@ class Client(alluka.Client):
     def remove_callback_override(self, callback: alluka.CallbackSig[_T], /) -> Self:
         # <<inherited docstring from alluka.abc.Client>>.
         del self._callback_overrides[callback]
-        return self
-
-
-class BasicContext(alluka.Context):
-    """Basic implementation of [alluka.abc.Context][]."""
-
-    __slots__ = ("_injection_client", "_result_cache", "_special_case_types")
-
-    def __init__(self, client: alluka.Client, /) -> None:
-        """Initialise a basic injection context.
-
-        Parameters
-        ----------
-        client
-            The injection client this context is bound to.
-        """
-        self._injection_client = client
-        self._result_cache: typing.Optional[dict[alluka.CallbackSig[typing.Any], typing.Any]] = None
-        self._special_case_types: dict[type[typing.Any], typing.Any] = {alluka.Context: self}
-
-    @property
-    def injection_client(self) -> alluka.Client:
-        # <<inherited docstring from alluka.abc.Context>>.
-        return self._injection_client
-
-    def cache_result(self, callback: alluka.CallbackSig[_T], value: _T, /) -> None:
-        # <<inherited docstring from alluka.abc.Context>>.
-        if self._result_cache is None:
-            self._result_cache = {}
-
-        self._result_cache[callback] = value
-
-    @typing.overload
-    def get_cached_result(self, callback: alluka.CallbackSig[_T], /) -> _T: ...
-
-    @typing.overload
-    def get_cached_result(
-        self, callback: alluka.CallbackSig[_T], /, *, default: _DefaultT
-    ) -> typing.Union[_T, _DefaultT]: ...
-
-    def get_cached_result(
-        self, callback: alluka.CallbackSig[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
-    ) -> typing.Union[_T, _DefaultT]:
-        # <<inherited docstring from alluka.abc.Context>>.
-        result = self._result_cache.get(callback, default) if self._result_cache else default
-
-        if result is _NO_VALUE:
-            raise KeyError
-
-        return result
-
-    @typing.overload
-    def get_type_dependency(self, type_: type[_T], /) -> _T: ...
-
-    @typing.overload
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
-
-    def get_type_dependency(
-        self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
-    ) -> typing.Union[_T, _DefaultT]:
-        # <<inherited docstring from alluka.abc.Context>>.
-        if self._special_case_types and (value := self._special_case_types.get(type_, default)) is not default:
-            return typing.cast("_T", value)
-
-        result = self._injection_client.get_type_dependency(type_, default=default)
-
-        if result is _NO_VALUE:
-            raise KeyError
-
-        return result
-
-    def _set_type_special_case(self, type_: type[_T], value: _T, /) -> Self:
-        if not self._special_case_types:
-            self._special_case_types = {}
-
-        self._special_case_types[type_] = value
-        return self
-
-    def _remove_type_special_case(self, type_: type[typing.Any], /) -> Self:
-        if not self._special_case_types:
-            raise KeyError(type_)
-
-        del self._special_case_types[type_]
         return self
