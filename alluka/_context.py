@@ -173,7 +173,7 @@ class OverridingContext(alluka.Context):
 
         Parameters
         ----------
-        alluka.abc.Context
+        context
             The context to wrap.
         """
         self._context = context

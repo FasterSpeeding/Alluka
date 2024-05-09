@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dependency result caching.
 - [alluka.OverridingContext][] shallow DI context implementation for adding
   context specific type dependencies to an existing context.
-- [alluka.Client.set_context_maker][] method for setting the callback used by
+- [alluka.Client.set_make_context][] method for setting the callback used by
   the client to make DI contexts.
 
 ### Changed
