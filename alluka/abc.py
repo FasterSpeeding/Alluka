@@ -615,17 +615,9 @@ class Context(abc.ABC):
 
 @typing_extensions.deprecated("Use Client.auto_inject_async")
 class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
-    """Interface of a class used to make an async self-injecting callback.
+    """Deprecated interface of a class for marking async functions as self-injecting.
 
-    Examples
-    --------
-    ```py
-    client = alluka.Client()
-
-    @client.as_async_self_injecting
-    async def callback(database: Database = alluka.inject(type=Database)) -> None:
-        ...
-    ```
+    Use [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
     """
 
     __slots__ = ()
