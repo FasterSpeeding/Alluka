@@ -37,6 +37,7 @@ from __future__ import annotations
 __all__: list[str] = ["AsyncSelfInjecting", "CallbackSig", "Client", "Context", "SelfInjecting"]
 
 import abc
+import enum
 import functools
 import typing
 from collections import abc as collections
@@ -53,6 +54,14 @@ _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 _CallbackT = typing.TypeVar("_CallbackT", bound="CallbackSig[typing.Any]")
 _DefaultT = typing.TypeVar("_DefaultT")
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
+
+
+class _NoDefaultEnum(enum.Enum):
+    VALUE = object()
+
+
+_NO_VALUE: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
+_NoValueOr = typing.Union[_T, typing.Literal[_NoDefaultEnum.VALUE]]
 
 
 CallbackSig = collections.Callable[..., typing.Union[_CoroT[_T], _T]]
@@ -320,7 +329,7 @@ class Client(abc.ABC):
 
     @abc.abstractmethod
     def set_type_dependency(self, type_: type[_T], value: _T, /) -> Self:
-        """Set a callback to be called to resolve a injected type.
+        """Set the value for a type dependency.
 
         Parameters
         ----------
@@ -451,9 +460,10 @@ class Context(abc.ABC):
     def injection_client(self) -> Client:
         """Injection client this context is bound to."""
 
-    @abc.abstractmethod
     def cache_result(self, callback: CallbackSig[_T], value: _T, /) -> None:
         """Cache the result of a callback within the scope of this context.
+
+        Whether this does anything or is a noop is implementation detail.
 
         Parameters
         ----------
@@ -528,18 +538,17 @@ class Context(abc.ABC):
         return await self.injection_client.call_with_ctx_async(self, callback, *args, **kwargs)
 
     @typing.overload
-    @abc.abstractmethod
     def get_cached_result(self, callback: CallbackSig[_T], /) -> _T: ...
 
     @typing.overload
-    @abc.abstractmethod
     def get_cached_result(self, callback: CallbackSig[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
-    @abc.abstractmethod
     def get_cached_result(
-        self, callback: CallbackSig[_T], /, *, default: _DefaultT = ...
+        self, callback: CallbackSig[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
     ) -> typing.Union[_T, _DefaultT]:
         """Get the cached result of a callback.
+
+        This will always raise/default for context implementations with no caching.
 
         Parameters
         ----------
@@ -562,6 +571,10 @@ class Context(abc.ABC):
         KeyError
             If no value was found when no default was provided.
         """
+        if default is _NO_VALUE:
+            raise KeyError
+
+        return default
 
     @typing.overload
     @abc.abstractmethod
