@@ -28,14 +28,6 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""Deprecated functionality for self-injecting callbacks.
-
-!!! warning "deprecated"
-    This module is deprecated as of `v0.2.0`, use
-    [Client.auto_inject][alluka.abc.Client.auto_inject] and
-    [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
-"""
-
 
 # pyright: reportDeprecated=none
 
