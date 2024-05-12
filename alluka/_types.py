@@ -38,22 +38,27 @@ import enum
 import typing
 
 from . import _errors  # pyright: ignore[reportPrivateUsage]
-from . import abc as alluka
 
 if typing.TYPE_CHECKING:
     from collections import abc as collections
+
+    from . import abc as alluka
 
 
 _T = typing.TypeVar("_T")
 
 
-class _UndefinedEnum(enum.Enum):
-    UNDEFINED = object()
+class _NoValueEnum(enum.Enum):
+    NO_VALUE = object()
 
 
-UNDEFINED = _UndefinedEnum.UNDEFINED
-"""Singleton used internally to indicate that a value is undefined."""
-UndefinedOr = typing.Union[_T, typing.Literal[_UndefinedEnum.UNDEFINED]]
+NO_VALUE = _NoValueEnum.NO_VALUE
+"""Singleton used internally to indicate that no value was provided."""
+
+NoValue = typing.Literal[_NoValueEnum.NO_VALUE]
+"""Type of [NO_VALUE]."""
+
+NoValueOr = typing.Union[_T, NoValue]
 """Union for a value which may be undefined."""
 
 
@@ -124,7 +129,7 @@ class InjectedType:
         types: collections.Sequence[type[typing.Any]],
         /,
         *,
-        default: UndefinedOr[typing.Any] = UNDEFINED,
+        default: NoValueOr[typing.Any] = NO_VALUE,
     ) -> None:
         """Initialize the type descriptor.
 
@@ -156,10 +161,10 @@ class InjectedType:
             The resolved type.
         """
         for cls in self.types:
-            if (result := ctx.get_type_dependency(cls, default=UNDEFINED)) is not UNDEFINED:
+            if (result := ctx.get_type_dependency(cls, default=NO_VALUE)) is not NO_VALUE:
                 return result
 
-        if self.default is not UNDEFINED:
+        if self.default is not NO_VALUE:
             return self.default
 
         raise _errors.MissingDependencyError(

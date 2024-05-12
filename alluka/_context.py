@@ -36,11 +36,11 @@ from __future__ import annotations
 
 __all__: list[str] = ["BasicContext", "CachingContext", "Context", "OverridingContext"]
 
-import enum
 import typing
 
 import typing_extensions
 
+from . import _types  # type: ignore[reportPrivateUsage]
 from . import abc as alluka
 
 if typing.TYPE_CHECKING:
@@ -51,14 +51,6 @@ _T = typing.TypeVar("_T")
 
 
 _DefaultT = typing.TypeVar("_DefaultT")
-
-
-class _NoDefaultEnum(enum.Enum):
-    VALUE = object()
-
-
-_NO_VALUE: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
-_NoValueOr = typing.Union[_T, typing.Literal[_NoDefaultEnum.VALUE]]
 
 
 class Context(alluka.Context):
@@ -88,7 +80,7 @@ class Context(alluka.Context):
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+        self, type_: type[_T], /, *, default: _types.NoValueOr[_DefaultT] = _types.NO_VALUE
     ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Context>>.
         if type_ is alluka.Context:
@@ -96,7 +88,7 @@ class Context(alluka.Context):
 
         result = self._client.get_type_dependency(type_, default=default)
 
-        if result is _NO_VALUE:
+        if result is _types.NO_VALUE:
             raise KeyError
 
         return result
@@ -131,12 +123,12 @@ class CachingContext(Context):
     ) -> typing.Union[_T, _DefaultT]: ...
 
     def get_cached_result(
-        self, callback: alluka.CallbackSig[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+        self, callback: alluka.CallbackSig[_T], /, *, default: _types.NoValueOr[_DefaultT] = _types.NO_VALUE
     ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Context>>.
         result = self._result_cache.get(callback, default)
 
-        if result is _NO_VALUE:
+        if result is _types.NO_VALUE:
             raise KeyError
 
         return result
@@ -212,11 +204,11 @@ class OverridingContext(alluka.Context):
     ) -> typing.Union[_T, _DefaultT]: ...
 
     def get_cached_result(
-        self, callback: alluka.CallbackSig[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+        self, callback: alluka.CallbackSig[_T], /, *, default: _types.NoValueOr[_DefaultT] = _types.NO_VALUE
     ) -> typing.Union[_T, _DefaultT]:
         value = self._context.get_cached_result(callback, default=default)
 
-        if value is _NO_VALUE:
+        if value is _types.NO_VALUE:
             raise KeyError
 
         return value
@@ -231,14 +223,14 @@ class OverridingContext(alluka.Context):
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+        self, type_: type[_T], /, *, default: _types.NoValueOr[_DefaultT] = _types.NO_VALUE
     ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Context>>.
         value = self._overrides.get(type_, default)
         if value is default:
             value = self._context.get_type_dependency(type_, default=default)
 
-        if value is _NO_VALUE:
+        if value is _types.NO_VALUE:
             raise KeyError
 
         return value
@@ -282,14 +274,14 @@ class BasicContext(CachingContext):
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+        self, type_: type[_T], /, *, default: _types.NoValueOr[_DefaultT] = _types.NO_VALUE
     ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Context>>.
         value = self._special_case_types.get(type_, default)
         if value is default:
             value = super().get_type_dependency(type_, default=default)
 
-        if value is _NO_VALUE:
+        if value is _types.NO_VALUE:
             raise KeyError
 
         return value
