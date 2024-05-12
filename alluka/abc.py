@@ -621,7 +621,6 @@ class Context(abc.ABC):
 class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
     """Deprecated interface of a class for marking async functions as self-injecting.
 
-
     !!! warning "deprecated"
         This is deprecated as of `v0.2.0`, use
         [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
@@ -684,7 +683,6 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
 @typing_extensions.deprecated("Use Client.auto_inject")
 class SelfInjecting(abc.ABC, typing.Generic[_SyncCallbackT]):
     """Deprecated interface of a class for marking functions as self-injecting.
-
 
     !!! warning "deprecated"
         This is deprecated as of `v0.2.0`, use
