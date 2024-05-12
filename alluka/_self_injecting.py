@@ -56,7 +56,9 @@ with warnings.catch_warnings():
     class AsyncSelfInjecting(alluka.AsyncSelfInjecting[_CallbackSigT]):
         """Deprecated class for marking async functions as self-injecting.
 
-        Use [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
+        !!! warning "deprecated"
+            This is deprecated as of `v0.2.0`,
+            Use [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
         """
 
         __slots__ = ("_callback", "_client")
@@ -112,7 +114,9 @@ with warnings.catch_warnings():
     class SelfInjecting(alluka.SelfInjecting[_SyncCallbackT]):
         """Deprecated class for marking functions as self-injecting.
 
-        Use [Client.auto_inject][alluka.abc.Client.auto_inject].
+        !!! warning "deprecated"
+            This is deprecated as of `v0.2.0`,
+            Use [Client.auto_inject][alluka.abc.Client.auto_inject].
         """
 
         __slots__ = ("_callback", "_client")

@@ -262,11 +262,15 @@ class OverridingContext(alluka.Context):
         return self
 
 
-@typing_extensions.deprecated("Use CachingContext")
+@typing_extensions.deprecated("Use Context or CachingContext")
 class BasicContext(CachingContext):
     """Deprecated alias of [alluka.CachingContext][].
 
-    [alluka.OverridingContext][] replaces the undocumented type special casing.
+    !!! warning "deprecated"
+        This is deprecated as of `v0.3.0`.
+        use [alluka.Context][] or [alluka.CachingContext][].
+        [alluka.OverridingContext][] should be used as a replacement for the
+        undocumented type special casing.
     """
 
     __slots__ = ("_special_case_types",)

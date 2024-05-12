@@ -102,7 +102,9 @@ class Client(abc.ABC):
     ) -> AsyncSelfInjecting[_CallbackT]:  # pyright: ignore[reportDeprecated]
         """Deprecated callback for making async functions auto-inject.
 
-        Use [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
+        !!! warning "deprecated"
+            This is deprecated as of `v0.2.0`, use
+            [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
         """
 
     @abc.abstractmethod
@@ -112,7 +114,9 @@ class Client(abc.ABC):
     ) -> SelfInjecting[_SyncCallbackT]:  # pyright: ignore[reportDeprecated]
         """Deprecated callback for making functions auto-inject.
 
-        Use [Client.auto_inject][alluka.abc.Client.auto_inject].
+        !!! warning "deprecated"
+            This is deprecated as of `v0.2.0`, use
+            [Client.auto_inject][alluka.abc.Client.auto_inject].
         """
 
     def auto_inject(self, callback: collections.Callable[_P, _T], /) -> collections.Callable[_P, _T]:
@@ -617,7 +621,9 @@ class Context(abc.ABC):
 class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
     """Deprecated interface of a class for marking async functions as self-injecting.
 
-    Use [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
+    !!! warning "deprecated"
+        This is deprecated as of `v0.2.0`, use
+        [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
     """
 
     __slots__ = ()
@@ -678,7 +684,9 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
 class SelfInjecting(abc.ABC, typing.Generic[_SyncCallbackT]):
     """Deprecated interface of a class for marking functions as self-injecting.
 
-    Use [Client.auto_inject][alluka.abc.Client.auto_inject].
+    !!! warning "deprecated"
+        This is deprecated as of `v0.2.0`, use
+        [Client.auto_inject][alluka.abc.Client.auto_inject].
     """
 
     __slots__ = ()
