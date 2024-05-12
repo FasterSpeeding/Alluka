@@ -262,7 +262,7 @@ class OverridingContext(alluka.Context):
         return self
 
 
-@typing_extensions.deprecated("Use CachingContext")
+@typing_extensions.deprecated("Use Context or CachingContext")
 class BasicContext(CachingContext):
     """Deprecated alias of [alluka.CachingContext][].
 
