@@ -267,7 +267,8 @@ class BasicContext(CachingContext):
     """Deprecated alias of [alluka.CachingContext][].
 
     !!! warning "deprecated"
-        This has been replaced by [alluka.CachingContext][] as of `v0.3.0` and
+        This is deprecated as of `v0.3.0`.
+        use [alluka.Context][] or [alluka.CachingContext][].
         [alluka.OverridingContext][] should be used as a replacement for the
         undocumented type special casing.
     """
