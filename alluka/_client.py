@@ -37,7 +37,6 @@ from __future__ import annotations
 __all__: list[str] = ["Client", "inject"]
 
 import asyncio
-import enum
 import typing
 import warnings
 import weakref
@@ -65,14 +64,6 @@ _DefaultT = typing.TypeVar("_DefaultT")
 _SyncCallbackSigT = typing.TypeVar("_SyncCallbackSigT", bound=collections.Callable[..., typing.Any])
 
 _TypeT = type[_T]
-
-
-class _NoDefaultEnum(enum.Enum):
-    VALUE = object()
-
-
-_NO_VALUE: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
-_NoValueOr = typing.Union[_T, typing.Literal[_NoDefaultEnum.VALUE]]
 
 
 @typing.overload
@@ -285,12 +276,12 @@ class Client(alluka.Client):
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     def get_type_dependency(
-        self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+        self, type_: type[_T], /, *, default: _types.NoValueOr[_DefaultT] = _types.NoValue
     ) -> typing.Union[_T, _DefaultT]:
         # <<inherited docstring from alluka.abc.Client>>.
         result = self._type_dependencies.get(type_, default)
 
-        if result is _NO_VALUE:
+        if result is _types.NoValue:
             raise KeyError
 
         return result

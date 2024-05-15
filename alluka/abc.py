@@ -37,12 +37,13 @@ from __future__ import annotations
 __all__: list[str] = ["AsyncSelfInjecting", "CallbackSig", "Client", "Context", "SelfInjecting"]
 
 import abc
-import enum
 import functools
 import typing
 from collections import abc as collections
 
 import typing_extensions
+
+from . import _types  # pyright: ignore[reportPrivateUsage]
 
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
@@ -54,14 +55,6 @@ _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 _CallbackT = typing.TypeVar("_CallbackT", bound="CallbackSig[typing.Any]")
 _DefaultT = typing.TypeVar("_DefaultT")
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
-
-
-class _NoDefaultEnum(enum.Enum):
-    VALUE = object()
-
-
-_NO_VALUE: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
-_NoValueOr = typing.Union[_T, typing.Literal[_NoDefaultEnum.VALUE]]
 
 
 CallbackSig = collections.Callable[..., typing.Union[_CoroT[_T], _T]]
@@ -548,7 +541,7 @@ class Context(abc.ABC):
     def get_cached_result(self, callback: CallbackSig[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
 
     def get_cached_result(
-        self, callback: CallbackSig[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+        self, callback: CallbackSig[_T], /, *, default: _types.NoValueOr[_DefaultT] = _types.NO_VALUE
     ) -> typing.Union[_T, _DefaultT]:
         """Get the cached result of a callback.
 
@@ -575,7 +568,7 @@ class Context(abc.ABC):
         KeyError
             If no value was found when no default was provided.
         """
-        if default is _NO_VALUE:
+        if default is _types.NO_VALUE:
             raise KeyError
 
         return default

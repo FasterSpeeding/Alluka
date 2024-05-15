@@ -106,13 +106,13 @@ class Callback:
     def accept(self, visitor: ParameterVisitor, /) -> dict[str, _types.InjectedTuple]:
         return visitor.visit_callback(self)
 
-    def resolve_annotation(self, name: str, /) -> _types.UndefinedOr[typing.Any]:
+    def resolve_annotation(self, name: str, /) -> _types.NoValueOr[typing.Any]:
         if self._signature is None:
-            return _types.UNDEFINED
+            return _types.NO_VALUE
 
         parameter = self._signature.parameters[name]
         if parameter.annotation is inspect.Parameter.empty:
-            return _types.UNDEFINED
+            return _types.NO_VALUE
 
         # TODO: do we want to return UNDEFINED if it was resolved to a string?
         if not self._resolved and isinstance(parameter.annotation, str):
@@ -161,7 +161,7 @@ class ParameterVisitor:
     _NODES: list[collections.Callable[[Callback, str], Node]] = [Default, Annotation]
 
     def _parse_type(
-        self, type_: typing.Any, *, default: _types.UndefinedOr[typing.Any] = _types.UNDEFINED
+        self, type_: typing.Any, *, default: _types.NoValueOr[typing.Any] = _types.NO_VALUE
     ) -> _types.InjectedTuple:
         if typing.get_origin(type_) not in _UnionTypes:
             return (_types.InjectedTypes.TYPE, _types.InjectedType(type_, [type_], default=default))
@@ -173,11 +173,11 @@ class ParameterVisitor:
             return (_types.InjectedTypes.TYPE, _types.InjectedType(type_, sub_types, default=default))
 
         # Explicitly defined defaults take priority over implicit defaults.
-        default = None if default is _types.UNDEFINED else default
+        default = None if default is _types.NO_VALUE else default
         return (_types.InjectedTypes.TYPE, _types.InjectedType(type_, sub_types, default=default))
 
     def _annotation_to_type(
-        self, value: typing.Any, /, default: _types.UndefinedOr[typing.Any] = _types.UNDEFINED
+        self, value: typing.Any, /, default: _types.NoValueOr[typing.Any] = _types.NO_VALUE
     ) -> _types.InjectedTuple:
         if typing.get_origin(value) is typing.Annotated:
             args = typing.get_args(value)
@@ -191,7 +191,7 @@ class ParameterVisitor:
         value = annotation.callback.resolve_annotation(annotation.name)
         default = annotation.callback.parameters[annotation.name].default
         if default is inspect.Parameter.empty:
-            default = _types.UNDEFINED
+            default = _types.NO_VALUE
 
         if typing.get_origin(value) is not typing.Annotated:
             return None
@@ -242,7 +242,7 @@ class ParameterVisitor:
         if descriptor.type is not None:
             return self._parse_type(descriptor.type)
 
-        if (annotation := value.callback.resolve_annotation(value.name)) is _types.UNDEFINED:
+        if (annotation := value.callback.resolve_annotation(value.name)) is _types.NO_VALUE:
             raise ValueError(f"Could not resolve type for parameter {value.name!r} with no annotation")
 
         return self._annotation_to_type(annotation)
