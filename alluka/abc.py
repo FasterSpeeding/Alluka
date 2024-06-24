@@ -176,8 +176,8 @@ class Client(abc.ABC):
         """
 
         @functools.wraps(callback)
-        def wrapped_callback(*args: _P.args, **kwargs: _P.kwargs) -> _CoroT[_T]:
-            return self.call_with_async_di(callback, *args, **kwargs)
+        async def wrapped_callback(*args: _P.args, **kwargs: _P.kwargs) -> _CoroT[_T]:
+            return await self.call_with_async_di(callback, *args, **kwargs)
 
         return wrapped_callback
 
