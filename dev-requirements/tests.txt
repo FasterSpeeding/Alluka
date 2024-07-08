@@ -173,9 +173,9 @@ termcolor==2.4.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
 tomli==2.0.1 ; python_full_version >= "3.9.0" and python_full_version <= "3.11.0a6" \
     --hash=sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc \
     --hash=sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f
-trio==0.25.1 ; python_full_version >= "3.9.0" and python_version < "3.13" \
-    --hash=sha256:9f5314f014ea3af489e77b001861c535005c3858d38ec46b6b071ebfa339d7fb \
-    --hash=sha256:e42617ba091e7b2e50c899052e83a3c403101841de925187f61e7b7eaebdf3fb
+trio==0.26.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
+    --hash=sha256:67c5ec3265dd4abc7b1d1ab9ca4fe4c25b896f9c93dac73713778adab487f9c4 \
+    --hash=sha256:bb9c1b259591af941fccfbabbdc65bc7ed764bd2db76428454c894cd5e3d2032
 typing-extensions==4.12.2 ; python_full_version >= "3.9.0" and python_version < "3.11" \
     --hash=sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d \
     --hash=sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8
