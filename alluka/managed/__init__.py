@@ -30,11 +30,50 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
+import typing
+from collections import abc as collections
+
 from . import _index
 from ._config import BaseConfig as BaseConfig
+from ._config import ConfigFile as ConfigFile
 from ._manager import Manager as Manager
+
+if typing.TYPE_CHECKING:
+    _T = typing.TypeVar("_T")
+
+    _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
+
+    class _RegiserTypeSig(typing.Protocol):
+        @typing.overload
+        def __call__(
+            self,
+            dep_type: type[_T],
+            name: str,
+            /,
+            *,
+            async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
+            async_create: collections.Callable[..., _CoroT[_T]],
+            cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
+            create: typing.Optional[collections.Callable[..., _T]] = None,
+            dependencies: collections.Sequence[type[typing.Any]] = (),
+        ) -> None: ...
+
+        @typing.overload
+        def __call__(
+            self,
+            dep_type: type[_T],
+            name: str,
+            /,
+            *,
+            async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
+            async_create: typing.Optional[collections.Callable[..., _CoroT[_T]]] = None,
+            cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
+            create: collections.Callable[..., _T],
+            dependencies: collections.Sequence[type[typing.Any]] = (),
+        ) -> None: ...
+
 
 _GLOBAL_INDEX = _index.GLOBAL_INDEX
 
-register_config = _GLOBAL_INDEX.register_config
-register_type = _GLOBAL_INDEX.register_type
+register_config: collections.Callable[[type[BaseConfig]], None] = _GLOBAL_INDEX.register_config
+register_type: _RegiserTypeSig = _GLOBAL_INDEX.register_type

@@ -38,10 +38,10 @@ import typing
 import weakref
 from collections import abc as collections
 
-from .. import _types
+from .. import _types  # pyright: ignore[reportPrivateUsage]
 from .. import _visitor
 from .. import abc
-from . import _config
+from . import _config  # pyright: ignore[reportPrivateUsage]
 from . import _index
 
 if typing.TYPE_CHECKING:
@@ -70,30 +70,40 @@ else:
 
 
 class Manager:
-    __slots__ = ("_callback_types", "_client", "_loaded", "_processed_callbacks")
+    __slots__ = ("_client", "_is_loaded", "_load_configs", "_load_types", "_processed_callbacks")
 
     def __init__(self, client: abc.Client, /) -> None:
-        self._callback_types: set[str] = set()
         self._client = client
-        self._loaded: typing.Optional[list[_index.TypeConfig[typing.Any]]] = None
+        self._is_loaded = False
+        self._load_configs: list[_config.BaseConfig] = []
+        self._load_types: dict[type[typing.Any], _index.TypeConfig[typing.Any]] = {}
         self._processed_callbacks: weakref.WeakSet[collections.Callable[..., typing.Any]] = weakref.WeakSet()
 
-    def load_config(self, path: pathlib.Path, /) -> Self:
-        extension = path.name.rsplit(".", 1)[-1].lower()
-        parser = _PARSERS.get(extension)
-        if not parser:
-            raise RuntimeError(f"Unsupported file type {extension!r}")
+    def load_config(self, config: typing.Union[pathlib.Path, _config.ConfigFile], /) -> Self:
+        if isinstance(config, pathlib.Path):
+            extension = config.name.rsplit(".", 1)[-1].lower()
+            parser = _PARSERS.get(extension)
+            if not parser:
+                raise RuntimeError(f"Unsupported file type {extension!r}")
 
-        with path.open("rb") as file:
-            raw_config = parser(file)
+            with config.open("rb") as file:
+                raw_config = parser(file)
 
-        if not isinstance(raw_config, dict):
-            raise RuntimeError(f"Unexpected top level type found in `{path!s}`, expected a dictionary")
+            if not isinstance(raw_config, dict):
+                raise RuntimeError(f"Unexpected top level type found in `{config!s}`, expected a dictionary")
 
-        config = _index.GLOBAL_INDEX.parse_config(raw_config)
+            config = _config.ConfigFile.parse(raw_config)
+            return self.load_config(config)
+
         for sub_config in config.configs:
             for config_type in sub_config.config_types():
                 self._client.set_type_dependency(config_type, sub_config)
+
+        mimo: set[type[typing.Any]] = set()
+        for type_info in itertools.chain.from_iterable(
+            self._to_resolvers(type_id, mimo=mimo) for type_id in config.load_types
+        ):
+            self._load_types[type_info.dep_type] = type_info
 
         return self
 
@@ -118,25 +128,11 @@ class Manager:
 
         yield type_config
 
-    def _calculate_loaders(self) -> list[_index.TypeConfig[typing.Any]]:
-        if self._loaded is not None:
+    def load_deps(self) -> None:
+        if self._is_loaded:
             raise RuntimeError("Dependencies already loaded")
 
-        ids_to_load = self._client.get_type_dependency(_config.TypeLoader, default=None)
-        if not ids_to_load:
-            return []
-
-        self._loaded = list(
-            itertools.chain.from_iterable(
-                self._to_resolvers(type_id) for type_id in itertools.chain(ids_to_load.load_types, self._callback_types)
-            )
-        )
-        return self._loaded
-
-    def load_deps(self) -> None:
-        to_load = self._calculate_loaders()
-
-        for type_info in to_load:
+        for type_info in self._load_types.values():
             if not type_info.create:
                 raise RuntimeError(f"Type dependency {type_info.name!r} can only be created in an async context")
 
@@ -144,19 +140,21 @@ class Manager:
             self._client.set_type_dependency(type_info.dep_type, value)
 
     async def load_deps_async(self) -> None:
-        to_load = self._calculate_loaders()
+        if self._is_loaded:
+            raise RuntimeError("Dependencies already loaded")
 
-        for type_info in to_load:
+        for type_info in self._load_types.values():
             callback = type_info.async_create or type_info.create
             assert callback
             value = await self._client.call_with_async_di(callback)
             self._client.set_type_dependency(type_info.dep_type, value)
 
     def _iter_unload(self) -> collections.Iterator[tuple[_index.TypeConfig[typing.Any], typing.Any]]:
-        if self._loaded is None:
+        if not self._is_loaded:
             raise RuntimeError("Dependencies not loaded")
 
-        for type_info in self._loaded:
+        self._is_loaded = False
+        for type_info in self._load_types.values():
             try:
                 value = self._client.get_type_dependency(type_info.dep_type)
 
@@ -189,7 +187,9 @@ class Manager:
 
     def pre_process_function(self, callback: collections.Callable[..., typing.Any], /) -> Self:
         types: list[str] = []
-        for param in _visitor.Callback(callback).accept(_visitor.ParameterVisitor()).values():
+        descriptors = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
+        _index.GLOBAL_INDEX.set_descriptors(callback, descriptors)
+        for param in descriptors.values():
             if param[0] is _types.InjectedTypes.CALLBACK:
                 self.pre_process_function(param[1].callback)
                 continue
@@ -217,5 +217,8 @@ class Manager:
                 types.append(type_info.name)
 
         self._processed_callbacks.add(callback)
-        self._callback_types.update(types)
+        mimo: set[type[typing.Any]] = set()
+        for type_info in itertools.chain.from_iterable(self._to_resolvers(type_id, mimo=mimo) for type_id in types):
+            self._load_types[type_info.dep_type] = type_info
+
         return self
