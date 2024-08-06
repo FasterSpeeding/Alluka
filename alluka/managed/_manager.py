@@ -95,13 +95,15 @@ class Manager:
             config = _config.ConfigFile.parse(raw_config)
             return self.load_config(config)
 
+        load_types = set(config.load_types)
         for sub_config in config.configs:
+            load_types.update(sub_config.load_types)
             for config_type in sub_config.config_types():
                 self._client.set_type_dependency(config_type, sub_config)
 
         mimo: set[type[typing.Any]] = set()
         for type_info in itertools.chain.from_iterable(
-            self._to_resolvers(type_id, mimo=mimo) for type_id in config.load_types
+            self._to_resolvers(type_id, mimo=mimo) for type_id in iter(load_types)
         ):
             self._load_types[type_info.dep_type] = type_info
 
