@@ -37,7 +37,10 @@ from collections import abc as collections
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
+    from .. import abc as alluka
 
+
+_CoroT = collections.Coroutine[typing.Any, typing.Any, None]
 _DictKeyT = typing.Union[str, int, float, bool, None]
 _DictValueT = typing.Union[
     collections.Mapping[_DictKeyT, "_DictValueT"], collections.Sequence["_DictValueT"], _DictKeyT
@@ -61,36 +64,56 @@ class BaseConfig(abc.ABC):
     def from_mapping(cls, data: collections.Mapping[_DictKeyT, _DictValueT], /) -> Self:
         raise NotImplementedError
 
-
-class TypeLoader(BaseConfig):
-    __slots__ = ("_load_types",)
-
-    def __init__(self, load_types: collections.Sequence[str], /) -> None:
-        self._load_types = load_types
+    @property
+    def async_cleanup(self) -> typing.Optional[collections.Callable[[Self, alluka.Client], _CoroT]]: ...
 
     @property
-    def load_types(self) -> collections.Sequence[str]:
-        return self._load_types
+    def async_create(self) -> typing.Optional[collections.Callable[[Self, alluka.Client], _CoroT]]: ...
 
-    @classmethod
-    def config_id(cls) -> str:
-        return "alluka.TypeLoader"
+    @property
+    def cleanup(self) -> typing.Optional[collections.Callable[[Self, alluka.Client], None]]: ...
 
-    @classmethod
-    def from_mapping(cls, data: collections.Mapping[_DictKeyT, _DictValueT]) -> Self:
-        raw_load_types = data.get("load_types")
-        if not isinstance(raw_load_types, collections.Sequence):
-            raise RuntimeError(f"Expected a list of strings at `'load_types', found {type(raw_load_types)}")
+    @property
+    def create(self) -> typing.Optional[collections.Callable[[Self, alluka.Client], None]]: ...
 
-        load_types: list[str] = []
-        for index, type_id in enumerate(raw_load_types):
-            if not isinstance(type_id, str):
-                raise RuntimeError(f"Expected a string at `'load_types'.{index}`, found {type(type_id)}")
 
-            load_types.append(type_id)
+def _parse_config(key: _DictKeyT, config: _DictValueT, /) -> BaseConfig:
+    if not isinstance(key, str):
+        raise RuntimeError(f"Expected string keys in `'configs'`, found {key!r}")
 
-        return cls(tuple(load_types))
+    if not isinstance(config, collections.Mapping):
+        raise RuntimeError(f"Expected a dictionary at `'configs'.{key!r}`, found {type(config)}")
+
+    from . import _index
+
+    return _index.GLOBAL_INDEX.get_config(key).from_mapping(config)
 
 
 class ConfigFile(typing.NamedTuple):  # TODO: hide
     configs: collections.Sequence[BaseConfig]
+    load_types: collections.Sequence[str]
+
+    @classmethod
+    def parse(cls, data: collections.Mapping[_DictKeyT, _DictValueT], /) -> Self:
+        raw_configs = data["configs"]
+        if not isinstance(raw_configs, collections.Mapping):
+            raise RuntimeError(f"Expected a dictionaries at `'configs'`, found {type(raw_configs)}")
+
+        try:
+            raw_load_types = data["load_types"]
+
+        except KeyError:
+            load_types: list[str] = []
+
+        else:
+            if not isinstance(raw_load_types, collections.Sequence):
+                raise RuntimeError(f"Expected a list of strings at `'load_types'`, found {type(raw_load_types)}")
+
+            load_types = []
+            for index, type_id in enumerate(raw_load_types):
+                if not isinstance(type_id, str):
+                    raise RuntimeError(f"Expected a string at `'load_types'.{index}`, found {type(type_id)}")
+
+                load_types.append(type_id)
+
+        return cls(configs=[_parse_config(*args) for args in raw_configs.items()], load_types=load_types)

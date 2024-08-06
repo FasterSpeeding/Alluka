@@ -36,15 +36,13 @@ import weakref
 from collections import abc as collections
 
 from .. import _visitor
-from . import _config
 
 if typing.TYPE_CHECKING:
     import types
 
-    from typing_extensions import Self
-
-    from .. import _types
+    from .. import _types  # pyright: ignore[reportPrivateUsage]
     from .. import abc as alluka
+    from . import _config  # pyright: ignore[reportPrivateUsage]
 
 
 _T = typing.TypeVar("_T")
@@ -91,13 +89,12 @@ class Index:
     ) -> None:
         return self._lock.__exit__(exc_cls, exc, traceback_value)
 
-    def register_config(self, config_cls: type[_config.BaseConfig], /) -> Self:
+    def register_config(self, config_cls: type[_config.BaseConfig], /) -> None:
         config_id = config_cls.config_id()
         if config_id in self._config_index:
             raise RuntimeError(f"Config ID {config_id!r} already registered")
 
         self._config_index[config_id] = config_cls
-        return self
 
     @typing.overload
     def register_type(
@@ -111,7 +108,7 @@ class Index:
         cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
         create: typing.Optional[collections.Callable[..., _T]] = None,
         dependencies: collections.Sequence[type[typing.Any]] = (),
-    ) -> Self: ...
+    ) -> None: ...
 
     @typing.overload
     def register_type(
@@ -125,7 +122,7 @@ class Index:
         cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
         create: collections.Callable[..., _T],
         dependencies: collections.Sequence[type[typing.Any]] = (),
-    ) -> Self: ...
+    ) -> None: ...
 
     def register_type(
         self,
@@ -138,7 +135,7 @@ class Index:
         cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
         create: typing.Optional[collections.Callable[..., _T]] = None,
         dependencies: collections.Sequence[type[typing.Any]] = (),
-    ) -> Self:
+    ) -> None:
         if not create and not async_create:
             raise RuntimeError("Either create or async_create has to be passed")
 
@@ -159,13 +156,11 @@ class Index:
             raise RuntimeError(f"Dependency name {config.name!r} already registered")
 
         self._type_index[config.dep_type] = self._name_index[config.name] = config
-        return self
 
     def set_descriptors(
         self, callback: alluka.CallbackSig[typing.Any], descriptors: dict[str, _types.InjectedTuple], /
-    ) -> Self:
+    ) -> None:
         self._descriptors[callback] = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
-        return self
 
     def get_descriptors(
         self, callback: alluka.CallbackSig[typing.Any], /
@@ -186,24 +181,12 @@ class Index:
         except KeyError:
             raise RuntimeError(f"Unknown dependency ID {name!r}") from None
 
-    def _parse_config(self, key: _DictKeyT, config: _DictValueT, /) -> _config.BaseConfig:
-        if not isinstance(key, str):
-            raise RuntimeError(f"Expected string keys in `'configs'`, found {key!r}")
+    def get_config(self, config_id: str, /) -> type[_config.BaseConfig]:
+        try:
+            return self._config_index[config_id]
 
-        if not isinstance(config, collections.Mapping):
-            raise RuntimeError(f"Expected a dictionary at `'configs'.{key!r}`, found {type(config)}")
-
-        if config_type := self._config_index.get(key):
-            return config_type.from_mapping(config)
-
-        raise RuntimeError(f"Unknown config ID `{key!r}`")
-
-    def parse_config(self, data: collections.Mapping[_DictKeyT, _DictValueT], /) -> _config.ConfigFile:
-        raw_configs = data["configs"]
-        if not isinstance(raw_configs, collections.Mapping):
-            raise RuntimeError(f"Expected a dictionaries at `'configs'`, found {type(raw_configs)}")
-
-        return _config.ConfigFile(configs=[self._parse_config(*args) for args in raw_configs.items()])
+        except KeyError:
+            raise RuntimeError(f"Unknown config ID {config_id!r}") from None
 
 
-GLOBAL_INDEX = Index().register_config(_config.TypeLoader)
+GLOBAL_INDEX = Index()
