@@ -37,10 +37,7 @@ from collections import abc as collections
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
-    from .. import abc as alluka
 
-
-_CoroT = collections.Coroutine[typing.Any, typing.Any, None]
 _DictKeyT = typing.Union[str, int, float, bool, None]
 _DictValueT = typing.Union[
     collections.Mapping[_DictKeyT, "_DictValueT"], collections.Sequence["_DictValueT"], _DictKeyT
@@ -65,16 +62,9 @@ class BaseConfig(abc.ABC):
         raise NotImplementedError
 
     @property
-    def async_cleanup(self) -> typing.Optional[collections.Callable[[Self, alluka.Client], _CoroT]]: ...
+    def load_types(self) -> collections.Sequence[str]:
+        return []
 
-    @property
-    def async_create(self) -> typing.Optional[collections.Callable[[Self, alluka.Client], _CoroT]]: ...
-
-    @property
-    def cleanup(self) -> typing.Optional[collections.Callable[[Self, alluka.Client], None]]: ...
-
-    @property
-    def create(self) -> typing.Optional[collections.Callable[[Self, alluka.Client], None]]: ...
 
 
 def _parse_config(key: _DictKeyT, config: _DictValueT, /) -> BaseConfig:
