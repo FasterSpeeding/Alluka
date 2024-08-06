@@ -66,7 +66,6 @@ class BaseConfig(abc.ABC):
         return []
 
 
-
 def _parse_config(key: _DictKeyT, config: _DictValueT, /) -> BaseConfig:
     if not isinstance(key, str):
         raise RuntimeError(f"Expected string keys in `'configs'`, found {key!r}")
