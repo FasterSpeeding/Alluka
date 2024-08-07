@@ -30,6 +30,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
+__all__: list[str] = ["Index", "TypeConfig"]
+
 import importlib.metadata
 import logging
 import sys
@@ -37,8 +39,6 @@ import threading
 import typing
 import weakref
 from collections import abc as collections
-
-from .. import _visitor
 
 if typing.TYPE_CHECKING:
     import types
@@ -59,31 +59,52 @@ _DictValueT = typing.Union[
 
 
 class TypeConfig(typing.NamedTuple, typing.Generic[_T]):
+    """Represents the procedures and metadata for creating and destorying a type dependency."""
+
     async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]]
+    """Callback used to use to cleanup the dependency in an async runtime."""
+
     async_create: typing.Optional[collections.Callable[..., _CoroT[_T]]]
+    """Callback used to use to create the dependency in an async runtime."""
+
     cleanup: typing.Optional[collections.Callable[[_T], None]]
+    """Callback used to use to cleanup the dependency in a sync runtime."""
+
     create: typing.Optional[collections.Callable[..., _T]]
+    """Callback used to use to create the dependency in an async runtime."""
+
     dep_type: type[_T]
+    """The type created values should be registered as a type dependency for."""
+
     dependencies: collections.Sequence[type[typing.Any]]
+    """Sequence of type dependencies that are required to create this dependency."""
+
     name: str
+    """Name used to identify this type dependency in configuration files."""
 
 
 class Index:
+    """Index used to internally track the register global custom configuration.
+
+    This is used by the manager to parse plugin configuration and initialise types.
+    """
+
     __slots__ = ("_descriptors", "_config_index", "_lock", "_metadata_scanned", "_name_index", "_type_index")
 
     def __init__(self) -> None:
+        """Initialise an Index."""
         # TODO: this forces objects to have a __weakref__ attribute,
         # and also hashability (so hash and eq or neither), do we want to
         # keep with this behaviour or document it?
         self._descriptors: weakref.WeakKeyDictionary[
             alluka.CallbackSig[typing.Any], dict[str, _types.InjectedTuple]
         ] = weakref.WeakKeyDictionary()
-        self._config_index: dict[str, type[_config.BaseConfig]] = {}
+        self._config_index: dict[str, type[_config.PluginConfig]] = {}
         self._lock = threading.Lock()
         self._metadata_scanned = False
         self._name_index: dict[str, TypeConfig[typing.Any]] = {}
         self._type_index: dict[type[typing.Any], TypeConfig[typing.Any]] = {}
-        self.scan_libraries()
+        self._scan_libraries()
 
     def __enter__(self) -> None:
         self._lock.__enter__()
@@ -96,7 +117,24 @@ class Index:
     ) -> None:
         return self._lock.__exit__(exc_cls, exc, traceback_value)
 
-    def register_config(self, config_cls: type[_config.BaseConfig], /) -> None:
+    def register_config(self, config_cls: type[_config.PluginConfig], /) -> None:
+        """Register a plugin configuration class.
+
+        !!! warning
+            Libraries should register entry-points under the `"alluka"` group
+            with `"config"` prefixed names to register custom configuration
+            classes.
+
+        Parameters
+        ----------
+        config_cls
+            The plugin configuration class to register.
+
+        Raises
+        ------
+        RuntimeError
+            If the configuration class' ID is already registered.
+        """
         # TODO: Note that libraries should use package metadata!
         config_id = config_cls.config_id()
         if config_id in self._config_index:
@@ -144,8 +182,37 @@ class Index:
         create: typing.Optional[collections.Callable[..., _T]] = None,
         dependencies: collections.Sequence[type[typing.Any]] = (),
     ) -> None:
+        """Register the procedures for creating and destorying a type dependency.
+
+        !!! note
+            Either `create` or `async_create` must be passed, but if only
+            `async_create` is passed then this will fail to be created in
+            a synchronous runtime.
+
+        Parameters
+        ----------
+        dep_type
+            Type of the dep this should be registered for.
+        name
+            Name used to identify this type dependency in configuration files.
+        async_cleanup
+            Callback used to use to destroy the dependency in an async runtime.
+        async_create
+            Callback used to use to create the dependency in an async runtime.
+        cleanup
+            Callback used to use to destroy the dependency in a sync runtime.
+        create
+            Callback used to use to create the dependency in a sync runtime.
+        dependencies
+            Sequence of type dependencies that are required to create this dependency.
+
+        Raises
+        ------
+        TypeError
+            If neither `create` nor `async_create` is passed.
+        """
         if not create and not async_create:
-            raise RuntimeError("Either create or async_create has to be passed")
+            raise TypeError("Either create or async_create has to be passed")
 
         config = TypeConfig(
             async_cleanup=async_cleanup,
@@ -168,14 +235,49 @@ class Index:
     def set_descriptors(
         self, callback: alluka.CallbackSig[typing.Any], descriptors: dict[str, _types.InjectedTuple], /
     ) -> None:
-        self._descriptors[callback] = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
+        """Cache the parsed dependency injection descriptors for a callback.
+
+        Parameters
+        ----------
+        callback
+            The callback to cache the injection descriptors for.
+        descriptors
+            The descriptors to cache.
+        """
+        self._descriptors[callback] = descriptors
 
     def get_descriptors(
         self, callback: alluka.CallbackSig[typing.Any], /
     ) -> typing.Optional[dict[str, _types.InjectedTuple]]:
+        """Get the dependency injection descriptors cached for a callback.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        dict[str, alluka._types.InjectedTuple] | None
+            A dictionary of parameter names to injection metadata.
+
+            This will be [None][] if the descriptors are not cached for
+            the callback.
+        """
         return self._descriptors.get(callback)
 
     def get_type(self, dep_type: type[_T], /) -> TypeConfig[_T]:
+        """Get the configuration for a type dependency.
+
+        Parameters
+        ----------
+        dep_type
+            Type of the dependency to get the configuration for.
+
+        Returns
+        -------
+        TypeConfig[_T]
+            Configuration which represents the procedures and metadata
+            for creating and destorying the type dependency.
+        """
         try:
             return self._type_index[dep_type]
 
@@ -183,20 +285,46 @@ class Index:
             raise RuntimeError(f"Unknown dependency type {dep_type}") from None
 
     def get_type_by_name(self, name: str, /) -> TypeConfig[typing.Any]:
+        """Get the configuration for a type dependency by its configured name.
+
+        Parameters
+        ----------
+        name
+            Name of the type dependency to get the configuration for.
+
+        Returns
+        -------
+        TypeConfig[_T]
+            Configuration which represents the procedures and metadata
+            for creating and destorying the type dependency.
+        """
         try:
             return self._name_index[name]
 
         except KeyError:
             raise RuntimeError(f"Unknown dependency ID {name!r}") from None
 
-    def get_config(self, config_id: str, /) -> type[_config.BaseConfig]:
+    def get_config(self, config_id: str, /) -> type[_config.PluginConfig]:
+        """Get the custom plugin configuration class for a config ID.
+
+        Parameters
+        ----------
+        config_id
+            ID used to identify the plugin configuration.
+
+        Returns
+        -------
+        type[alluka.managed.PluginConfig]
+            The custom plugin configuration class.
+        """
         try:
             return self._config_index[config_id]
 
         except KeyError:
             raise RuntimeError(f"Unknown config ID {config_id!r}") from None
 
-    def scan_libraries(self) -> None:
+    def _scan_libraries(self) -> None:
+        """Load config clases from installed libraries based on their entry points."""
         if self._metadata_scanned:
             return
 
@@ -212,12 +340,12 @@ class Index:
                 continue
 
             value = entry_point.load()
-            if isinstance(value, type) and issubclass(value, _config.BaseConfig):
+            if isinstance(value, type) and issubclass(value, _config.PluginConfig):
                 self.register_config(value)
 
             else:
                 _LOGGER.warn(
-                    "Unexpected value found at %, expected a BaseConfig class but found %r. "
+                    "Unexpected value found at %, expected a PluginConfig class but found %r. "
                     "An alluka entry point is misconfigured.",
                     entry_point.value,
                     value,
@@ -225,3 +353,4 @@ class Index:
 
 
 GLOBAL_INDEX = Index()
+"""Global instance of [Index][]."""

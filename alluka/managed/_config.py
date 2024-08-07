@@ -30,6 +30,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
+__all__: list[str] = ["ConfigFile", "PluginConfig"]
+
 import abc
 import typing
 from collections import abc as collections
@@ -44,49 +46,54 @@ _DictValueT = typing.Union[
 ]
 
 
-class BaseConfig(abc.ABC):
+class PluginConfig(abc.ABC):
+    """Base class used for configuring plugins loaded via Alluka's manager."""
     __slots__ = ()
 
     @classmethod
-    def config_types(cls) -> collections.Sequence[type[BaseConfig]]:
+    def config_types(cls) -> collections.Sequence[type[PluginConfig]]:
+        """The types to use when registering this configuration as a type dependency."""
         return [cls]
 
     @classmethod
     @abc.abstractmethod
     def config_id(cls) -> str:
+        """ID used to identify the plugin configuration."""
         raise NotImplementedError
 
     @classmethod
     @abc.abstractmethod
     def from_mapping(cls, data: collections.Mapping[_DictKeyT, _DictValueT], /) -> Self:
+        """Create this configuration object from a dictionary."""
         raise NotImplementedError
 
     @property
     def load_types(self) -> collections.Sequence[str]:
+        """Sequence of string types to load when this config is present."""
         return []
 
 
-def _parse_config(key: _DictKeyT, config: _DictValueT, /) -> BaseConfig:
+def _parse_config(key: _DictKeyT, config: _DictValueT, /) -> PluginConfig:
     if not isinstance(key, str):
-        raise RuntimeError(f"Expected string keys in `'configs'`, found {key!r}")
+        raise TypeError(f"Expected string keys in `'plugins'`, found {key!r}")
 
     if not isinstance(config, collections.Mapping):
-        raise RuntimeError(f"Expected a dictionary at `'configs'.{key!r}`, found {type(config)}")
+        raise TypeError(f"Expected a dictionary at `'plugins'.{key!r}`, found {type(config)}")
 
     from . import _index
 
     return _index.GLOBAL_INDEX.get_config(key).from_mapping(config)
 
 
-class ConfigFile(typing.NamedTuple):  # TODO: hide
-    configs: collections.Sequence[BaseConfig]
+class ConfigFile(typing.NamedTuple):
+    plugins: collections.Sequence[PluginConfig]
     load_types: collections.Sequence[str]
 
     @classmethod
     def parse(cls, data: collections.Mapping[_DictKeyT, _DictValueT], /) -> Self:
-        raw_configs = data["configs"]
-        if not isinstance(raw_configs, collections.Mapping):
-            raise RuntimeError(f"Expected a dictionaries at `'configs'`, found {type(raw_configs)}")
+        raw_plugins = data["plugins"]
+        if not isinstance(raw_plugins, collections.Mapping):
+            raise TypeError(f"Expected a dictionaries at `'plugins'`, found {type(raw_plugins)}")
 
         try:
             raw_load_types = data["load_types"]
@@ -96,13 +103,13 @@ class ConfigFile(typing.NamedTuple):  # TODO: hide
 
         else:
             if not isinstance(raw_load_types, collections.Sequence):
-                raise RuntimeError(f"Expected a list of strings at `'load_types'`, found {type(raw_load_types)}")
+                raise TypeError(f"Expected a list of strings at `'load_types'`, found {type(raw_load_types)}")
 
             load_types = []
             for index, type_id in enumerate(raw_load_types):
                 if not isinstance(type_id, str):
-                    raise RuntimeError(f"Expected a string at `'load_types'.{index}`, found {type(type_id)}")
+                    raise TypeError(f"Expected a string at `'load_types'.{index}`, found {type(type_id)}")
 
                 load_types.append(type_id)
 
-        return cls(configs=[_parse_config(*args) for args in raw_configs.items()], load_types=load_types)
+        return cls(plugins=[_parse_config(*args) for args in raw_plugins.items()], load_types=load_types)

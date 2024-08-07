@@ -30,11 +30,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
+__all__: list[str] = ["register_config", "register_type"]
+
 import typing
 from collections import abc as collections
 
 from . import _index
-from ._config import BaseConfig as BaseConfig
+from ._config import PluginConfig as PluginConfig
 from ._config import ConfigFile as ConfigFile
 from ._manager import Manager as Manager
 
@@ -75,5 +77,52 @@ if typing.TYPE_CHECKING:
 
 _GLOBAL_INDEX = _index.GLOBAL_INDEX
 
-register_config: collections.Callable[[type[BaseConfig]], None] = _GLOBAL_INDEX.register_config
+register_config: collections.Callable[[type[PluginConfig]], None] = _GLOBAL_INDEX.register_config
+"""Register a plugin configuration class.
+
+!!! warning
+    Libraries should register entry-points under the `"alluka"` group
+    with `"config"` prefixed names to register custom configuration
+    classes.
+
+Parameters
+----------
+config_cls
+    The plugin configuration class to register.
+
+Raises
+------
+RuntimeError
+    If the configuration class' ID is already registered.
+"""
+
 register_type: _RegiserTypeSig = _GLOBAL_INDEX.register_type
+"""Register the procedures for creating and destorying a type dependency.
+
+!!! note
+    Either `create` or `async_create` must be passed, but if only
+    `async_create` is passed then this will fail to be created in
+    a synchronous runtime.
+
+Parameters
+----------
+dep_type
+    Type of the dep this should be registered for.
+name
+    Name used to identify this type dependency in configuration files.
+async_cleanup
+    Callback used to use to destroy the dependency in an async runtime.
+async_create
+    Callback used to use to create the dependency in an async runtime.
+cleanup
+    Callback used to use to destroy the dependency in a sync runtime.
+create
+    Callback used to use to create the dependency in a sync runtime.
+dependencies
+    Sequence of type dependencies that are required to create this dependency.
+
+Raises
+------
+TypeError
+    If neither `create` nor `async_create` is passed.
+"""
