@@ -48,6 +48,7 @@ _DictValueT = typing.Union[
 
 class PluginConfig(abc.ABC):
     """Base class used for configuring plugins loaded via Alluka's manager."""
+
     __slots__ = ()
 
     @classmethod
