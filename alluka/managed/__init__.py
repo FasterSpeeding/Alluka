@@ -36,8 +36,8 @@ import typing
 from collections import abc as collections
 
 from . import _index
-from ._config import PluginConfig as PluginConfig
 from ._config import ConfigFile as ConfigFile
+from ._config import PluginConfig as PluginConfig
 from ._manager import Manager as Manager
 
 if typing.TYPE_CHECKING:

@@ -77,6 +77,7 @@ class Manager:
 
     This class manages creating and destroying type dependencies.
     """
+
     __slots__ = ("_client", "_is_loaded", "_load_configs", "_load_types", "_processed_callbacks")
 
     def __init__(self, client: abc.Client, /) -> None:
