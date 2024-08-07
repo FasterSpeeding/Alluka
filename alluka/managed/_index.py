@@ -83,6 +83,9 @@ class TypeConfig(typing.NamedTuple, typing.Generic[_T]):
     """Name used to identify this type dependency in configuration files."""
 
 
+_ENTRY_POINT_GROUP_NAME = "alluka.plugins"
+
+
 class Index:
     """Index used to internally track the register global custom configuration.
 
@@ -121,9 +124,8 @@ class Index:
         """Register a plugin configuration class.
 
         !!! warning
-            Libraries should register entry-points under the `"alluka"` group
-            with `"config"` prefixed names to register custom configuration
-            classes.
+            Libraries should register entry-points under the `"alluka.plugins"` group
+            to register custom configuration classes.
 
         Parameters
         ----------
@@ -330,15 +332,12 @@ class Index:
 
         self._metadata_scanned = True
         if sys.version_info >= (3, 10):
-            entry_points = importlib.metadata.entry_points(group="alluka")
+            entry_points = importlib.metadata.entry_points(group=_ENTRY_POINT_GROUP_NAME)
 
         else:
-            entry_points = importlib.metadata.entry_points()["alluka"]
+            entry_points = importlib.metadata.entry_points()[_ENTRY_POINT_GROUP_NAME]
 
         for entry_point in entry_points:
-            if not entry_point.name.startswith("config"):
-                continue
-
             value = entry_point.load()
             if isinstance(value, type) and issubclass(value, _config.PluginConfig):
                 self.register_config(value)
