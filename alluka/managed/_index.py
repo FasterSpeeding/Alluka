@@ -30,6 +30,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
+import importlib.metadata
+import logging
+import sys
 import threading
 import typing
 import weakref
@@ -44,6 +47,8 @@ if typing.TYPE_CHECKING:
     from .. import abc as alluka
     from . import _config  # pyright: ignore[reportPrivateUsage]
 
+
+_LOGGER = logging.getLogger("alluka.managed")
 
 _T = typing.TypeVar("_T")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
@@ -64,7 +69,7 @@ class TypeConfig(typing.NamedTuple, typing.Generic[_T]):
 
 
 class Index:
-    __slots__ = ("_descriptors", "_config_index", "_lock", "_name_index", "_type_index")
+    __slots__ = ("_descriptors", "_config_index", "_lock", "_metadata_scanned", "_name_index", "_type_index")
 
     def __init__(self) -> None:
         # TODO: this forces objects to have a __weakref__ attribute,
@@ -75,8 +80,10 @@ class Index:
         ] = weakref.WeakKeyDictionary()
         self._config_index: dict[str, type[_config.BaseConfig]] = {}
         self._lock = threading.Lock()
+        self._metadata_scanned = False
         self._name_index: dict[str, TypeConfig[typing.Any]] = {}
         self._type_index: dict[type[typing.Any], TypeConfig[typing.Any]] = {}
+        self.scan_libraries()
 
     def __enter__(self) -> None:
         self._lock.__enter__()
@@ -90,6 +97,7 @@ class Index:
         return self._lock.__exit__(exc_cls, exc, traceback_value)
 
     def register_config(self, config_cls: type[_config.BaseConfig], /) -> None:
+        # TODO: Note that libraries should use package metadata!
         config_id = config_cls.config_id()
         if config_id in self._config_index:
             raise RuntimeError(f"Config ID {config_id!r} already registered")
@@ -187,6 +195,33 @@ class Index:
 
         except KeyError:
             raise RuntimeError(f"Unknown config ID {config_id!r}") from None
+
+    def scan_libraries(self) -> None:
+        if self._metadata_scanned:
+            return
+
+        self._metadata_scanned = True
+        if sys.version_info >= (3, 10):
+            entry_points = importlib.metadata.entry_points(group="alluka")
+
+        else:
+            entry_points = importlib.metadata.entry_points()["alluka"]
+
+        for entry_point in entry_points:
+            if not entry_point.name.startswith("config"):
+                continue
+
+            value = entry_point.load()
+            if isinstance(value, type) and issubclass(value, _config.BaseConfig):
+                self.register_config(value)
+
+            else:
+                _LOGGER.warn(
+                    "Unexpected value found at %, expected a BaseConfig class but found %r. "
+                    "An alluka entry point is misconfigured.",
+                    entry_point.value,
+                    value,
+                )
 
 
 GLOBAL_INDEX = Index()

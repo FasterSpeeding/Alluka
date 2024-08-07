@@ -169,7 +169,7 @@ class Client(alluka.Client):
         self._descriptors: weakref.WeakKeyDictionary[
             alluka.CallbackSig[typing.Any], dict[str, _types.InjectedTuple]
         ] = weakref.WeakKeyDictionary()
-        self._introspect_annotations = introspect_annotations
+        self._introspect_annotations = introspect_annotations  # TODO: deprecate
         static_context = _context.Context(self)
         self._make_context: collections.Callable[[Self], alluka.Context] = lambda _: static_context
         self._type_dependencies: dict[type[typing.Any], typing.Any] = {alluka.Client: self, Client: self}
@@ -186,7 +186,6 @@ class Client(alluka.Client):
             self._descriptors[callback] = descriptors
             return descriptors
 
-        # TODO: introspect_annotations=self._introspect_annotations
         descriptors = self._descriptors[callback] = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
         return descriptors
 
