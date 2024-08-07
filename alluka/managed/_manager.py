@@ -95,6 +95,25 @@ class Manager:
         self._processed_callbacks: weakref.WeakSet[collections.Callable[..., typing.Any]] = weakref.WeakSet()
 
     def load_config(self, config: typing.Union[pathlib.Path, _config.ConfigFile], /) -> Self:
+        """Load plugin and dependency configuration into this manager.
+
+        Parameters
+        ----------
+        config
+            Either the parsed configuration or a path to a file to parsed.
+
+            Only paths to JSON and TOML (3.10+) files are supported.
+
+        Raises
+        ------
+        RuntimeError
+            If the path passed is an unsupported file type or does not match
+            the expected structure.
+        TypeError
+            If the configuration passed does not match the expected structure.
+        KeyError
+            If the configuration passed does not match the expected structure.
+        """
         if isinstance(config, pathlib.Path):
             extension = config.name.rsplit(".", 1)[-1].lower()
             parser = _PARSERS.get(extension)
@@ -146,17 +165,36 @@ class Manager:
         yield type_config
 
     def load_deps(self) -> None:
+        """Initialise the configured dependencies.
+
+        !!! note
+            This will skip over any dependencies which can only be created
+            asynchronously.
+
+        Raises
+        ------
+        RuntimeError
+            If the dependencies are already loaded.
+        """
         if self._is_loaded:
             raise RuntimeError("Dependencies already loaded")
 
         for type_info in self._load_types.values():
-            if not type_info.create:
-                raise RuntimeError(f"Type dependency {type_info.name!r} can only be created in an async context")
+            if type_info.create:
+                value = self._client.call_with_di(type_info.create)
+                self._client.set_type_dependency(type_info.dep_type, value)
 
-            value = self._client.call_with_di(type_info.create)
-            self._client.set_type_dependency(type_info.dep_type, value)
+            else:
+                _LOGGER.warn("Type dependency %r skipped as it can only be created in an async context", type_info.name)
 
     async def load_deps_async(self) -> None:
+        """Initialise the configured dependencies asynchronously.
+
+        Raises
+        ------
+        RuntimeError
+            If a dependencies are already loaded.
+        """
         if self._is_loaded:
             raise RuntimeError("Dependencies already loaded")
 
@@ -183,6 +221,18 @@ class Manager:
                 yield (type_info, value)
 
     def unload_deps(self) -> None:
+        """Unload the configured dependencies.
+
+        !!! warning
+            If you have any dependencies which were loaded asynchronously,
+            you probably want
+            [Manager.unload_deps_async][alluka.managed.Manager.unload_deps_async].
+
+        Raises
+        ------
+        RuntimeError
+            If the dependencies aren't loaded.
+        """
         for type_info, value in self._iter_unload():
             if type_info.cleanup:
                 type_info.cleanup(value)
@@ -195,6 +245,13 @@ class Manager:
                 )
 
     async def unload_deps_async(self) -> None:
+        """Unload the configured dependencies asynchronously
+
+        Raises
+        ------
+        RuntimeError
+            If the dependencies aren't loaded.
+        """
         for type_info, value in self._iter_unload():
             if type_info.async_cleanup:
                 await type_info.async_cleanup(value)
@@ -203,6 +260,13 @@ class Manager:
                 type_info.cleanup(value)
 
     def pre_process_function(self, callback: collections.Callable[..., typing.Any], /) -> Self:
+        """Register the required type dependencies found in a callback's signature.
+
+        Parameters
+        ----------
+        callback
+            The callback to register the required type dependencies for.
+        """
         types: list[str] = []
         descriptors = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
         _index.GLOBAL_INDEX.set_descriptors(callback, descriptors)
