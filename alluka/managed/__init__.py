@@ -81,9 +81,8 @@ register_config: collections.Callable[[type[PluginConfig]], None] = _GLOBAL_INDE
 """Register a plugin configuration class.
 
 !!! warning
-    Libraries should register entry-points under the `"alluka"` group
-    with `"config"` prefixed names to register custom configuration
-    classes.
+    Libraries should register entry-points under the `"alluka.plugins"` group
+    to register custom configuration classes.
 
 Parameters
 ----------
