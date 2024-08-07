@@ -30,6 +30,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
+__all__: list[str] = ["Manager"]
+
 import itertools
 import json
 import logging
@@ -48,11 +50,12 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
 
+_LOGGER = logging.getLogger("alluka.managed")
+
 _DictKeyT = typing.Union[str, int, float, bool, None]
 _DictValueT = typing.Union[
     collections.Mapping[_DictKeyT, "_DictValueT"], collections.Sequence["_DictValueT"], _DictKeyT
 ]
-_LOGGER = logging.getLogger("alluka.managed")
 _PARSERS: dict[str, collections.Callable[[typing.BinaryIO], collections.Mapping[_DictKeyT, _DictValueT]]] = {
     "json": json.load
 }
@@ -60,7 +63,7 @@ _T = typing.TypeVar("_T")
 
 
 try:
-    import tomllib  # pyright: ignore[reportMissingTypeStubs]
+    import tomllib  # pyright: ignore[reportMissingImports]
 
 except ModuleNotFoundError:
     pass
@@ -70,12 +73,23 @@ else:
 
 
 class Manager:
+    """A type dependency lifetime manager implementation.
+
+    This class manages creating and destroying type dependencies.
+    """
     __slots__ = ("_client", "_is_loaded", "_load_configs", "_load_types", "_processed_callbacks")
 
     def __init__(self, client: abc.Client, /) -> None:
+        """Create a manager.
+
+        Parameters
+        ----------
+        client
+            The alluka client to bind this to.
+        """
         self._client = client
         self._is_loaded = False
-        self._load_configs: list[_config.BaseConfig] = []
+        self._load_configs: list[_config.PluginConfig] = []
         self._load_types: dict[type[typing.Any], _index.TypeConfig[typing.Any]] = {}
         self._processed_callbacks: weakref.WeakSet[collections.Callable[..., typing.Any]] = weakref.WeakSet()
 
@@ -96,7 +110,7 @@ class Manager:
             return self.load_config(config)
 
         load_types = set(config.load_types)
-        for sub_config in config.configs:
+        for sub_config in config.plugins:
             load_types.update(sub_config.load_types)
             for config_type in sub_config.config_types():
                 self._client.set_type_dependency(config_type, sub_config)
