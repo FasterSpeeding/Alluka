@@ -35,14 +35,15 @@ from __future__ import annotations
 __all__: list[str] = ["ConfigFile", "Manager", "PluginConfig"]
 
 import typing
-from collections import abc as collections
 
 from . import _index
 from ._config import ConfigFile as ConfigFile
-from ._config import PluginConfig as PluginConfig
+from ._config import PluginConfig as PluginConfig  # noqa: TC002
 from ._manager import Manager as Manager
 
 if typing.TYPE_CHECKING:
+    from collections import abc as collections
+
     _T = typing.TypeVar("_T")
 
     _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
