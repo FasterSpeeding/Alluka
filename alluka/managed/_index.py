@@ -63,9 +63,7 @@ _DictValueT = typing.Union[
 class TypeConfig(typing.Generic[_T]):
     """Represents the procedures and metadata for creating and destroying a type dependency."""
 
-    __slots__ = (
-        "async_cleanup", "async_create", "cleanup", "create", "dep_type", "dependencies", "name"
-    )
+    __slots__ = ("async_cleanup", "async_create", "cleanup", "create", "dep_type", "dependencies", "name")
 
     async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]]
     """Callback used to use to cleanup the dependency in an async runtime."""
