@@ -94,7 +94,7 @@ class ConfigFile(typing.NamedTuple):
     def parse(cls, data: collections.Mapping[_DictKeyT, _DictValueT], /) -> Self:
         raw_plugins = data["plugins"]
         if not isinstance(raw_plugins, collections.Mapping):
-            raise TypeError(f"Expected a dictionaries at `'plugins'`, found {type(raw_plugins)}")
+            raise TypeError(f"Expected a dictionary at `'plugins'`, found {type(raw_plugins)}")
 
         try:
             raw_load_types = data["load_types"]
