@@ -86,7 +86,7 @@ register_config: collections.Callable[[type[PluginConfig]], None] = _GLOBAL_INDE
 
 Parameters
 ----------
-config_cls
+config_cls: type[PluginConfig]
     The plugin configuration class to register.
 
 Raises
@@ -96,7 +96,7 @@ RuntimeError
 """
 
 register_type: _RegiserTypeSig = _GLOBAL_INDEX.register_type
-"""Register the procedures for creating and destorying a type dependency.
+"""Register the procedures for creating and destroying a type dependency.
 
 !!! note
     Either `create` or `async_create` must be passed, but if only
@@ -105,19 +105,19 @@ register_type: _RegiserTypeSig = _GLOBAL_INDEX.register_type
 
 Parameters
 ----------
-dep_type
+dep_type: type[T]
     Type of the dep this should be registered for.
-name
+name : str
     Name used to identify this type dependency in configuration files.
-async_cleanup
+async_cleanup : collections.abc.Callable[[T], collections.abc.Coroutine[typing.Any, typing.Any, None]] | None
     Callback used to use to destroy the dependency in an async runtime.
-async_create
+async_create : collections.abc.Callable[..., collections.abc.Coroutine[typing.Any, typing.Any, T]] | None
     Callback used to use to create the dependency in an async runtime.
-cleanup
+cleanup : collections.abc.Callable[[T], None] | None
     Callback used to use to destroy the dependency in a sync runtime.
-create
+create : collections.abc.Callable[..., T] | None
     Callback used to use to create the dependency in a sync runtime.
-dependencies
+dependencies : collections.abc.Sequence[type[typing.Any]]
     Sequence of type dependencies that are required to create this dependency.
 
 Raises

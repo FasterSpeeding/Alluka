@@ -32,6 +32,7 @@ from __future__ import annotations
 
 __all__: list[str] = ["Index", "TypeConfig"]
 
+import dataclasses
 import importlib.metadata
 import logging
 import sys
@@ -58,8 +59,13 @@ _DictValueT = typing.Union[
 ]
 
 
-class TypeConfig(typing.NamedTuple, typing.Generic[_T]):
-    """Represents the procedures and metadata for creating and destorying a type dependency."""
+@dataclasses.dataclass(frozen=True)
+class TypeConfig(typing.Generic[_T]):
+    """Represents the procedures and metadata for creating and destroying a type dependency."""
+
+    __slots__ = (
+        "async_cleanup", "async_create", "cleanup", "create", "dep_type", "dependencies", "name"
+    )
 
     async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]]
     """Callback used to use to cleanup the dependency in an async runtime."""
@@ -184,7 +190,7 @@ class Index:
         create: typing.Optional[collections.Callable[..., _T]] = None,
         dependencies: collections.Sequence[type[typing.Any]] = (),
     ) -> None:
-        """Register the procedures for creating and destorying a type dependency.
+        """Register the procedures for creating and destroying a type dependency.
 
         !!! note
             Either `create` or `async_create` must be passed, but if only
@@ -278,7 +284,7 @@ class Index:
         -------
         TypeConfig[_T]
             Configuration which represents the procedures and metadata
-            for creating and destorying the type dependency.
+            for creating and destroying the type dependency.
         """
         try:
             return self._type_index[dep_type]
@@ -298,7 +304,7 @@ class Index:
         -------
         TypeConfig[_T]
             Configuration which represents the procedures and metadata
-            for creating and destorying the type dependency.
+            for creating and destroying the type dependency.
         """
         try:
             return self._name_index[name]
@@ -326,7 +332,7 @@ class Index:
             raise RuntimeError(f"Unknown config ID {config_id!r}") from None
 
     def _scan_libraries(self) -> None:
-        """Load config clases from installed libraries based on their entry points."""
+        """Load config classes from installed libraries based on their entry points."""
         if self._metadata_scanned:
             return
 
