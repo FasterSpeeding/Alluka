@@ -1,3 +1,3 @@
-# alluka.manages
+# alluka.managed
 
 ::: alluka.managed
