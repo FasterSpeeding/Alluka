@@ -32,7 +32,7 @@
 
 from __future__ import annotations
 
-__all__: list[str] = ["ConfigFile", "PluginConfig", "Manager"]
+__all__: list[str] = ["ConfigFile", "Manager", "PluginConfig"]
 
 import typing
 from collections import abc as collections
