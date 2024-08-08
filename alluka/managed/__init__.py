@@ -28,9 +28,11 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""Utility class for loading type dependencies based on configuration."""
+
 from __future__ import annotations
 
-__all__: list[str] = ["register_config", "register_type"]
+__all__: list[str] = ["ConfigFile", "PluginConfig", "Manager"]
 
 import typing
 from collections import abc as collections
@@ -86,7 +88,7 @@ register_config: collections.Callable[[type[PluginConfig]], None] = _GLOBAL_INDE
 
 Parameters
 ----------
-config_cls: type[PluginConfig]
+config_cls : type[PluginConfig]
     The plugin configuration class to register.
 
 Raises
@@ -105,7 +107,7 @@ register_type: _RegiserTypeSig = _GLOBAL_INDEX.register_type
 
 Parameters
 ----------
-dep_type: type[T]
+dep_type : type[T]
     Type of the dep this should be registered for.
 name : str
     Name used to identify this type dependency in configuration files.

@@ -87,11 +87,17 @@ def _parse_config(key: _DictKeyT, config: _DictValueT, /) -> PluginConfig:
 
 
 class ConfigFile(typing.NamedTuple):
+    """Represents the configuration file used to configure Alluka's Manager."""
+
     plugins: collections.Sequence[PluginConfig]
+    """Sequence of the loaded plugin configurations."""
+
     load_types: collections.Sequence[str]
+    """Sequence of the IDs of type dependencies to load alongside configured plugin types."""
 
     @classmethod
     def parse(cls, data: collections.Mapping[_DictKeyT, _DictValueT], /) -> Self:
+        """Parse [ConfigFile][alluka.managed.ConfigFile] from a JSON style dictionary."""
         raw_plugins = data["plugins"]
         if not isinstance(raw_plugins, collections.Mapping):
             raise TypeError(f"Expected a dictionary at `'plugins'`, found {type(raw_plugins)}")
