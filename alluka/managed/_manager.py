@@ -187,7 +187,7 @@ class Manager:
             else:
                 _LOGGER.warn("Type dependency %r skipped as it can only be created in an async context", type_info.name)
 
-    async def load_deps_async(self) -> None:
+    async def load_deps_async(self) -> None:  # noqa: ASYNC910
         """Initialise the configured dependencies asynchronously.
 
         Raises
@@ -244,7 +244,7 @@ class Manager:
                     type_info.dep_type,
                 )
 
-    async def unload_deps_async(self) -> None:
+    async def unload_deps_async(self) -> None:  # noqa: ASYNC910
         """Unload the configured dependencies asynchronously.
 
         Raises
