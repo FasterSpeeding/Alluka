@@ -1,3 +1,0 @@
-# alluka.manager
-
-::: alluka.manager
