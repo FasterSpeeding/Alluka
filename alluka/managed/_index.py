@@ -40,13 +40,13 @@ import threading
 import typing
 import weakref
 from collections import abc as collections
+from . import _config  # pyright: ignore[reportPrivateUsage]
 
 if typing.TYPE_CHECKING:
     import types
 
     from .. import _types  # pyright: ignore[reportPrivateUsage]
     from .. import abc as alluka
-    from . import _config  # pyright: ignore[reportPrivateUsage]
 
 
 _LOGGER = logging.getLogger("alluka.managed")
@@ -259,6 +259,8 @@ class Index:
 
         Parameters
         ----------
+        callback
+            The callback to get the descriptors for.
 
         Returns
         -------
@@ -339,7 +341,7 @@ class Index:
             entry_points = importlib.metadata.entry_points(group=_ENTRY_POINT_GROUP_NAME)
 
         else:
-            entry_points = importlib.metadata.entry_points()[_ENTRY_POINT_GROUP_NAME]
+            entry_points = importlib.metadata.entry_points().get(_ENTRY_POINT_GROUP_NAME) or []
 
         for entry_point in entry_points:
             value = entry_point.load()

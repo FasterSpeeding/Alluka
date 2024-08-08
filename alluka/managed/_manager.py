@@ -245,7 +245,7 @@ class Manager:
                 )
 
     async def unload_deps_async(self) -> None:
-        """Unload the configured dependencies asynchronously
+        """Unload the configured dependencies asynchronously.
 
         Raises
         ------
