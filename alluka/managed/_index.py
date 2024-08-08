@@ -40,6 +40,7 @@ import threading
 import typing
 import weakref
 from collections import abc as collections
+
 from . import _config  # pyright: ignore[reportPrivateUsage]
 
 if typing.TYPE_CHECKING:
