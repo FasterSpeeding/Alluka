@@ -133,7 +133,7 @@ async def test_call_with_async_di_with_type_dependency_and_callback(context: all
     async def callback(
         value_1: int,
         value_2: str,
-        value_3: MockType = alluka.inject(type=MockType), 
+        value_3: MockType = alluka.inject(type=MockType),
         value_4: int = alluka.inject(type=MockOtherType),
         value_5: typing.Any = alluka.inject(callback=mock_callback),
     ) -> str:
@@ -235,10 +235,7 @@ async def test_call_with_async_di_with_type_dependency_not_found(context: alluka
     value = mock.Mock()
 
     async def callback(
-        _: int,
-        value: str,
-        __: MockType = alluka.inject(type=MockType),
-        ___: int = alluka.inject(type=MockOtherType),
+        _: int, value: str, __: MockType = alluka.inject(type=MockType), ___: int = alluka.inject(type=MockOtherType)
     ) -> str:
         raise NotImplementedError
 
@@ -390,7 +387,9 @@ async def test_call_with_async_di_with_defaulting_union_type_dependency(context:
     async def callback(
         value_1: int,
         value_2: str,
-        cope: typing.Union[MockType, MockOtherType, None] = alluka.inject(type=typing.Union[MockType, MockOtherType, None]),
+        cope: typing.Union[MockType, MockOtherType, None] = alluka.inject(
+            type=typing.Union[MockType, MockOtherType, None]
+        ),
     ) -> float:
         assert value_1 == 123
         assert value_2 == "ok"
