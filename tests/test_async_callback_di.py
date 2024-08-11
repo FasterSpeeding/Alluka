@@ -1363,7 +1363,7 @@ async def test_call_with_async_di_with_overridden_annotated_sub_sync_dependency(
 @pytest.mark.anyio
 async def test_call_with_async_di_with_positional_only_type_dependency(context: alluka.Context):
     async def callback(
-        _: int, __: float = alluka.inject(type=float), /, ___: float = alluka.inject(type=float)x
+        _: int, __: float = alluka.inject(type=float), /, ___: float = alluka.inject(type=float)
     ) -> None:
         raise NotImplementedError
 
