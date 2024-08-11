@@ -273,7 +273,7 @@ async def test_call_with_async_di_with_defaulting_type_dependency(context: alluk
 @pytest.mark.anyio
 async def test_call_with_async_di_with_defaulting_type_dependency_not_found(context: alluka.Context):
     async def callback(
-        yeet: int, raw: str, value_1: typing.Optional[int] = alluka.inject(type=typing.Optional[MockType])
+        yeet: int, raw: str, value_1: typing.Optional[MockType] = alluka.inject(type=typing.Optional[MockType])
     ) -> str:
         assert yeet == 420
         assert raw == "uwu"
@@ -326,7 +326,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         context.injection_client.set_type_dependency(MockType, value)
 
         async def callback(
-            value_1: int, value_2: str, cope: int = alluka.inject(type=MockOtherType | MockType | None)
+            value_1: int, value_2: str, cope: MockOtherType | MockType | None = alluka.inject(type=MockOtherType | MockType | None)
         ) -> float:
             assert value_1 == 123
             assert value_2 == "ok"
@@ -340,7 +340,7 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
     @pytest.mark.anyio
     async def test_call_with_async_di_with_3_10_union_type_dependency_defaulting_not_found(context: alluka.Context):
         async def callback(
-            value_1: int, value_2: str, cope: int = alluka.inject(type=MockOtherType | MockType | None)
+            value_1: int, value_2: str, cope: MockOtherType | MockType | None = alluka.inject(type=MockOtherType | MockType | None)
         ) -> float:
             assert value_1 == 123
             assert value_2 == "ok"
