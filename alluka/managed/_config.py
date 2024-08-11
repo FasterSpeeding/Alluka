@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
-__all__: list[str] = ["ConfigFile", "PluginConfig"]
+__all__: list[str] = ["ConfigFile", "PluginConfig", "TypeConfig"]
 
 import abc
 import typing
@@ -39,15 +39,147 @@ from collections import abc as collections
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
+    _CoroT = collections.Coroutine[typing.Any, typing.Any, "_T"]
 
+
+_T = typing.TypeVar("_T")
 _DictKeyT = typing.Union[str, int, float, bool, None]
 _DictValueT = typing.Union[
     collections.Mapping[_DictKeyT, "_DictValueT"], collections.Sequence["_DictValueT"], _DictKeyT
 ]
 
 
+class TypeConfig(typing.Generic[_T]):
+    """Base class used for to declare the creation logic used by Alluka's manager for type dependencies.
+
+    Libraries should use entry points in the group "alluka.managed" to register
+    these.
+    """
+
+    __slots__ = ("_async_cleanup", "_async_create", "_cleanup", "_create", "_dep_type", "_dependencies", "_name")
+
+    @typing.overload
+    def __init__(
+        self,
+        dep_type: type[_T],
+        name: str,
+        /,
+        *,
+        async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
+        async_create: collections.Callable[..., _CoroT[_T]],
+        cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
+        create: typing.Optional[collections.Callable[..., _T]] = None,
+        dependencies: collections.Sequence[type[typing.Any]] = (),
+    ) -> None: ...
+
+    @typing.overload
+    def __init__(
+        self,
+        dep_type: type[_T],
+        name: str,
+        /,
+        *,
+        async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
+        async_create: typing.Optional[collections.Callable[..., _CoroT[_T]]] = None,
+        cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
+        create: collections.Callable[..., _T],
+        dependencies: collections.Sequence[type[typing.Any]] = (),
+    ) -> None: ...
+
+    def __init__(
+        self,
+        dep_type: type[_T],
+        name: str,
+        /,
+        *,
+        async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
+        async_create: typing.Optional[collections.Callable[..., _CoroT[_T]]] = None,
+        cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
+        create: typing.Optional[collections.Callable[..., _T]] = None,
+        dependencies: collections.Sequence[type[typing.Any]] = (),
+    ) -> None:
+        """Initialise a type config.
+
+        !!! note
+            Either `create` or `async_create` must be passed, but if only
+            `async_create` is passed then this will fail to be created in
+            a synchronous runtime.
+
+        Parameters
+        ----------
+        dep_type
+            Type of the dep this should be registered for.
+        name
+            Name used to identify this type dependency in configuration files.
+        async_cleanup
+            Callback used to use to destroy the dependency in an async runtime.
+        async_create
+            Callback used to use to create the dependency in an async runtime.
+        cleanup
+            Callback used to use to destroy the dependency in a sync runtime.
+        create
+            Callback used to use to create the dependency in a sync runtime.
+        dependencies
+            Sequence of type dependencies that are required to create this dependency.
+
+        Raises
+        ------
+        TypeError
+            If neither `create` nor `async_create` is passed.
+        """
+        if not create and not async_create:
+            raise TypeError("Either `create` or `async_create` must be passed")
+
+        self._async_cleanup = async_cleanup
+        self._async_create = async_create
+        self._cleanup = cleanup
+        self._create = create
+        self._dep_type = dep_type
+        self._dependencies = dependencies
+        self._name = name
+
+    @property
+    def async_cleanup(self) -> typing.Optional[collections.Callable[[_T], _CoroT[None]]]:
+        """Callback used to use to cleanup the dependency in an async runtime."""
+        return self._async_cleanup
+
+    @property
+    def async_create(self) -> typing.Optional[collections.Callable[..., _CoroT[_T]]]:
+        """Callback used to use to create the dependency in an async runtime."""
+        return self._async_create
+
+    @property
+    def cleanup(self) -> typing.Optional[collections.Callable[[_T], None]]:
+        """Callback used to use to cleanup the dependency in a sync runtime."""
+        return self._cleanup
+
+    @property
+    def create(self) -> typing.Optional[collections.Callable[..., _T]]:
+        """Callback used to use to create the dependency in an async runtime."""
+        return self._create
+
+    @property
+    def dep_type(self) -> type[_T]:
+        """The type created values should be registered as a type dependency for."""
+        return self._dep_type
+
+    @property
+    def dependencies(self) -> collections.Sequence[type[typing.Any]]:
+        """Sequence of type dependencies that are required to create this dependency."""
+        return self._dependencies
+
+    @property
+    def name(self) -> str:
+        """Name used to identify this type dependency in configuration files."""
+        return self._name
+
+
 class PluginConfig(abc.ABC):
-    """Base class used for configuring plugins loaded via Alluka's manager."""
+    """Base class used for configuring plugins loaded via Alluka's manager.
+
+    Libraries should use entry points in the group "alluka.managed" to register
+    these.
+    """
 
     __slots__ = ()
 
@@ -97,7 +229,18 @@ class ConfigFile(typing.NamedTuple):
 
     @classmethod
     def parse(cls, data: collections.Mapping[_DictKeyT, _DictValueT], /) -> Self:
-        """Parse [ConfigFile][alluka.managed.ConfigFile] from a JSON style dictionary."""
+        """Parse [ConfigFile][alluka.managed.ConfigFile] from a JSON style dictionary.
+
+        Parameters
+        ----------
+        data
+            The mapping of data to parse.
+
+        Returns
+        -------
+        ConfigFile
+            The parsed configuration.
+        """
         raw_plugins = data["plugins"]
         if not isinstance(raw_plugins, collections.Mapping):
             raise TypeError(f"Expected a dictionary at `'plugins'`, found {type(raw_plugins)}")

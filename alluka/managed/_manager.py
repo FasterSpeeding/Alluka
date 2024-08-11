@@ -59,7 +59,6 @@ _DictValueT = typing.Union[
 _PARSERS: dict[str, collections.Callable[[typing.BinaryIO], collections.Mapping[_DictKeyT, _DictValueT]]] = {
     "json": json.load
 }
-_T = typing.TypeVar("_T")
 
 
 try:
@@ -91,7 +90,7 @@ class Manager:
         self._client = client
         self._is_loaded = False
         self._load_configs: list[_config.PluginConfig] = []
-        self._load_types: dict[type[typing.Any], _index.TypeConfig[typing.Any]] = {}
+        self._load_types: dict[type[typing.Any], _config.TypeConfig[typing.Any]] = {}
         self._processed_callbacks: weakref.WeakSet[collections.Callable[..., typing.Any]] = weakref.WeakSet()
 
     def load_config(self, config: typing.Union[pathlib.Path, _config.ConfigFile], /) -> Self:
@@ -145,7 +144,7 @@ class Manager:
 
     def _to_resolvers(
         self, type_id: typing.Union[str, type[typing.Any]], /, *, mimo: typing.Optional[set[type[typing.Any]]] = None
-    ) -> collections.Iterator[_index.TypeConfig[typing.Any]]:
+    ) -> collections.Iterator[_config.TypeConfig[typing.Any]]:
         if mimo is None:
             mimo = set()
 
@@ -204,7 +203,7 @@ class Manager:
             value = await self._client.call_with_async_di(callback)
             self._client.set_type_dependency(type_info.dep_type, value)
 
-    def _iter_unload(self) -> collections.Iterator[tuple[_index.TypeConfig[typing.Any], typing.Any]]:
+    def _iter_unload(self) -> collections.Iterator[tuple[_config.TypeConfig[typing.Any], typing.Any]]:
         if not self._is_loaded:
             raise RuntimeError("Dependencies not loaded")
 

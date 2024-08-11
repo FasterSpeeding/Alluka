@@ -44,39 +44,6 @@ from ._manager import Manager as Manager
 if typing.TYPE_CHECKING:
     from collections import abc as collections
 
-    _T = typing.TypeVar("_T")
-
-    _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
-
-    class _RegiserTypeSig(typing.Protocol):
-        @typing.overload
-        def __call__(
-            self,
-            dep_type: type[_T],
-            name: str,
-            /,
-            *,
-            async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
-            async_create: collections.Callable[..., _CoroT[_T]],
-            cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
-            create: typing.Optional[collections.Callable[..., _T]] = None,
-            dependencies: collections.Sequence[type[typing.Any]] = (),
-        ) -> None: ...
-
-        @typing.overload
-        def __call__(
-            self,
-            dep_type: type[_T],
-            name: str,
-            /,
-            *,
-            async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
-            async_create: typing.Optional[collections.Callable[..., _CoroT[_T]]] = None,
-            cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
-            create: collections.Callable[..., _T],
-            dependencies: collections.Sequence[type[typing.Any]] = (),
-        ) -> None: ...
-
 
 _GLOBAL_INDEX = _index.GLOBAL_INDEX
 
@@ -84,7 +51,7 @@ register_config: collections.Callable[[type[PluginConfig]], None] = _GLOBAL_INDE
 """Register a plugin configuration class.
 
 !!! warning
-    Libraries should register entry-points under the `"alluka.plugins"` group
+    Libraries should register entry-points under the `"alluka.managed"` group
     to register custom configuration classes.
 
 Parameters
@@ -98,33 +65,15 @@ RuntimeError
     If the configuration class' ID is already registered.
 """
 
-register_type: _RegiserTypeSig = _GLOBAL_INDEX.register_type
+register_type: collections.Callable[[_config.TypeConfig[typing.Any]], None] = _GLOBAL_INDEX.register_type
 """Register the procedures for creating and destroying a type dependency.
 
-!!! note
-    Either `create` or `async_create` must be passed, but if only
-    `async_create` is passed then this will fail to be created in
-    a synchronous runtime.
+!!! warning
+    Libraries should register entry-points under the `"alluka.managed"` group
+    to register type procedure classes.
 
 Parameters
 ----------
-dep_type : type[T]
-    Type of the dep this should be registered for.
-name : str
-    Name used to identify this type dependency in configuration files.
-async_cleanup : collections.abc.Callable[[T], collections.abc.Coroutine[typing.Any, typing.Any, None]] | None
-    Callback used to use to destroy the dependency in an async runtime.
-async_create : collections.abc.Callable[..., collections.abc.Coroutine[typing.Any, typing.Any, T]] | None
-    Callback used to use to create the dependency in an async runtime.
-cleanup : collections.abc.Callable[[T], None] | None
-    Callback used to use to destroy the dependency in a sync runtime.
-create : collections.abc.Callable[..., T] | None
-    Callback used to use to create the dependency in a sync runtime.
-dependencies : collections.abc.Sequence[type[typing.Any]]
-    Sequence of type dependencies that are required to create this dependency.
-
-Raises
-------
-TypeError
-    If neither `create` nor `async_create` is passed.
+type_info
+    The type dependency's runtime procedures.
 """
