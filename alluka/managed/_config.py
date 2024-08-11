@@ -37,12 +37,15 @@ import typing
 from collections import abc as collections
 
 if typing.TYPE_CHECKING:
+    import typing_extensions
     from typing_extensions import Self
 
+    _P = typing_extensions.ParamSpec("_P")
     _CoroT = collections.Coroutine[typing.Any, typing.Any, "_T"]
 
 
 _T = typing.TypeVar("_T")
+_OtherT = typing.TypeVar("_OtherT")
 _DictKeyT = typing.Union[str, int, float, bool, None]
 _DictValueT = typing.Union[
     collections.Mapping[_DictKeyT, "_DictValueT"], collections.Sequence["_DictValueT"], _DictKeyT
@@ -56,7 +59,7 @@ class TypeConfig(typing.Generic[_T]):
     these.
     """
 
-    __slots__ = ("_async_cleanup", "_async_create", "_cleanup", "_create", "_dep_type", "_dependencies", "_name")
+    __slots__ = ("_async_cleanup", "_async_create", "_cleanup", "_create", "_dep_type", "_name")
 
     @typing.overload
     def __init__(
@@ -69,7 +72,6 @@ class TypeConfig(typing.Generic[_T]):
         async_create: collections.Callable[..., _CoroT[_T]],
         cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
         create: typing.Optional[collections.Callable[..., _T]] = None,
-        dependencies: collections.Sequence[type[typing.Any]] = (),
     ) -> None: ...
 
     @typing.overload
@@ -83,7 +85,6 @@ class TypeConfig(typing.Generic[_T]):
         async_create: typing.Optional[collections.Callable[..., _CoroT[_T]]] = None,
         cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
         create: collections.Callable[..., _T],
-        dependencies: collections.Sequence[type[typing.Any]] = (),
     ) -> None: ...
 
     def __init__(
@@ -96,7 +97,6 @@ class TypeConfig(typing.Generic[_T]):
         async_create: typing.Optional[collections.Callable[..., _CoroT[_T]]] = None,
         cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
         create: typing.Optional[collections.Callable[..., _T]] = None,
-        dependencies: collections.Sequence[type[typing.Any]] = (),
     ) -> None:
         """Initialise a type config.
 
@@ -119,8 +119,6 @@ class TypeConfig(typing.Generic[_T]):
             Callback used to use to destroy the dependency in a sync runtime.
         create
             Callback used to use to create the dependency in a sync runtime.
-        dependencies
-            Sequence of type dependencies that are required to create this dependency.
 
         Raises
         ------
@@ -135,8 +133,55 @@ class TypeConfig(typing.Generic[_T]):
         self._cleanup = cleanup
         self._create = create
         self._dep_type = dep_type
-        self._dependencies = dependencies
         self._name = name
+
+    @classmethod
+    def from_create(
+        cls, dep_type: type[_OtherT], name: str, /
+    ) -> collections.Callable[[collections.Callable[..., _OtherT]], TypeConfig[_OtherT]]:
+        """Initialise a type config by decorating a sync create callback.
+
+        Parameters
+        ----------
+        dep_type
+            Type of the dep this should be registered for.
+        name
+            Name used to identify this type dependency in configuration files.
+
+        Returns
+        -------
+        TypeConfig
+            The created type config.
+        """
+
+        def decorator(callback: collections.Callable[..., _OtherT], /) -> TypeConfig[_OtherT]:
+            return cls(dep_type, name, create=callback)
+
+        return decorator
+
+    @classmethod
+    def from_async_create(
+        cls, dep_type: type[_OtherT], name: str, /
+    ) -> collections.Callable[[collections.Callable[..., _CoroT[_OtherT]]], TypeConfig[_OtherT]]:
+        """Initialise a type config by decorating an async create callback.
+
+        Parameters
+        ----------
+        dep_type
+            Type of the dep this should be registered for.
+        name
+            Name used to identify this type dependency in configuration files.
+
+        Returns
+        -------
+        TypeConfig
+            The created type config.
+        """
+
+        def decorator(callback: collections.Callable[..., _CoroT[_OtherT]], /) -> TypeConfig[_OtherT]:
+            return cls(dep_type, name, async_create=callback)
+
+        return decorator
 
     @property
     def async_cleanup(self) -> typing.Optional[collections.Callable[[_T], _CoroT[None]]]:
@@ -164,14 +209,57 @@ class TypeConfig(typing.Generic[_T]):
         return self._dep_type
 
     @property
-    def dependencies(self) -> collections.Sequence[type[typing.Any]]:
-        """Sequence of type dependencies that are required to create this dependency."""
-        return self._dependencies
-
-    @property
     def name(self) -> str:
         """Name used to identify this type dependency in configuration files."""
         return self._name
+
+    def with_create(self, callback: collections.Callable[_P, _T], /) -> collections.Callable[_P, _T]:
+        """Set the synchronous create callback through a decorator call.
+
+        Parameters
+        ----------
+        callback
+            The callback to set as the synchronous create callback.
+        """
+        self._create = callback
+        return callback
+
+    def with_async_create(
+        self, callback: collections.Callable[_P, _CoroT[_T]], /
+    ) -> collections.Callable[_P, _CoroT[_T]]:
+        """Set the asynchronous create callback through a decorator call.
+
+        Parameters
+        ----------
+        callback
+            The callback to set as the asynchronous create callback.
+        """
+        self._async_create = callback
+        return callback
+
+    def with_cleanup(self, callback: collections.Callable[[_T], None], /) -> collections.Callable[[_T], None]:
+        """Set the synchronous cleanup callback through a decorator call.
+
+        Parameters
+        ----------
+        callback
+            The callback to set as the asynchronous cleanup callback.
+        """
+        self._cleanup = callback
+        return callback
+
+    def with_async_cleanup(
+        self, callback: collections.Callable[[_T], _CoroT[None]], /
+    ) -> collections.Callable[[_T], _CoroT[None]]:
+        """Set the asynchronous cleanup callback through a decorator call.
+
+        Parameters
+        ----------
+        callback
+            The callback to set as the synchronous cleanup callback.
+        """
+        self._async_cleanup = callback
+        return callback
 
 
 class PluginConfig(abc.ABC):

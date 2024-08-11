@@ -32,13 +32,14 @@
 
 from __future__ import annotations
 
-__all__: list[str] = ["ConfigFile", "Manager", "PluginConfig"]
+__all__: list[str] = ["ConfigFile", "Manager", "PluginConfig", "TypeConfig"]
 
 import typing
 
 from . import _index
 from ._config import ConfigFile as ConfigFile
 from ._config import PluginConfig as PluginConfig  # noqa: TC002
+from ._config import TypeConfig as TypeConfig
 from ._manager import Manager as Manager
 
 if typing.TYPE_CHECKING:
