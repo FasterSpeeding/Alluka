@@ -87,7 +87,7 @@ class Manager:
         client
             The alluka client to bind this to.
         """
-        self._client = client
+        self._client = client.set_type_dependency(Manager, self)
         self._is_loaded = False
         self._load_configs: list[_config.PluginConfig] = []
         self._load_types: dict[type[typing.Any], _config.TypeConfig[typing.Any]] = {}
