@@ -99,8 +99,8 @@ class Index:
         """Register a plugin configuration class.
 
         !!! warning
-            Libraries should register entry-points under the `"alluka.managed"` group
-            to register custom configuration classes.
+            Libraries should register custom configuration classes using package
+            entry-points tagged with the `"alluka.managed"` group.
 
         Parameters
         ----------
@@ -123,8 +123,8 @@ class Index:
         """Register the procedures for creating and destroying a type dependency.
 
         !!! warning
-            Libraries should register entry-points under the `"alluka.managed"` group
-            to register type procedure classes.
+            Libraries should register custom type procedure objects using package
+            entry-points tagged with the `"alluka.managed"` group.
 
         Parameters
         ----------

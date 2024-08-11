@@ -55,8 +55,8 @@ _DictValueT = typing.Union[
 class TypeConfig(typing.Generic[_T]):
     """Base class used for to declare the creation logic used by Alluka's manager for type dependencies.
 
-    Libraries should use entry points in the group "alluka.managed" to register
-    these.
+    Libraries should register custom type procedure objects using package
+    entry-points tagged with the `"alluka.managed"` group.
     """
 
     __slots__ = ("_async_cleanup", "_async_create", "_cleanup", "_create", "_dep_type", "_name")
@@ -265,8 +265,8 @@ class TypeConfig(typing.Generic[_T]):
 class PluginConfig(abc.ABC):
     """Base class used for configuring plugins loaded via Alluka's manager.
 
-    Libraries should use entry points in the group "alluka.managed" to register
-    these.
+    Libraries should register custom configuration classes using package
+    entry-points tagged with the `"alluka.managed"` group.
     """
 
     __slots__ = ()
