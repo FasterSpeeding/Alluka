@@ -127,3 +127,5 @@ dmypy.json
 .idea/
 
 gogo.patch
+
+test.py
