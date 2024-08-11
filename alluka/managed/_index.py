@@ -30,9 +30,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
-__all__: list[str] = ["Index", "TypeConfig"]
+__all__: list[str] = ["Index"]
 
-import dataclasses
 import importlib.metadata
 import logging
 import sys
@@ -53,42 +52,13 @@ if typing.TYPE_CHECKING:
 _LOGGER = logging.getLogger("alluka.managed")
 
 _T = typing.TypeVar("_T")
-_CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 _DictKeyT = typing.Union[str, int, float, bool, None]
 _DictValueT = typing.Union[
     collections.Mapping[_DictKeyT, "_DictValueT"], collections.Sequence["_DictValueT"], _DictKeyT
 ]
 
 
-@dataclasses.dataclass(frozen=True)
-class TypeConfig(typing.Generic[_T]):
-    """Represents the procedures and metadata for creating and destroying a type dependency."""
-
-    __slots__ = ("async_cleanup", "async_create", "cleanup", "create", "dep_type", "dependencies", "name")
-
-    async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]]
-    """Callback used to use to cleanup the dependency in an async runtime."""
-
-    async_create: typing.Optional[collections.Callable[..., _CoroT[_T]]]
-    """Callback used to use to create the dependency in an async runtime."""
-
-    cleanup: typing.Optional[collections.Callable[[_T], None]]
-    """Callback used to use to cleanup the dependency in a sync runtime."""
-
-    create: typing.Optional[collections.Callable[..., _T]]
-    """Callback used to use to create the dependency in an async runtime."""
-
-    dep_type: type[_T]
-    """The type created values should be registered as a type dependency for."""
-
-    dependencies: collections.Sequence[type[typing.Any]]
-    """Sequence of type dependencies that are required to create this dependency."""
-
-    name: str
-    """Name used to identify this type dependency in configuration files."""
-
-
-_ENTRY_POINT_GROUP_NAME = "alluka.plugins"
+_ENTRY_POINT_GROUP_NAME = "alluka.managed"
 
 
 class Index:
@@ -110,8 +80,8 @@ class Index:
         self._config_index: dict[str, type[_config.PluginConfig]] = {}
         self._lock = threading.Lock()
         self._metadata_scanned = False
-        self._name_index: dict[str, TypeConfig[typing.Any]] = {}
-        self._type_index: dict[type[typing.Any], TypeConfig[typing.Any]] = {}
+        self._name_index: dict[str, _config.TypeConfig[typing.Any]] = {}
+        self._type_index: dict[type[typing.Any], _config.TypeConfig[typing.Any]] = {}
         self._scan_libraries()
 
     def __enter__(self) -> None:
@@ -129,7 +99,7 @@ class Index:
         """Register a plugin configuration class.
 
         !!! warning
-            Libraries should register entry-points under the `"alluka.plugins"` group
+            Libraries should register entry-points under the `"alluka.managed"` group
             to register custom configuration classes.
 
         Parameters
@@ -149,95 +119,25 @@ class Index:
 
         self._config_index[config_id] = config_cls
 
-    @typing.overload
-    def register_type(
-        self,
-        dep_type: type[_T],
-        name: str,
-        /,
-        *,
-        async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
-        async_create: collections.Callable[..., _CoroT[_T]],
-        cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
-        create: typing.Optional[collections.Callable[..., _T]] = None,
-        dependencies: collections.Sequence[type[typing.Any]] = (),
-    ) -> None: ...
-
-    @typing.overload
-    def register_type(
-        self,
-        dep_type: type[_T],
-        name: str,
-        /,
-        *,
-        async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
-        async_create: typing.Optional[collections.Callable[..., _CoroT[_T]]] = None,
-        cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
-        create: collections.Callable[..., _T],
-        dependencies: collections.Sequence[type[typing.Any]] = (),
-    ) -> None: ...
-
-    def register_type(
-        self,
-        dep_type: type[_T],
-        name: str,
-        /,
-        *,
-        async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
-        async_create: typing.Optional[collections.Callable[..., _CoroT[_T]]] = None,
-        cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
-        create: typing.Optional[collections.Callable[..., _T]] = None,
-        dependencies: collections.Sequence[type[typing.Any]] = (),
-    ) -> None:
+    def register_type(self, type_info: _config.TypeConfig[typing.Any], /) -> None:
         """Register the procedures for creating and destroying a type dependency.
 
-        !!! note
-            Either `create` or `async_create` must be passed, but if only
-            `async_create` is passed then this will fail to be created in
-            a synchronous runtime.
+        !!! warning
+            Libraries should register entry-points under the `"alluka.managed"` group
+            to register type procedure classes.
 
         Parameters
         ----------
-        dep_type
-            Type of the dep this should be registered for.
-        name
-            Name used to identify this type dependency in configuration files.
-        async_cleanup
-            Callback used to use to destroy the dependency in an async runtime.
-        async_create
-            Callback used to use to create the dependency in an async runtime.
-        cleanup
-            Callback used to use to destroy the dependency in a sync runtime.
-        create
-            Callback used to use to create the dependency in a sync runtime.
-        dependencies
-            Sequence of type dependencies that are required to create this dependency.
-
-        Raises
-        ------
-        TypeError
-            If neither `create` nor `async_create` is passed.
+        type_info
+            The type dependency's runtime procedures.
         """
-        if not create and not async_create:
-            raise TypeError("Either create or async_create has to be passed")
+        if type_info.dep_type in self._type_index:
+            raise RuntimeError(f"Dependency type `{type_info.dep_type}` already registered")
 
-        config = TypeConfig(
-            async_cleanup=async_cleanup,
-            async_create=async_create,
-            cleanup=cleanup,
-            create=create,
-            dep_type=dep_type,
-            dependencies=dependencies,
-            name=name,
-        )
+        if type_info.name in self._name_index:
+            raise RuntimeError(f"Dependency name {type_info.name!r} already registered")
 
-        if config.dep_type in self._type_index:
-            raise RuntimeError(f"Dependency type `{config.dep_type}` already registered")
-
-        if config.name in self._name_index:
-            raise RuntimeError(f"Dependency name {config.name!r} already registered")
-
-        self._type_index[config.dep_type] = self._name_index[config.name] = config
+        self._type_index[type_info.dep_type] = self._name_index[type_info.name] = type_info
 
     def set_descriptors(
         self, callback: alluka.CallbackSig[typing.Any], descriptors: dict[str, _types.InjectedTuple], /
@@ -273,7 +173,7 @@ class Index:
         """
         return self._descriptors.get(callback)
 
-    def get_type(self, dep_type: type[_T], /) -> TypeConfig[_T]:
+    def get_type(self, dep_type: type[_T], /) -> _config.TypeConfig[_T]:
         """Get the configuration for a type dependency.
 
         Parameters
@@ -293,7 +193,7 @@ class Index:
         except KeyError:
             raise RuntimeError(f"Unknown dependency type {dep_type}") from None
 
-    def get_type_by_name(self, name: str, /) -> TypeConfig[typing.Any]:
+    def get_type_by_name(self, name: str, /) -> _config.TypeConfig[typing.Any]:
         """Get the configuration for a type dependency by its configured name.
 
         Parameters
@@ -346,16 +246,24 @@ class Index:
 
         for entry_point in entry_points:
             value = entry_point.load()
-            if isinstance(value, type) and issubclass(value, _config.PluginConfig):
-                self.register_config(value)
+            if not isinstance(value, type):
+                pass
 
-            else:
-                _LOGGER.warn(
-                    "Unexpected value found at %, expected a PluginConfig class but found %r. "
-                    "An alluka entry point is misconfigured.",
-                    entry_point.value,
-                    value,
-                )
+            elif issubclass(value, _config.PluginConfig):
+                _LOGGER.debug("Registered PluginConfig from %r", entry_point)
+                self.register_config(value)
+                continue
+
+            elif issubclass(value, _config.TypeConfig):
+                _LOGGER.debug("Registering TypeConfig from %r", entry_point)
+                continue
+
+            _LOGGER.warn(
+                "Unexpected value found at %, expected a PluginConfig class but found %r. "
+                "An alluka entry point is misconfigured.",
+                entry_point.value,
+                value,
+            )
 
 
 GLOBAL_INDEX = Index()
