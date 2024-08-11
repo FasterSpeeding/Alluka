@@ -238,7 +238,7 @@ async def test_call_with_async_di_with_type_dependency_not_found(context: alluka
         _: int,
         value: str,
         __: str = alluka.inject(type=MockType),  # type: ignore
-        ___: int = alluka.inject(type=MockOtherType)  # type: ignore
+        ___: int = alluka.inject(type=MockOtherType),  # type: ignore
     ) -> str:
         raise NotImplementedError
 
@@ -390,7 +390,7 @@ async def test_call_with_async_di_with_defaulting_union_type_dependency(context:
     async def callback(
         value_1: int,
         value_2: str,
-        cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType, None])  # type: ignore
+        cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType, None]),  # type: ignore
     ) -> float:
         assert value_1 == 123
         assert value_2 == "ok"
@@ -1363,10 +1363,8 @@ async def test_call_with_async_di_with_overridden_annotated_sub_sync_dependency(
 @pytest.mark.anyio
 async def test_call_with_async_di_with_positional_only_type_dependency(context: alluka.Context):
     async def callback(
-        _: int,
-        __: str = alluka.inject(type=float),  # type: ignore
-        /,
-        ___: float = alluka.inject(type=float)) -> None:
+        _: int, __: str = alluka.inject(type=float), /, ___: float = alluka.inject(type=float)  # type: ignore
+    ) -> None:
         raise NotImplementedError
 
     with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
@@ -1390,9 +1388,7 @@ async def test_call_with_async_di_with_positional_only_callback_dependency(conte
 async def test_call_with_async_di_with_sub_positional_only_callback_dependency(context: alluka.Context):
     sub_dependency = mock.Mock()
 
-    async def dependency(
-        _: str = alluka.inject(callback=sub_dependency),  # type: ignore
-        /) -> str:
+    async def dependency(_: str = alluka.inject(callback=sub_dependency), /) -> str:  # type: ignore
         raise NotImplementedError
 
     async def callback(
