@@ -238,7 +238,7 @@ async def test_call_with_async_di_with_type_dependency_not_found(context: alluka
         _: int,
         value: str,
         __: str = alluka.inject(type=MockType),  # type: ignore
-        ___: int = alluka.inject(type=MockOtherType),  # type: ignore
+        ___: int = alluka.inject(type=MockOtherType),
     ) -> str:
         raise NotImplementedError
 
@@ -1388,7 +1388,7 @@ async def test_call_with_async_di_with_positional_only_callback_dependency(conte
 async def test_call_with_async_di_with_sub_positional_only_callback_dependency(context: alluka.Context):
     sub_dependency = mock.Mock()
 
-    async def dependency(_: str = alluka.inject(callback=sub_dependency), /) -> str:  # type: ignore
+    async def dependency(_: str = alluka.inject(callback=sub_dependency), /) -> str:
         raise NotImplementedError
 
     async def callback(
@@ -1402,7 +1402,7 @@ async def test_call_with_async_di_with_sub_positional_only_callback_dependency(c
 
 @pytest.mark.anyio
 async def test_call_with_async_di_with_sub_positional_only_type_dependency(context: alluka.Context):
-    async def dependency(_: str = alluka.inject(type=int), /) -> str:
+    async def dependency(_: int = alluka.inject(type=int), /) -> str:
         raise NotImplementedError
 
     async def callback(
