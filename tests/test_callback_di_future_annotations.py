@@ -243,7 +243,7 @@ def test_call_with_di_with_type_dependency_not_found(context: alluka.Context):
         _: int,
         value_1: str,
         __: str = alluka.inject(type=MockType),  # type: ignore
-        ___: int = alluka.inject(type=MockOtherType)
+        ___: int = alluka.inject(type=MockOtherType),
     ) -> str:
         raise NotImplementedError
 
@@ -384,7 +384,7 @@ def test_call_with_di_with_defaulting_union_type_dependency(context: alluka.Cont
     def callback(
         value_1: int,
         value_2: str,
-        cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType, None])  # type: ignore
+        cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType, None]),  # type: ignore
     ) -> float:
         assert value_1 == 123
         assert value_2 == "ok"
@@ -1262,10 +1262,7 @@ def test_call_with_di_with_overridden_annotated_sub_async_dependency(context: al
 
 def test_call_with_di_with_positional_only_type_dependency(context: alluka.Context):
     def callback(
-        _: int,
-        __: str = alluka.inject(type=float),  # type: ignore
-        /,
-        ___: float = alluka.inject(type=float)
+        _: int, __: str = alluka.inject(type=float), /, ___: float = alluka.inject(type=float)  # type: ignore
     ) -> None:
         raise NotImplementedError
 
@@ -1301,9 +1298,7 @@ def test_call_with_di_with_sub_positional_only_callback_dependency(context: allu
 
 
 def test_call_with_di_with_sub_positional_only_type_dependency(context: alluka.Context):
-    def dependency(
-        _: str = alluka.inject(type=int),  # type: ignore
-    /) -> str:
+    def dependency(_: str = alluka.inject(type=int), /) -> str:  # type: ignore
         raise NotImplementedError
 
     def callback(
