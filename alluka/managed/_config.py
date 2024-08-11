@@ -155,7 +155,7 @@ class TypeConfig(typing.Generic[_T]):
         """
 
         def decorator(callback: collections.Callable[..., _OtherT], /) -> TypeConfig[_OtherT]:
-            return cls(dep_type, name, create=callback)
+            return TypeConfig(dep_type, name, create=callback)
 
         return decorator
 
@@ -179,7 +179,7 @@ class TypeConfig(typing.Generic[_T]):
         """
 
         def decorator(callback: collections.Callable[..., _CoroT[_OtherT]], /) -> TypeConfig[_OtherT]:
-            return cls(dep_type, name, async_create=callback)
+            return TypeConfig(dep_type, name, async_create=callback)
 
         return decorator
 
