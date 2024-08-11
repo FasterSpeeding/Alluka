@@ -66,7 +66,7 @@ RuntimeError
     If the configuration class' ID is already registered.
 """
 
-register_type: collections.Callable[[_config.TypeConfig[typing.Any]], None] = _GLOBAL_INDEX.register_type
+register_type: collections.Callable[[TypeConfig[typing.Any]], None] = _GLOBAL_INDEX.register_type
 """Register the procedures for creating and destroying a type dependency.
 
 !!! warning
