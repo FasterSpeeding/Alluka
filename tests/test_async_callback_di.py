@@ -235,7 +235,10 @@ async def test_call_with_async_di_with_type_dependency_not_found(context: alluka
     value = mock.Mock()
 
     async def callback(
-        _: int, value: str, __: MockType = alluka.inject(type=MockType), ___: MockOtherType = alluka.inject(type=MockOtherType)
+        _: int,
+        value: str,
+        __: MockType = alluka.inject(type=MockType),
+        ___: MockOtherType = alluka.inject(type=MockOtherType),
     ) -> str:
         raise NotImplementedError
 
@@ -305,7 +308,9 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
     @pytest.mark.anyio
     async def test_call_with_async_di_with_3_10_union_type_dependency_not_found(context: alluka.Context):
-        async def callback(_: int, __: str, cope: MockOtherType | MockType = alluka.inject(type=MockOtherType | MockType)) -> float:
+        async def callback(
+            _: int, __: str, cope: MockOtherType | MockType = alluka.inject(type=MockOtherType | MockType)
+        ) -> float:
             raise NotImplementedError
 
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
@@ -353,7 +358,9 @@ async def test_call_with_async_di_with_union_type_dependency(context: alluka.Con
     context.injection_client.set_type_dependency(MockOtherType, value)
 
     async def callback(
-        value_1: int, value_2: str, cope: typing.Union[MockType, MockOtherType] = alluka.inject(type=typing.Union[MockType, MockOtherType])
+        value_1: int,
+        value_2: str,
+        cope: typing.Union[MockType, MockOtherType] = alluka.inject(type=typing.Union[MockType, MockOtherType]),
     ) -> float:
         assert value_1 == 123
         assert value_2 == "ok"
@@ -367,7 +374,11 @@ async def test_call_with_async_di_with_union_type_dependency(context: alluka.Con
 
 @pytest.mark.anyio
 async def test_call_with_async_di_with_union_type_dependency_not_found(context: alluka.Context):
-    async def callback(_: int, __: str, cope: typing.Union[MockType, MockOtherType] = alluka.inject(type=typing.Union[MockType, MockOtherType])) -> float:
+    async def callback(
+        _: int,
+        __: str,
+        cope: typing.Union[MockType, MockOtherType] = alluka.inject(type=typing.Union[MockType, MockOtherType]),
+    ) -> float:
         raise NotImplementedError
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
