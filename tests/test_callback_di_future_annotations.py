@@ -105,7 +105,7 @@ def test_call_with_di_prioritises_defaults_over_annotations(context: alluka.Cont
     def callback(
         value_1: int,
         value_2: str,
-        value_3: alluka.Injected[str] = alluka.inject(type=MockType),
+        value_3: alluka.Injected[str] = alluka.inject(type=MockType),  # type: ignore
         value_4: typing.Annotated[int, alluka.inject(type=float)] = alluka.inject(type=MockOtherType),
         value_5: typing.Annotated[str, alluka.inject(callback=mock.Mock)] = alluka.inject(callback=dependency),
     ) -> str:
@@ -134,8 +134,8 @@ def test_call_with_di_with_type_dependency_and_callback(context: alluka.Context)
     def callback(
         value_1: int,
         value_2: str,
-        value_3: str = alluka.inject(type=MockType),
-        value_4: int = alluka.inject(type=MockOtherType),
+        value_3: MockType = alluka.inject(type=MockType),
+        value_4: MockOtherType = alluka.inject(type=MockOtherType),
         value_5: typing.Any = alluka.inject(callback=mock_callback),
     ) -> str:
         assert value_1 == 69
@@ -162,8 +162,8 @@ def test_call_with_di_with_type_dependency(context: alluka.Context):
     def callback(
         value_1: int,
         value_2: str,
-        value_3: str = alluka.inject(type=MockType),
-        value_4: int = alluka.inject(type=MockOtherType),
+        value_3: MockType = alluka.inject(type=MockType),
+        value_4: MockOtherType = alluka.inject(type=MockOtherType),
     ) -> str:
         assert value_1 == 69
         assert value_2 == "rew"
@@ -240,7 +240,7 @@ def test_call_with_di_with_type_dependency_not_found(context: alluka.Context):
     mock_value = mock.Mock()
 
     def callback(
-        _: int, value_1: str, __: str = alluka.inject(type=MockType), ___: int = alluka.inject(type=MockOtherType)
+        _: int, value_1: str, __: MockType = alluka.inject(type=MockType), ___: int = alluka.inject(type=MockOtherType)
     ) -> str:
         raise NotImplementedError
 
@@ -257,7 +257,7 @@ def test_call_with_di_with_defaulting_type_dependency(context: alluka.Context): 
     mock_value = mock.Mock()
 
     def callback(
-        value_1: int, value_2: str, value_3: typing.Optional[int] = alluka.inject(type=typing.Optional[MockType])
+        value_1: int, value_2: str, value_3: typing.Optional[MockType] = alluka.inject(type=typing.Optional[MockType])
     ) -> str:
         assert value_1 == 69
         assert value_2 == "rew"
@@ -273,7 +273,7 @@ def test_call_with_di_with_defaulting_type_dependency(context: alluka.Context): 
 
 def test_call_with_di_with_defaulting_type_dependency_not_found(context: alluka.Context):
     def callback(
-        yeet: int, raw: str, value_1: typing.Optional[int] = alluka.inject(type=typing.Optional[MockType])
+        yeet: int, raw: str, value_1: typing.Optional[MockType] = alluka.inject(type=typing.Optional[MockType])
     ) -> str:
         assert yeet == 420
         assert raw == "uwu"
@@ -293,7 +293,9 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
         context.injection_client.set_type_dependency(MockType, mock_value)
 
-        def callback(value_1: int, value_2: str, cope: int = alluka.inject(type=MockOtherType | MockType)) -> float:
+        def callback(
+            value_1: int, value_2: str, cope: MockOtherType | MockType = alluka.inject(type=MockOtherType | MockType)
+        ) -> float:
             assert value_1 == 123
             assert value_2 == "ok"
             assert cope is mock_value
@@ -304,7 +306,9 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         assert result == 451.123
 
     def test_call_with_di_with_3_10_union_type_dependency_not_found(context: alluka.Context):
-        def callback(_: int, __: str, cope: int = alluka.inject(type=MockOtherType | MockType)) -> float:
+        def callback(
+            _: int, __: str, cope: MockOtherType | MockType = alluka.inject(type=MockOtherType | MockType)
+        ) -> float:
             raise NotImplementedError
 
         with pytest.raises(alluka.MissingDependencyError) as exc_info:
@@ -320,7 +324,9 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
         context.injection_client.set_type_dependency(MockType, mock_value)
 
         def callback(
-            value_1: int, value_2: str, cope: int = alluka.inject(type=MockOtherType | MockType | None)
+            value_1: int,
+            value_2: str,
+            cope: MockOtherType | MockType | None = alluka.inject(type=MockOtherType | MockType | None),
         ) -> float:
             assert value_1 == 123
             assert value_2 == "ok"
@@ -333,7 +339,9 @@ if sys.version_info >= (3, 10):  # TODO: do we want to dupe other test cases for
 
     def test_call_with_di_with_3_10_union_type_dependency_defaulting_not_found(context: alluka.Context):
         def callback(
-            value_1: int, value_2: str, cope: int = alluka.inject(type=MockOtherType | MockType | None)
+            value_1: int,
+            value_2: str,
+            cope: MockOtherType | MockType | None = alluka.inject(type=MockOtherType | MockType | None),
         ) -> float:
             assert value_1 == 123
             assert value_2 == "ok"
@@ -350,7 +358,9 @@ def test_call_with_di_with_union_type_dependency(context: alluka.Context):
     context.injection_client.set_type_dependency(MockOtherType, mock_value)
 
     def callback(
-        value_1: int, value_2: str, cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType])
+        value_1: int,
+        value_2: str,
+        cope: typing.Union[MockType, MockOtherType] = alluka.inject(type=typing.Union[MockType, MockOtherType]),
     ) -> float:
         assert value_1 == 123
         assert value_2 == "ok"
@@ -363,7 +373,11 @@ def test_call_with_di_with_union_type_dependency(context: alluka.Context):
 
 
 def test_call_with_di_with_union_type_dependency_not_found(context: alluka.Context):
-    def callback(_: int, __: str, cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType])) -> float:
+    def callback(
+        _: int,
+        __: str,
+        cope: typing.Union[MockType, MockOtherType] = alluka.inject(type=typing.Union[MockType, MockOtherType]),
+    ) -> float:
         raise NotImplementedError
 
     with pytest.raises(alluka.MissingDependencyError) as exc_info:
@@ -379,7 +393,11 @@ def test_call_with_di_with_defaulting_union_type_dependency(context: alluka.Cont
     context.injection_client.set_type_dependency(MockOtherType, mock_value)
 
     def callback(
-        value_1: int, value_2: str, cope: int = alluka.inject(type=typing.Union[MockType, MockOtherType, None])
+        value_1: int,
+        value_2: str,
+        cope: typing.Union[MockType, MockOtherType, None] = alluka.inject(
+            type=typing.Union[MockType, MockOtherType, None]
+        ),
     ) -> float:
         assert value_1 == 123
         assert value_2 == "ok"
@@ -393,7 +411,7 @@ def test_call_with_di_with_defaulting_union_type_dependency(context: alluka.Cont
 
 def test_call_with_di_with_defaulting_union_type_dependency_not_found(context: alluka.Context):
     def callback(
-        value_1: float, value_2: int, cope: typing.Optional[int] = alluka.inject(type=typing.Optional[MockType])
+        value_1: float, value_2: int, cope: typing.Optional[MockType] = alluka.inject(type=typing.Optional[MockType])
     ) -> float:
         assert value_1 == 123.321
         assert value_2 == 543
@@ -1057,7 +1075,7 @@ def test_call_with_di_with_sub_type_dependency(context: alluka.Context):
     mock_value = mock.Mock()
     context.injection_client.set_type_dependency(MockType, mock_value)
 
-    def dependency(result: int = alluka.inject(type=MockType)) -> int:
+    def dependency(result: MockType = alluka.inject(type=MockType)) -> int:
         assert result is mock_value
         return 123321
 
@@ -1256,7 +1274,7 @@ def test_call_with_di_with_overridden_annotated_sub_async_dependency(context: al
 
 
 def test_call_with_di_with_positional_only_type_dependency(context: alluka.Context):
-    def callback(_: int, __: str = alluka.inject(type=float), /, ___: float = alluka.inject(type=float)) -> None:
+    def callback(_: int, __: str = alluka.inject(type=str), /, ___: float = alluka.inject(type=float)) -> None:
         raise NotImplementedError
 
     with pytest.raises(ValueError, match="Injected positional only arguments are not supported"):
@@ -1291,7 +1309,7 @@ def test_call_with_di_with_sub_positional_only_callback_dependency(context: allu
 
 
 def test_call_with_di_with_sub_positional_only_type_dependency(context: alluka.Context):
-    def dependency(_: str = alluka.inject(type=int), /) -> str:
+    def dependency(_: int = alluka.inject(type=int), /) -> str:
         raise NotImplementedError
 
     def callback(

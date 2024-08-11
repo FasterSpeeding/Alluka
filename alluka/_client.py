@@ -172,7 +172,7 @@ class Client(alluka.Client):
         ] = weakref.WeakKeyDictionary()
         self._introspect_annotations = introspect_annotations
         static_context = _context.Context(self)
-        self._make_context: collections.Callable[[Self], alluka.Context] = lambda _: static_context  # pyright: ignore
+        self._make_context: collections.Callable[[Self], alluka.Context] = lambda _: static_context
         self._type_dependencies: dict[type[typing.Any], typing.Any] = {alluka.Client: self, Client: self}
 
     def _build_descriptors(self, callback: alluka.CallbackSig[typing.Any], /) -> dict[str, _types.InjectedTuple]:
