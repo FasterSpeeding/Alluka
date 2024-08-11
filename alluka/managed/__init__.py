@@ -52,8 +52,8 @@ register_config: collections.Callable[[type[PluginConfig]], None] = _GLOBAL_INDE
 """Register a plugin configuration class.
 
 !!! warning
-    Libraries should register entry-points under the `"alluka.managed"` group
-    to register custom configuration classes.
+    Libraries should register custom configuration classes using package
+    entry-points tagged with the `"alluka.managed"` group.
 
 Parameters
 ----------
@@ -70,11 +70,11 @@ register_type: collections.Callable[[_config.TypeConfig[typing.Any]], None] = _G
 """Register the procedures for creating and destroying a type dependency.
 
 !!! warning
-    Libraries should register entry-points under the `"alluka.managed"` group
-    to register type procedure classes.
+    Libraries should register custom type procedure objects using package
+    entry-points tagged with the `"alluka.managed"` group.
 
 Parameters
 ----------
-type_info
+type_info : yuyo.managed.TypeConfig[typing.Any]
     The type dependency's runtime procedures.
 """
