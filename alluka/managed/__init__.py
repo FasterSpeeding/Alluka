@@ -39,7 +39,7 @@ import typing
 from . import _index
 from ._config import ConfigFile as ConfigFile
 from ._config import PluginConfig as PluginConfig  # noqa: TC002
-from ._config import TypeConfig as TypeConfig
+from ._config import TypeConfig as TypeConfig  # noqa: TC002
 from ._manager import Manager as Manager
 
 if typing.TYPE_CHECKING:

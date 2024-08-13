@@ -272,7 +272,7 @@ class PluginConfig(abc.ABC):
     __slots__ = ()
 
     @classmethod
-    def config_types(cls) -> collections.Sequence[type[PluginConfig]]:
+    def config_types(cls) -> collections.Sequence[type[typing.Any]]:
         """The types to use when registering this configuration as a type dependency."""
         return [cls]
 
