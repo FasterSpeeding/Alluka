@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "alluka"
-version = "0.3.1"
+version = "0.3.2"
 readme = "README.md"
 requires-python = ">=3.9.0,<3.14A"
 license = {file = "LICENSE"}
