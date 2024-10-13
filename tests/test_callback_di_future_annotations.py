@@ -1346,3 +1346,22 @@ def test_call_with_di_with_signature_less_callback_dependency(context: alluka.Co
     result = context.call_with_di(callback)
 
     assert result == 222
+
+
+
+##############
+# Edge cases #
+##############
+
+
+def test_call_with_di_when_ctxs_and_callback_names_used(context: alluka.Context):
+    """Test that these won't conflict with internal argument names."""
+
+    def callback(ctx: str, callback: str) -> int:
+        assert ctx = "123"
+        assert callback = "456"
+        return 999
+
+    result = context.call_with_di(callback, ctx="123", callback="456")
+
+    assert result == 999
