@@ -1308,12 +1308,13 @@ def test_call_with_di_with_sub_positional_only_type_dependency(context: alluka.C
         context.call_with_di(callback)
 
 
-############################
-# Signature-less callbacks #
-############################
+##############
+# Edge cases #
+##############
 
 
 def test_call_with_di_with_signature_less_callback(context: alluka.Context):
+    """Ensure signature-less callbacks are handled."""
     with pytest.raises(ValueError, match="no signature found for builtin type <class 'str'>"):
         inspect.signature(str)
 
@@ -1323,6 +1324,7 @@ def test_call_with_di_with_signature_less_callback(context: alluka.Context):
 
 
 def test_call_with_di_with_signature_less_callback_dependency(context: alluka.Context):
+    """Ensure signature-less callbacks are handled as callback dependencies."""
     with pytest.raises(ValueError, match="no signature found for builtin type <class 'int'>"):
         inspect.signature(int)
 
@@ -1335,17 +1337,12 @@ def test_call_with_di_with_signature_less_callback_dependency(context: alluka.Co
     assert result == 222
 
 
-##############
-# Edge cases #
-##############
-
-
 def test_call_with_di_when_internal_argument_names_used(context: alluka.Context):
-    """Test that these won't conflict with internal argument names."""
+    """Test that internal argument won't name conflict with user function arguments."""
 
     def callback(ctx: str, callback: str) -> int:
-        assert ctx = "123"
-        assert callback = "456"
+        assert ctx == "123"
+        assert callback == "456"
         return 999
 
     result = context.call_with_di(callback, ctx="123", callback="456")
