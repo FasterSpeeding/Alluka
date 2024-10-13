@@ -1470,13 +1470,14 @@ async def test_call_with_async_di_with_sub_positional_only_type_dependency(conte
         await context.call_with_async_di(callback)
 
 
-############################
-# Signature-less callbacks #
-############################
+##############
+# Edge cases #
+##############
 
 
 @pytest.mark.anyio
 async def test_call_with_async_di_with_signature_less_callback(context: alluka.Context):
+    """Ensure signature-less callbacks are handled."""
     with pytest.raises(ValueError, match="no signature found for builtin type <class 'str'>"):
         inspect.signature(str)
 
@@ -1487,6 +1488,7 @@ async def test_call_with_async_di_with_signature_less_callback(context: alluka.C
 
 @pytest.mark.anyio
 async def test_call_with_async_dix_with_signature_less_callback_dependency(context: alluka.Context):
+    """Ensure signature-less callbacks are handled as callback dependencies."""
     with pytest.raises(ValueError, match="no signature found for builtin type <class 'int'>"):
         inspect.signature(int)
 
@@ -1498,18 +1500,13 @@ async def test_call_with_async_dix_with_signature_less_callback_dependency(conte
 
     assert result == 222
 
-
-##############
-# Edge cases #
-##############
-
-
-def test_call_with_async_di_when_internal_argument_names_used(context: alluka.Context):
+@pytest.mark.anyio
+async def test_call_with_async_di_when_internal_argument_names_used(context: alluka.Context):
     """Test that these won't conflict with internal argument names."""
 
     def callback(ctx: str, callback: str) -> int:
-        assert ctx = "123"
-        assert callback = "456"
+        assert ctx == "123"
+        assert callback == "456"
         return 999
 
     result = await context.call_with_async_di(callback, ctx="123", callback="456")
