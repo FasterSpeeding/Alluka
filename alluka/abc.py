@@ -183,13 +183,13 @@ class Client(abc.ABC):
 
     @typing.overload
     def call_with_di(
-        self, callback: collections.Callable[..., _CoroT[typing.Any]], *args: typing.Any, **kwargs: typing.Any
+        self, callback: collections.Callable[..., _CoroT[typing.Any]], /, *args: typing.Any, **kwargs: typing.Any
     ) -> typing.NoReturn: ...
 
     @typing.overload
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T: ...
+    def call_with_di(self, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any) -> _T: ...
 
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    def call_with_di(self, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Call a function with sync dependency injection.
 
         Parameters
@@ -224,6 +224,7 @@ class Client(abc.ABC):
         self,
         ctx: Context,
         callback: collections.Callable[..., _CoroT[typing.Any]],
+        /,
         *args: typing.Any,
         **kwargs: typing.Any,
     ) -> typing.NoReturn: ...
@@ -231,12 +232,12 @@ class Client(abc.ABC):
     @typing.overload
     @abc.abstractmethod
     def call_with_ctx(
-        self, ctx: Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
+        self, ctx: Context, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any
     ) -> _T: ...
 
     @abc.abstractmethod
     def call_with_ctx(
-        self, ctx: Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
+        self, ctx: Context, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         """Call a function with an existing DI context.
 
@@ -269,7 +270,7 @@ class Client(abc.ABC):
             If the callback or any of its callback dependencies are async.
         """
 
-    async def call_with_async_di(self, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    async def call_with_async_di(self, callback: CallbackSig[_T], /, *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Call a function with async dependency injection.
 
         Parameters
@@ -300,7 +301,7 @@ class Client(abc.ABC):
 
     @abc.abstractmethod
     async def call_with_ctx_async(
-        self, ctx: Context, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
+        self, ctx: Context, callback: CallbackSig[_T], /, *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         """Asynchronously call a function with a pre-existing DI context.
 
@@ -479,13 +480,13 @@ class Context(abc.ABC):
 
     @typing.overload
     def call_with_di(
-        self, callback: collections.Callable[..., _CoroT[typing.Any]], *args: typing.Any, **kwargs: typing.Any
+        self, callback: collections.Callable[..., _CoroT[typing.Any]], /, *args: typing.Any, **kwargs: typing.Any
     ) -> typing.NoReturn: ...
 
     @typing.overload
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T: ...
+    def call_with_di(self, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any) -> _T: ...
 
-    def call_with_di(self, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    def call_with_di(self, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Call a function with the current DI context.
 
         Parameters
@@ -514,7 +515,7 @@ class Context(abc.ABC):
         """
         return self.injection_client.call_with_ctx(self, callback, *args, **kwargs)
 
-    async def call_with_async_di(self, callback: CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
+    async def call_with_async_di(self, callback: CallbackSig[_T], /, *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Asynchronously call a function with the current DI context.
 
         Parameters
