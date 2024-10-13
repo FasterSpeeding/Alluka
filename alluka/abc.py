@@ -187,7 +187,9 @@ class Client(abc.ABC):
     ) -> typing.NoReturn: ...
 
     @typing.overload
-    def call_with_di(self, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any) -> _T: ...
+    def call_with_di(
+        self, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any
+    ) -> _T: ...
 
     def call_with_di(self, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Call a function with sync dependency injection.
@@ -484,7 +486,9 @@ class Context(abc.ABC):
     ) -> typing.NoReturn: ...
 
     @typing.overload
-    def call_with_di(self, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any) -> _T: ...
+    def call_with_di(
+        self, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any
+    ) -> _T: ...
 
     def call_with_di(self, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any) -> _T:
         """Call a function with the current DI context.
