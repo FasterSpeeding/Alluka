@@ -1354,7 +1354,7 @@ def test_call_with_di_with_signature_less_callback_dependency(context: alluka.Co
 ##############
 
 
-def test_call_with_di_when_ctxs_and_callback_names_used(context: alluka.Context):
+def test_call_with_di_whe_internal_argument_names_used(context: alluka.Context):
     """Test that these won't conflict with internal argument names."""
 
     def callback(ctx: str, callback: str) -> int:
