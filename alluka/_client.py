@@ -231,17 +231,18 @@ class Client(alluka.Client):
         self,
         ctx: alluka.Context,
         callback: collections.Callable[..., _AnyCoro],
+        /,
         *args: typing.Any,
         **kwargs: typing.Any,
     ) -> typing.NoReturn: ...
 
     @typing.overload
     def call_with_ctx(
-        self, ctx: alluka.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
+        self, ctx: alluka.Context, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any
     ) -> _T: ...
 
     def call_with_ctx(
-        self, ctx: alluka.Context, callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any
+        self, ctx: alluka.Context, callback: collections.Callable[..., _T], /, *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
         descriptors = self._build_descriptors(callback)
@@ -256,7 +257,7 @@ class Client(alluka.Client):
         return result
 
     async def call_with_ctx_async(
-        self, ctx: alluka.Context, callback: alluka.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any
+        self, ctx: alluka.Context, callback: alluka.CallbackSig[_T], /, *args: typing.Any, **kwargs: typing.Any
     ) -> _T:
         # <<inherited docstring from alluka.abc.Client>>.
         if descriptors := self._build_descriptors(callback):
