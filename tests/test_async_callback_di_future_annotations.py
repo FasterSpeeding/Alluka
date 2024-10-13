@@ -1500,6 +1500,7 @@ async def test_call_with_async_dix_with_signature_less_callback_dependency(conte
 
     assert result == 222
 
+
 @pytest.mark.anyio
 async def test_call_with_async_di_when_internal_argument_names_used(context: alluka.Context):
     """Test that these won't conflict with internal argument names."""

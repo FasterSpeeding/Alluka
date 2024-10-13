@@ -1348,4 +1348,3 @@ def test_call_with_di_when_internal_argument_names_used(context: alluka.Context)
     result = context.call_with_di(callback, ctx="123", callback="456")
 
     assert result == 999
-
