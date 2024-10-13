@@ -1455,3 +1455,21 @@ async def test_call_with_async_di_with_signature_less_callback_dependency(contex
     result = await context.call_with_async_di(callback)
 
     assert result == 222
+
+
+##############
+# Edge cases #
+##############
+
+
+def test_call_with_async_di_when_internal_argument_names_used(context: alluka.Context):
+    """Test that these won't conflict with internal argument names."""
+
+    def callback(ctx: str, callback: str) -> int:
+        assert ctx = "123"
+        assert callback = "456"
+        return 999
+
+    result = await context.call_with_async_di(callback, ctx="123", callback="456")
+
+    assert result == 999
