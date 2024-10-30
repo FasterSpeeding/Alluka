@@ -9,7 +9,7 @@ readme = "README.md"
 requires-python = ">=3.9.0,<3.14"
 license = {file = "LICENSE"}
 authors = [ {name = "Faster Speeding", email="lucina@lmbyrne.dev"} ]
-keywords = ["DI", "injection"]
+keywords = ["DI", "injection", "dependency injection" ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Framework :: AnyIO",
