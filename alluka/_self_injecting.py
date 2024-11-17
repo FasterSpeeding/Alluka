@@ -95,10 +95,10 @@ with warnings.catch_warnings():
         ) -> _T: ...
 
         async def __call__(
-            self: typing.Union[
-                AsyncSelfInjecting[collections.Callable[..., _T]],
-                AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]],
-            ],
+            self: (
+                AsyncSelfInjecting[collections.Callable[..., _T]]
+                | AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]]
+            ),
             *args: typing.Any,
             **kwargs: typing.Any,
         ) -> _T:

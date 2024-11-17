@@ -53,7 +53,7 @@ class _UndefinedEnum(enum.Enum):
 
 UNDEFINED = _UndefinedEnum.UNDEFINED
 """Singleton used internally to indicate that a value is undefined."""
-UndefinedOr = typing.Union[_T, typing.Literal[_UndefinedEnum.UNDEFINED]]
+UndefinedOr = _T | typing.Literal[_UndefinedEnum.UNDEFINED]
 """Union for a value which may be undefined."""
 
 
@@ -215,13 +215,13 @@ class InjectedDescriptor(typing.Generic[_T]):
 
     __slots__ = ("callback", "type")
 
-    callback: typing.Optional[alluka.CallbackSig[_T]]
+    callback: alluka.CallbackSig[_T] | None
     """The callback to use to resolve the parameter's value.
 
     If this is `None` then this is a type dependency.
     """
 
-    type: typing.Optional[_TypeT[_T]]  # noqa: VNE003
+    type: _TypeT[_T] | None  # noqa: VNE003
     """The type to use to resolve the parameter's value.
 
     If both this and `callback` are `None`, then this is a type dependency
@@ -229,10 +229,7 @@ class InjectedDescriptor(typing.Generic[_T]):
     """
 
     def __init__(
-        self,
-        *,
-        callback: typing.Optional[alluka.CallbackSig[_T]] = None,
-        type: typing.Optional[_TypeT[_T]] = None,  # noqa: A002
+        self, *, callback: alluka.CallbackSig[_T] | None = None, type: _TypeT[_T] | None = None  # noqa: A002
     ) -> None:  # TODO: add default/factory to this?
         """Initialise an injection default descriptor.
 

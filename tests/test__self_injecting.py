@@ -31,7 +31,8 @@
 
 # pyright: reportDeprecated=none
 
-import mock
+from unittest import mock
+
 import pytest
 
 import alluka

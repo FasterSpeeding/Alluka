@@ -32,16 +32,15 @@
 from __future__ import annotations
 
 import typing
+from unittest import mock
 
-import mock
 import pytest
 
 import alluka
 
 if typing.TYPE_CHECKING:
     from collections import abc as collections
-
-    from typing_extensions import Self
+    from typing import Self
 
     _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
     _DefaultT = typing.TypeVar("_DefaultT")
@@ -92,7 +91,7 @@ class MockClient(alluka.abc.Client):
     def set_type_dependency(self, type_: type[_T], value: _T, /) -> Self:
         raise NotImplementedError
 
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> typing.Union[_T, _DefaultT]:
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> _T | _DefaultT:
         raise NotImplementedError
 
     def remove_type_dependency(self, type_: type[typing.Any], /) -> Self:
@@ -103,9 +102,7 @@ class MockClient(alluka.abc.Client):
     ) -> Self:
         raise NotImplementedError
 
-    def get_callback_override(
-        self, callback: alluka.abc.CallbackSig[_T], /
-    ) -> typing.Optional[alluka.abc.CallbackSig[_T]]:
+    def get_callback_override(self, callback: alluka.abc.CallbackSig[_T], /) -> alluka.abc.CallbackSig[_T] | None:
         raise NotImplementedError
 
     def remove_callback_override(self, callback: alluka.abc.CallbackSig[_T], /) -> Self:
@@ -174,9 +171,9 @@ class MockContext(alluka.abc.Context):
     def get_type_dependency(self, type_: type[_T], /) -> _T: ...
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> typing.Union[_T, _DefaultT]:
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> _T | _DefaultT:
         raise NotImplementedError
 
 

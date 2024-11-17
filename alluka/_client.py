@@ -53,7 +53,7 @@ from . import _visitor
 from . import abc as alluka
 
 if typing.TYPE_CHECKING:
-    from typing_extensions import Self
+    from typing import Self
 
 
 _T = typing.TypeVar("_T")
@@ -72,7 +72,7 @@ class _NoDefaultEnum(enum.Enum):
 
 
 _NO_VALUE: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
-_NoValueOr = typing.Union[_T, typing.Literal[_NoDefaultEnum.VALUE]]
+_NoValueOr = _T | typing.Literal[_NoDefaultEnum.VALUE]
 
 
 @typing.overload
@@ -89,9 +89,7 @@ def inject(*, type: typing.Any = None) -> typing.Any:  # noqa: A002
     ...
 
 
-def inject(
-    *, callback: typing.Optional[alluka.CallbackSig[_T]] = None, type: typing.Any = None  # noqa: A002
-) -> typing.Any:
+def inject(*, callback: alluka.CallbackSig[_T] | None = None, type: typing.Any = None) -> typing.Any:  # noqa: A002
     """Declare a keyword-argument as requiring an injected dependency.
 
     This may be assigned to an argument's default value to declare injection
@@ -283,11 +281,9 @@ class Client(alluka.Client):
     def get_type_dependency(self, type_: type[_T], /) -> _T: ...
 
     @typing.overload
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
-    def get_type_dependency(
-        self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
-    ) -> typing.Union[_T, _DefaultT]:
+    def get_type_dependency(self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE) -> _T | _DefaultT:
         # <<inherited docstring from alluka.abc.Client>>.
         result = self._type_dependencies.get(type_, default)
 
@@ -306,7 +302,7 @@ class Client(alluka.Client):
         self._callback_overrides[callback] = override
         return self
 
-    def get_callback_override(self, callback: alluka.CallbackSig[_T], /) -> typing.Optional[alluka.CallbackSig[_T]]:
+    def get_callback_override(self, callback: alluka.CallbackSig[_T], /) -> alluka.CallbackSig[_T] | None:
         # <<inherited docstring from alluka.abc.Client>>.
         return self._callback_overrides.get(callback)
 

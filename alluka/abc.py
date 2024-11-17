@@ -45,9 +45,9 @@ from collections import abc as collections
 import typing_extensions
 
 if typing.TYPE_CHECKING:
-    from typing_extensions import Self
+    from typing import Self
 
-    _P = typing_extensions.ParamSpec("_P")
+    _P = typing.ParamSpec("_P")
 
 _T = typing.TypeVar("_T")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
@@ -61,10 +61,10 @@ class _NoDefaultEnum(enum.Enum):
 
 
 _NO_VALUE: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
-_NoValueOr = typing.Union[_T, typing.Literal[_NoDefaultEnum.VALUE]]
+_NoValueOr = _T | typing.Literal[_NoDefaultEnum.VALUE]
 
 
-CallbackSig = collections.Callable[..., typing.Union[_CoroT[_T], _T]]
+CallbackSig = collections.Callable[..., _CoroT[_T] | _T]
 """Type-hint of a injector callback.
 
 !!! note
@@ -357,10 +357,10 @@ class Client(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> typing.Union[_T, _DefaultT]:
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> _T | _DefaultT:
         """Get the implementation for an injected type.
 
         Parameters
@@ -422,7 +422,7 @@ class Client(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_callback_override(self, callback: CallbackSig[_T], /) -> typing.Optional[CallbackSig[_T]]:
+    def get_callback_override(self, callback: CallbackSig[_T], /) -> CallbackSig[_T] | None:
         """Get the override for a specific injected callback.
 
         Parameters
@@ -550,11 +550,11 @@ class Context(abc.ABC):
     def get_cached_result(self, callback: CallbackSig[_T], /) -> _T: ...
 
     @typing.overload
-    def get_cached_result(self, callback: CallbackSig[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
+    def get_cached_result(self, callback: CallbackSig[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
     def get_cached_result(
         self, callback: CallbackSig[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
-    ) -> typing.Union[_T, _DefaultT]:
+    ) -> _T | _DefaultT:
         """Get the cached result of a callback.
 
         This will always raise/default for context implementations with no caching.
@@ -591,10 +591,10 @@ class Context(abc.ABC):
 
     @typing.overload
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> typing.Union[_T, _DefaultT]: ...
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
     @abc.abstractmethod
-    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> typing.Union[_T, _DefaultT]:
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT = ...) -> _T | _DefaultT:
         """Get the implementation for an injected type.
 
         Unlike [Client.get_type_dependency][alluka.abc.Client.get_type_dependency],
@@ -656,10 +656,10 @@ class AsyncSelfInjecting(abc.ABC, typing.Generic[_CallbackT]):
 
     @abc.abstractmethod
     async def __call__(
-        self: typing.Union[
-            AsyncSelfInjecting[collections.Callable[..., _T]],  # pyright: ignore[reportDeprecated]
-            AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]],  # pyright: ignore[reportDeprecated]
-        ],
+        self: (
+            AsyncSelfInjecting[collections.Callable[..., _T]]  # pyright: ignore[reportDeprecated]
+            | AsyncSelfInjecting[collections.Callable[..., _CoroT[_T]]]  # pyright: ignore[reportDeprecated]
+        ),
         *args: typing.Any,
         **kwargs: typing.Any,
     ) -> _T:
