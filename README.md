@@ -1,6 +1,6 @@
 # Alluka
 
-A type based dependency injection framework for Python 3.9+.
+A type based dependency injection framework for Python 3.11.
 
 # Usage
 
