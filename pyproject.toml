@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "alluka"
 version = "0.3.3"
 readme = "README.md"
-requires-python = ">=3.9.0,<3.14"
+requires-python = ">=3.11.0,<3.15"
 license = {file = "LICENSE"}
 authors = [ {name = "Faster Speeding", email="lucina@lmbyrne.dev"} ]
 keywords = ["DI", "injection", "dependency injection" ]
@@ -19,8 +19,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -40,11 +38,10 @@ Documentation = "https://alluka.cursed.solutions/"
 Changelog = "https://alluka.cursed.solutions/changelog"
 
 [tool.black]
-extend-exclude = "^\\/alluka\\/_vendor\\/.*$"
 include = ".*pyi?$"
 line-length = 120
 skip-magic-trailing-comma = true
-target-version = ["py39"]
+target-version = ["py311"]
 
 [tool.coverage.run]
 concurrency = ["multiprocessing"]
@@ -52,7 +49,6 @@ parallel = true
 branch = true
 timid = false
 source = ["alluka"]
-omit = ["alluka/_vendor/*"]
 
 [tool.coverage.report]
 precision = 2
@@ -69,7 +65,6 @@ accept-encodings = "utf-8"
 count = true
 docstring-convention = "numpy"
 eradicate-aggressive = true
-exclude = ["alluka/_vendor/**"]
 extend-select = ["TC100", "TC101"]
 force-future-annotations = true
 ignore-decorators = "overload"
@@ -77,7 +72,7 @@ max-complexity = 20
 max-function-length = 100
 # Technically this is 120, but black has a policy of "1 or 2 over is fine if it is tidier", so we have to raise this.
 max-line-length = 130
-min_python_version = "3.9"
+min_python_version = "3.11"
 pep585-activation = "always"
 show_source = false
 statistics = false
@@ -106,6 +101,7 @@ ignore = [
 ]
 # Doc errors don't matter in the tests
 per-file-ignores = [
+    "alluka/abc.py: A005", # A005 the module is shadowing a Python builtin module "abc"
     "alluka/py.typed: D100",
     "docs_src/*.py: ASYNC910, ASYNC911, DALL000, D100, D101, D103, E800, FA100, FA101, F841, INP001, M511, N806, TC001, TC101, T201, VNE002",
     "noxfile.py: D100, FA101, F401, F403, INP001",
@@ -115,7 +111,6 @@ per-file-ignores = [
 [tool.isort]
 profile = "black"
 force_single_line = true
-skip = ["alluka/_vendor"]
 
 [tool.mypy]
 # some good strict settings
@@ -132,9 +127,6 @@ warn_redundant_casts = false
 # compatibility with pyright
 allow_redefinition = true
 
-# Ignore vendored modules
-exclude = ["alluka/_vendor/"]
-
 [tool.piped]
 default_sessions = [
     "reformat",
@@ -149,7 +141,6 @@ default_sessions = [
 extra_test_installs = ["."]
 mypy_allowed_to_fail = true
 mypy_targets = ["alluka"]
-path_ignore = "^alluka\\/_vendor\\/"
 project_name = "alluka"
 top_level_targets = ["./alluka", "./docs_src", "./noxfile.py", "./tests"]
 
@@ -159,7 +150,7 @@ top_level_targets = ["./alluka", "./docs_src", "./noxfile.py", "./tests"]
 [tool.piped.github_actions.publish]
 [tool.piped.github_actions.py_test]
 codeclimate_token = "a965935acdc9066802d7201945219784c0f24d22e8a2dff0e6529207726bc8af"
-python_versions = ["3.9", "3.10", "3.11", "3.12", "3.13-dev"]
+python_versions = ["3.11", "3.12", "3.13", "3.14-dev"]
 
 [tool.piped.github_actions.reformat]
 [tool.piped.github_actions.release_docs]
@@ -174,10 +165,9 @@ python_versions = ["3.9", "3.10", "3.11", "3.12", "3.13-dev"]
 exclude = "docs_src"
 
 [tool.pyright]
-exclude = ["alluka/_vendor"]
 include = ["alluka", "docs_src", "noxfile.py", "tests"]
 
-pythonVersion = "3.9"
+pythonVersion = "3.11"
 typeCheckingMode = "strict"
 reportMissingModuleSource = "error"  # Is only "warning" on strict mode.
 
@@ -211,4 +201,3 @@ filterwarnings = [
 strict-imports = true
 require-superclass = true
 require-subclass = true
-exclude-modules = "alluka._vendor"

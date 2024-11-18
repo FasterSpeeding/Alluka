@@ -35,8 +35,8 @@
 
 import typing
 import warnings
+from unittest import mock
 
-import mock
 import pytest
 
 import alluka
@@ -127,13 +127,13 @@ class TestClient:
             value_1: int,
             value_2: str,
             value_3: alluka.Injected[MockType1],
-            value_4: alluka.Injected[typing.Union[int, str, None]],
+            value_4: alluka.Injected[int | str | None],
             other_result: typing.Annotated[int, alluka.inject(callback=lambda: "no you")],
             overridden: typing.Annotated[int, alluka.inject(callback=mock_callback)],
             bart_man: alluka.Injected[int] = 123,
             meow: MockType3 = alluka.inject(type=MockType3),
-            nyaa: typing.Optional[bool] = alluka.inject(type=typing.Optional[bool]),
-            result: typing.Optional[str] = alluka.inject(callback=lambda: "hi"),
+            nyaa: bool | None = alluka.inject(type=bool | None),
+            result: str | None = alluka.inject(callback=lambda: "hi"),
         ) -> str:
             assert value_1 == 43234
             assert value_2 == "nyaa"
@@ -218,14 +218,14 @@ class TestClient:
             foo: int,
             bar: str,
             bam: alluka.Injected[MockType1],
-            baz: alluka.Injected[typing.Union[int, str, None]],
+            baz: alluka.Injected[int | str | None],
             other_result: typing.Annotated[int, alluka.inject(callback=lambda: "no you")],
             overridden: typing.Annotated[int, alluka.inject(callback=mock_callback)],
             other_overridden: typing.Any = alluka.inject(callback=mock_other_callback),
             bart_man: alluka.Injected[int] = 123,
             meow: MockType3 = alluka.inject(type=MockType3),
-            nyaa: typing.Optional[bool] = alluka.inject(type=typing.Optional[bool]),
-            result: typing.Optional[str] = alluka.inject(callback=lambda: "hi"),
+            nyaa: bool | None = alluka.inject(type=bool | None),
+            result: str | None = alluka.inject(callback=lambda: "hi"),
         ) -> str:
             assert foo == 43234
             assert bar == "nyaa"

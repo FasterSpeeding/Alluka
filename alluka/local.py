@@ -60,12 +60,11 @@ from . import _client  # pyright: ignore[reportPrivateUsage]
 from . import abc
 
 if typing.TYPE_CHECKING:
+    import typing
     from collections import abc as collections
 
-    import typing_extensions
-
     _DefaultT = typing.TypeVar("_DefaultT")
-    _P = typing_extensions.ParamSpec("_P")
+    _P = typing.ParamSpec("_P")
     _T = typing.TypeVar("_T")
 
     _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
@@ -75,7 +74,7 @@ _CVAR_NAME: typing.Final[str] = "alluka_injector"
 _injector = contextvars.ContextVar[abc.Client](_CVAR_NAME)
 
 
-def initialize(client: typing.Optional[abc.Client] = None, /) -> abc.Client:
+def initialize(client: abc.Client | None = None, /) -> abc.Client:
     """Link or initialise an injection client for the current scope.
 
     This uses [contextvars][] to store the client and therefore will not be
@@ -112,7 +111,7 @@ initialise = initialize
 
 
 @contextlib.contextmanager
-def scope_client(client: typing.Optional[abc.Client] = None, /) -> collections.Generator[abc.Client, None, None]:
+def scope_client(client: abc.Client | None = None, /) -> collections.Generator[abc.Client, None, None]:
     """Declare a client for the scope within a context manager.
 
     This uses [contextvars][] to store the client and therefore will not be
@@ -160,10 +159,10 @@ def get() -> abc.Client: ...
 
 
 @typing.overload
-def get(*, default: _DefaultT) -> typing.Union[abc.Client, _DefaultT]: ...
+def get(*, default: _DefaultT) -> abc.Client | _DefaultT: ...
 
 
-def get(*, default: _DefaultT = ...) -> typing.Union[abc.Client, _DefaultT]:
+def get(*, default: _DefaultT = ...) -> abc.Client | _DefaultT:
     """Get the local client for the current scope.
 
     Parameters

@@ -34,24 +34,18 @@ from __future__ import annotations
 __all__: list[str] = ["Callback", "ParameterVisitor"]
 
 import abc
-import sys
+import inspect
 import types
 import typing
 
 from . import _types  # pyright: ignore[reportPrivateUsage]
-from ._vendor import inspect
 
 if typing.TYPE_CHECKING:
     from collections import abc as collections
 
 
-if sys.version_info >= (3, 10):
-    _UnionTypes = frozenset((typing.Union, types.UnionType))
-    _NoneType = types.NoneType
-
-else:
-    _UnionTypes = frozenset((typing.Union,))
-    _NoneType = type(None)
+_UnionTypes = frozenset((typing.Union, types.UnionType))
+_NoneType = types.NoneType
 
 
 class Node(abc.ABC):
@@ -60,7 +54,7 @@ class Node(abc.ABC):
     __slots__ = ()
 
     @abc.abstractmethod
-    def accept(self, visitor: ParameterVisitor, /) -> typing.Optional[_types.InjectedTuple]: ...
+    def accept(self, visitor: ParameterVisitor, /) -> _types.InjectedTuple | None: ...
 
 
 class Annotation(Node):
@@ -81,7 +75,7 @@ class Annotation(Node):
     def name(self) -> str:
         return self._name
 
-    def accept(self, visitor: ParameterVisitor, /) -> typing.Optional[_types.InjectedTuple]:
+    def accept(self, visitor: ParameterVisitor, /) -> _types.InjectedTuple | None:
         return visitor.visit_annotation(self)
 
 
@@ -94,7 +88,7 @@ class Callback:
         self._callback: collections.Callable[..., typing.Any] = callback
         self._resolved = False
         try:
-            self._signature: typing.Optional[inspect.Signature] = inspect.signature(callback)
+            self._signature: inspect.Signature | None = inspect.signature(callback)
         except ValueError:  # If we can't inspect it then we have to assume this is a NO
             # As a note, this fails on some "signature-less" builtin functions/types like str.
             self._signature = None
@@ -149,7 +143,7 @@ class Default(Node):
     def name(self) -> str:
         return self._name
 
-    def accept(self, visitor: ParameterVisitor, /) -> typing.Optional[_types.InjectedTuple]:
+    def accept(self, visitor: ParameterVisitor, /) -> _types.InjectedTuple | None:
         return visitor.visit_default(self)
 
 
@@ -187,7 +181,7 @@ class ParameterVisitor:
 
         return self._parse_type(value, default=default)
 
-    def visit_annotation(self, annotation: Annotation, /) -> typing.Optional[_types.InjectedTuple]:
+    def visit_annotation(self, annotation: Annotation, /) -> _types.InjectedTuple | None:
         value = annotation.callback.resolve_annotation(annotation.name)
         default = annotation.callback.parameters[annotation.name].default
         if default is inspect.Parameter.empty:
@@ -200,7 +194,7 @@ class ParameterVisitor:
         if _types.InjectedTypes.TYPE in args:
             return self._annotation_to_type(args[0], default=default)
 
-        arg: typing.Union[_types.InjectedDescriptor[typing.Any], typing.Any]
+        arg: _types.InjectedDescriptor[typing.Any] | typing.Any
         for arg in args:
             if not isinstance(arg, _types.InjectedDescriptor):
                 continue
@@ -231,7 +225,7 @@ class ParameterVisitor:
 
         return results
 
-    def visit_default(self, value: Default, /) -> typing.Optional[_types.InjectedTuple]:
+    def visit_default(self, value: Default, /) -> _types.InjectedTuple | None:
         if value.is_empty or not isinstance(value.default, _types.InjectedDescriptor):
             return None  # MyPy
 
