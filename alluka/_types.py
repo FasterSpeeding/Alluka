@@ -198,10 +198,10 @@ class InjectedTypes(int, enum.Enum):
     """
 
 
-InjectedTuple = typing.Union[
-    tuple[typing.Literal[InjectedTypes.CALLBACK], InjectedCallback],
-    tuple[typing.Literal[InjectedTypes.TYPE], InjectedType],
-]
+InjectedTuple = (
+    tuple[typing.Literal[InjectedTypes.CALLBACK], InjectedCallback]
+    | tuple[typing.Literal[InjectedTypes.TYPE], InjectedType]
+)
 """Type of the tuple used to describe an injected value."""
 
 _TypeT = type[_T]

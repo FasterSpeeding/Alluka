@@ -52,10 +52,8 @@ if typing.TYPE_CHECKING:
 _LOGGER = logging.getLogger("alluka.managed")
 
 _T = typing.TypeVar("_T")
-_DictKeyT = typing.Union[str, int, float, bool, None]
-_DictValueT = typing.Union[
-    collections.Mapping[_DictKeyT, "_DictValueT"], collections.Sequence["_DictValueT"], _DictKeyT
-]
+_DictKeyT = str | int | float | bool | None
+_DictValueT = collections.Mapping[_DictKeyT, "_DictValueT"] | collections.Sequence["_DictValueT"] | _DictKeyT
 
 
 _ENTRY_POINT_GROUP_NAME = "alluka.managed"
@@ -153,9 +151,7 @@ class Index:
         """
         self._descriptors[callback] = descriptors
 
-    def get_descriptors(
-        self, callback: alluka.CallbackSig[typing.Any], /
-    ) -> typing.Optional[dict[str, _types.InjectedTuple]]:
+    def get_descriptors(self, callback: alluka.CallbackSig[typing.Any], /) -> dict[str, _types.InjectedTuple] | None:
         """Get the dependency injection descriptors cached for a callback.
 
         Parameters
@@ -258,7 +254,7 @@ class Index:
                 _LOGGER.debug("Registering TypeConfig from %r", entry_point)
                 continue
 
-            _LOGGER.warn(
+            _LOGGER.warning(
                 "Unexpected value found at %, expected a PluginConfig class but found %r. "
                 "An alluka entry point is misconfigured.",
                 entry_point.value,

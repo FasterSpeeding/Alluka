@@ -37,19 +37,16 @@ import typing
 from collections import abc as collections
 
 if typing.TYPE_CHECKING:
-    import typing_extensions
-    from typing_extensions import Self
+    from typing import Self
 
-    _P = typing_extensions.ParamSpec("_P")
+    _P = typing.ParamSpec("_P")
     _CoroT = collections.Coroutine[typing.Any, typing.Any, "_T"]
 
 
 _T = typing.TypeVar("_T")
 _OtherT = typing.TypeVar("_OtherT")
-_DictKeyT = typing.Union[str, int, float, bool, None]
-_DictValueT = typing.Union[
-    collections.Mapping[_DictKeyT, "_DictValueT"], collections.Sequence["_DictValueT"], _DictKeyT
-]
+_DictKeyT = str | int | float | bool | None
+_DictValueT = collections.Mapping[_DictKeyT, "_DictValueT"] | collections.Sequence["_DictValueT"] | _DictKeyT
 
 
 class TypeConfig(typing.Generic[_T]):
@@ -68,10 +65,10 @@ class TypeConfig(typing.Generic[_T]):
         name: str,
         /,
         *,
-        async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
+        async_cleanup: collections.Callable[[_T], _CoroT[None]] | None = None,
         async_create: collections.Callable[..., _CoroT[_T]],
-        cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
-        create: typing.Optional[collections.Callable[..., _T]] = None,
+        cleanup: collections.Callable[[_T], None] | None = None,
+        create: collections.Callable[..., _T] | None = None,
     ) -> None: ...
 
     @typing.overload
@@ -81,9 +78,9 @@ class TypeConfig(typing.Generic[_T]):
         name: str,
         /,
         *,
-        async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
-        async_create: typing.Optional[collections.Callable[..., _CoroT[_T]]] = None,
-        cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
+        async_cleanup: collections.Callable[[_T], _CoroT[None]] | None = None,
+        async_create: collections.Callable[..., _CoroT[_T]] | None = None,
+        cleanup: collections.Callable[[_T], None] | None = None,
         create: collections.Callable[..., _T],
     ) -> None: ...
 
@@ -93,10 +90,10 @@ class TypeConfig(typing.Generic[_T]):
         name: str,
         /,
         *,
-        async_cleanup: typing.Optional[collections.Callable[[_T], _CoroT[None]]] = None,
-        async_create: typing.Optional[collections.Callable[..., _CoroT[_T]]] = None,
-        cleanup: typing.Optional[collections.Callable[[_T], None]] = None,
-        create: typing.Optional[collections.Callable[..., _T]] = None,
+        async_cleanup: collections.Callable[[_T], _CoroT[None]] | None = None,
+        async_create: collections.Callable[..., _CoroT[_T]] | None = None,
+        cleanup: collections.Callable[[_T], None] | None = None,
+        create: collections.Callable[..., _T] | None = None,
     ) -> None:
         """Initialise a type config.
 
@@ -184,22 +181,22 @@ class TypeConfig(typing.Generic[_T]):
         return decorator
 
     @property
-    def async_cleanup(self) -> typing.Optional[collections.Callable[[_T], _CoroT[None]]]:
+    def async_cleanup(self) -> collections.Callable[[_T], _CoroT[None]] | None:
         """Callback used to use to cleanup the dependency in an async runtime."""
         return self._async_cleanup
 
     @property
-    def async_create(self) -> typing.Optional[collections.Callable[..., _CoroT[_T]]]:
+    def async_create(self) -> collections.Callable[..., _CoroT[_T]] | None:
         """Callback used to use to create the dependency in an async runtime."""
         return self._async_create
 
     @property
-    def cleanup(self) -> typing.Optional[collections.Callable[[_T], None]]:
+    def cleanup(self) -> collections.Callable[[_T], None] | None:
         """Callback used to use to cleanup the dependency in a sync runtime."""
         return self._cleanup
 
     @property
-    def create(self) -> typing.Optional[collections.Callable[..., _T]]:
+    def create(self) -> collections.Callable[..., _T] | None:
         """Callback used to use to create the dependency in an async runtime."""
         return self._create
 

@@ -36,6 +36,7 @@ import itertools
 import json
 import logging
 import pathlib
+import tomllib
 import typing
 import weakref
 from collections import abc as collections
@@ -47,28 +48,17 @@ from . import _config  # pyright: ignore[reportPrivateUsage]
 from . import _index
 
 if typing.TYPE_CHECKING:
-    from typing_extensions import Self
+    from typing import Self
 
 
 _LOGGER = logging.getLogger("alluka.managed")
 
-_DictKeyT = typing.Union[str, int, float, bool, None]
-_DictValueT = typing.Union[
-    collections.Mapping[_DictKeyT, "_DictValueT"], collections.Sequence["_DictValueT"], _DictKeyT
-]
+_DictKeyT = str | int | float | bool | None
+_DictValueT = collections.Mapping[_DictKeyT, "_DictValueT"] | collections.Sequence["_DictValueT"] | _DictKeyT
 _PARSERS: dict[str, collections.Callable[[typing.BinaryIO], collections.Mapping[_DictKeyT, _DictValueT]]] = {
-    "json": json.load
+    "json": json.load,
+    "toml": tomllib.load,
 }
-
-
-try:
-    import tomllib  # pyright: ignore[reportMissingImports]
-
-except ModuleNotFoundError:
-    pass
-
-else:
-    _PARSERS["toml"] = tomllib.load  # type: ignore
 
 
 class Manager:
@@ -93,7 +83,7 @@ class Manager:
         self._load_types: dict[type[typing.Any], _config.TypeConfig[typing.Any]] = {}
         self._processed_callbacks: weakref.WeakSet[collections.Callable[..., typing.Any]] = weakref.WeakSet()
 
-    def load_config(self, config: typing.Union[pathlib.Path, _config.ConfigFile], /) -> Self:
+    def load_config(self, config: pathlib.Path | _config.ConfigFile, /) -> Self:
         """Load plugin and dependency configuration into this manager.
 
         Parameters
@@ -143,7 +133,7 @@ class Manager:
         return self
 
     def _to_resolvers(
-        self, type_id: typing.Union[str, type[typing.Any]], /, *, mimo: typing.Optional[set[type[typing.Any]]] = None
+        self, type_id: str | type[typing.Any], /, *, mimo: set[type[typing.Any]] | None = None
     ) -> collections.Iterator[_config.TypeConfig[typing.Any]]:
         if mimo is None:
             mimo = set()
@@ -184,7 +174,9 @@ class Manager:
                 self._client.set_type_dependency(type_info.dep_type, value)
 
             else:
-                _LOGGER.warn("Type dependency %r skipped as it can only be created in an async context", type_info.name)
+                _LOGGER.warning(
+                    "Type dependency %r skipped as it can only be created in an async context", type_info.name
+                )
 
     async def load_deps_async(self) -> None:  # noqa: ASYNC910
         """Initialise the configured dependencies asynchronously.
