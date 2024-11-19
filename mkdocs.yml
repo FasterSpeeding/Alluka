@@ -53,7 +53,7 @@ plugins:
       handlers:
         python:
           import:
-            - https://docs.python.org/3.9/objects.inv
+            - https://docs.python.org/3.13/objects.inv
           options:
             docstring_section_style: list
             docstring_style: numpy
