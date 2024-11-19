@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 * [alluka.abc.Client.auto_inject_async][] now returns a real asynchronous function
   to improve compatibility with some third party libraries which use
-  [asyncio.iscoroutinefunction][] or [inspect.iscoroutinefunction][] to validate
+  `asyncio.iscoroutinefunction` or [inspect.iscoroutinefunction][] to validate
   callbacks.
 
 ## [0.3.0] - 2024-05-09
