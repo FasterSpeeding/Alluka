@@ -225,4 +225,4 @@ def context_scope_example() -> None:
     context = alluka.OverridingContext(client).set_type_dependency(TypeA, TypeA())
 
     with alluka.local.scope_context(context):
-        alluka.local.call_with_di(callback)
+        alluka.local.call_with_di(bar_callback)
