@@ -34,7 +34,6 @@ __all__: list[str] = ["Index"]
 
 import importlib.metadata
 import logging
-import threading
 import typing
 import weakref
 from collections import abc as collections
@@ -42,7 +41,6 @@ from collections import abc as collections
 from . import _config  # pyright: ignore[reportPrivateUsage]
 
 if typing.TYPE_CHECKING:
-    import types
 
     from .. import _types  # pyright: ignore[reportPrivateUsage]
     from .. import abc as alluka
