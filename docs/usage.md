@@ -145,7 +145,7 @@ their signatures do not need to match and async callbacks can be overridden
 with sync with vice versa also working (although overriding a sync callback with an async callback
 will prevent the callback from being used in a sync context).
 
-# Local client
+## Local client
 
 Alluka provides a system in [alluka.local][] which lets you associate an Alluka client and context
 with the local scope. This can make dependency injection easier for application code as it avoids
@@ -195,7 +195,7 @@ As such `auto_inject` and `auto_inject_async` can be used to make an auto-inject
 before a local client has been set but any calls to the returned auto-injecting callbacks
 will only work within a scope where `initialise` or `scope_client` is in effect.
 
-# Custom injection contexts
+## Custom injection contexts
 
 Under the hood Alluka builds a [alluka.abc.Context][] for each call to a `call_with_{async}_di`
 method.
