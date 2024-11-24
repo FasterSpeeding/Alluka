@@ -217,3 +217,12 @@ def caching_example() -> None:
     client.call_with_di(callback)
     print("-")
     client.call_with_di(callback)
+
+
+def context_scope_example() -> None:
+    client = alluka.Client()
+
+    context = alluka.OverridingContext(client).set_type_dependency(TypeA, TypeA())
+
+    with alluka.local.scope_context(context):
+        alluka.local.call_with_di(callback)
