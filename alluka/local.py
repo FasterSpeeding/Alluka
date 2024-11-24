@@ -88,8 +88,7 @@ _NoValue = typing.Literal[_NoValueEnum.VALUE]
 
 
 def initialize(client: abc.Client | None = None, /) -> abc.Client:
-    """Link or initialise an injection client and a linked shallow context for
-    the current scope.
+    """Link or initialise an injection client for the current scope.
 
     This uses [contextvars][] to store the client and therefore will not be
     inherited by child threads.

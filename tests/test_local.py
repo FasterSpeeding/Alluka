@@ -110,6 +110,38 @@ def test_scope_client_when_passed_through():
     assert alluka.local.get_client(default=None) is None
 
 
+def test_scope_context():
+    assert alluka.local.get_context(default=None) is None
+    mock_context_1 = mock.Mock()
+    mock_context_2 = mock.Mock()
+
+    with alluka.local.scope_context(mock_context_1) as set_context:
+        assert set_context is mock_context_1
+        assert alluka.local.get_context() is mock_context_1
+
+        with alluka.local.scope_context(mock_context_2) as other_set_context:
+            assert other_set_context is mock_context_2
+            assert other_set_context is not set_context
+            assert alluka.local.get_context() is mock_context_2
+
+        assert alluka.local.get_context() is mock_context_1
+
+    assert alluka.local.get_context(default=None) is None
+
+def test_scope_context_when_not_passed():
+    client = alluka.Client()
+
+    with alluka.local.scope_client(client):
+        with alluka.local.scope_context() as set_context:
+            assert set_context.injection_client is client
+
+
+def test_scope_context_when_not_passed_and_no_scoped_client():
+    with pytest.raises(RuntimeError, match="No Alluka client set for the current scope"):
+        with alluka.local.scope_context():
+            ...
+
+
 def test_get_client():
     mock_client = mock.Mock()
 
@@ -117,67 +149,198 @@ def test_get_client():
         assert alluka.local.get_client() is mock_client
 
 
-def test_get_when_not_set():
+def test_get_client_when_context_set():
+    mock_context = mock.Mock()
+
+    with alluka.local.scope_context(mock_context):
+        assert alluka.local.get_client() is mock_context.injection_client
+
+
+def test_get_client_when_not_set():
     with pytest.raises(RuntimeError, match="No Alluka client set for the current scope"):
         alluka.local.get_client()
 
 
-def test_get_when_not_set_and_default():
+def test_get_client_when_not_set_and_default():
     result = alluka.local.get_client(default=None)
 
     assert result is None
 
 
-def test_call_with_di():
+def test_get():
+    mock_client = mock.Mock()
+
+    with alluka.local.scope_client(mock_client), pytest.warns(DeprecationWarning):
+        assert alluka.local.get() is mock_client  # pyright: ignore[reportDeprecated]
+
+
+def test_get_when_context_set():
+    mock_context = mock.Mock()
+
+    with alluka.local.scope_context(mock_context), pytest.warns(DeprecationWarning):
+        assert alluka.local.get() is mock_context.injection_client  # pyright: ignore[reportDeprecated]
+
+
+def test_get_when_not_set():
+    with pytest.raises(RuntimeError, match="No Alluka client set for the current scope"), pytest.warns(DeprecationWarning):
+        alluka.local.get()  # pyright: ignore[reportDeprecated]
+
+
+def test_get_when_not_set_and_default():
+    with pytest.warns(DeprecationWarning):
+        result = alluka.local.get(default=None)  # pyright: ignore[reportDeprecated]
+
+    assert result is None
+
+
+def test_get_context():
+    mock_context = mock.Mock()
+
+    with alluka.local.scope_context(mock_context):
+        assert alluka.local.get_context(from_client=False) is mock_context
+
+
+def test_get_context_when_when_not_set():
+    with pytest.raises(RuntimeError, match="Alluka context not set for the current scope"):
+        alluka.local.get_context()
+
+
+def test_get_context_when_when_not_set_and_default():
+    mock_default = mock.Mock()
+
+    result = alluka.local.get_context(default=mock_default)
+
+    assert result is mock_default
+
+def test_get_context_when_from_client():
+    mock_context = mock.Mock()
+
+    with alluka.local.scope_context(mock_context):
+        assert alluka.local.get_context(from_client=False) is mock_context
+
+
+def test_get_context_when_from_client_falls_back_to_client():
     mock_client = mock.Mock()
 
     with alluka.local.scope_client(mock_client):
-        mock_callback = mock.Mock()
+        assert alluka.local.get_context() is mock_client.make_context.return_value
 
+    mock_client.make_context.assert_called_once_with()
+
+def test_get_context_when_when_from_client_and_not_set_and_cannot_fall_back_to_client():
+    with pytest.raises(RuntimeError, match="Alluka context not set for the current scope"):
+        assert alluka.local.get_context()
+
+def test_get_context_when_when_from_client_and_not_set_and_cannot_fall_back_to_client_and_default():
+    mock_default = mock.Mock()
+
+    result = alluka.local.get_context(default=mock_default)
+
+    assert result is mock_default
+
+
+def test_call_with_di_with_scoped_client():
+    mock_client = mock.Mock()
+    mock_callback = mock.Mock()
+
+    with alluka.local.scope_client(mock_client):
+        result = alluka.local.call_with_di(mock_callback, 123, 321, 123, 333, hello="Ok", bye="meow")
+
+    assert result is mock_client.make_context.return_value.call_with_di.return_value
+    mock_client.make_context.assert_called_once_with()
+    mock_client.make_context.return_value.call_with_di.assert_called_once_with(mock_callback, 123, 321, 123, 333, hello="Ok", bye="meow")
+
+
+def test_call_with_di_with_scoped_context():
+    mock_context = mock.Mock()
+    mock_callback = mock.Mock()
+
+    with alluka.local.scope_context(mock_context):
         result = alluka.local.call_with_di(mock_callback, 123, 321, 123, 321, hello="Ok", bye="meow")
 
-        assert result is mock_client.call_with_di.return_value
-        mock_client.call_with_di.assert_called_once_with(mock_callback, 123, 321, 123, 321, hello="Ok", bye="meow")
+    assert result is mock_context.call_with_di.return_value
+    mock_context.call_with_di.assert_called_once_with(mock_callback, 123, 321, 123, 321, hello="Ok", bye="meow")
 
 
 @pytest.mark.anyio
-async def test_call_with_async_di():
-    mock_client = mock.AsyncMock()
+async def test_call_with_async_di_with_scoped_client():
+    mock_client = mock.Mock()
+    mock_client.make_context.return_value=mock.AsyncMock()
+    mock_callback = mock.Mock()
 
     with alluka.local.scope_client(mock_client):
-        mock_callback = mock.Mock()
-
         result = await alluka.local.call_with_async_di(mock_callback, 69, 320, hello="goodbye")
 
-        assert result is mock_client.call_with_async_di.return_value
-        mock_client.call_with_async_di.assert_awaited_once_with(mock_callback, 69, 320, hello="goodbye")
+    assert result is mock_client.make_context.return_value.call_with_async_di.return_value
+    mock_client.make_context.assert_called_once_with()
+    mock_client.make_context.return_value.call_with_async_di.assert_awaited_once_with(mock_callback, 69, 320, hello="goodbye")
 
 
 @pytest.mark.anyio
-async def test_auto_inject_async():
-    mock_client = mock.AsyncMock()
+async def test_call_with_async_di_with_scoped_context():
+    mock_context = mock.AsyncMock()
+    mock_callback = mock.Mock()
 
-    with alluka.local.scope_client(mock_client):
-        mock_callback = mock.Mock()
-        callback = alluka.local.auto_inject_async(mock_callback)
+    with alluka.local.scope_context(mock_context):
+        result = await alluka.local.call_with_async_di(mock_callback, 69, 321, hello="goodbye")
 
-        result = await callback(555, "320", goodbye="hello")
-
-        assert result is mock_client.call_with_async_di.return_value
-        mock_client.call_with_async_di.assert_awaited_once_with(mock_callback, 555, "320", goodbye="hello")
+    assert result is mock_context.call_with_async_di.return_value
+    mock_context.call_with_async_di.assert_awaited_once_with(mock_callback, 69, 321, hello="goodbye")
 
 
-def test_auto_inject():
+def test_auto_inject_with_scoped_client():
     mock_client = mock.Mock()
+    mock_callback = mock.Mock()
+    callback = alluka.local.auto_inject(mock_callback)
 
     with alluka.local.scope_client(mock_client):
-        mock_callback = mock.Mock()
-
-        callback = alluka.local.auto_inject(mock_callback)
-
         result = callback(444, "321", 555, "asd", sneaky="NO", meep="meow")
 
-        assert result is mock_client.call_with_di.return_value
-        mock_client.call_with_di.assert_called_once_with(
-            mock_callback, 444, "321", 555, "asd", sneaky="NO", meep="meow"
-        )
+    assert result is mock_client.make_context.return_value.call_with_di.return_value
+    mock_client.make_context.assert_called_once_with()
+    mock_client.make_context.return_value.call_with_di.assert_called_once_with(
+        mock_callback, 444, "321", 555, "asd", sneaky="NO", meep="meow"
+    )
+
+
+def test_auto_inject_with_scoped_context():
+    mock_context = mock.Mock()
+    mock_callback = mock.Mock()
+    callback = alluka.local.auto_inject(mock_callback)
+
+    with alluka.local.scope_context(mock_context):
+        result = callback(444, "321", 555, "asd", sneaky="NO", meep="meow")
+
+    assert result is mock_context.call_with_di.return_value
+    mock_context.call_with_di.assert_called_once_with(
+        mock_callback, 444, "321", 555, "asd", sneaky="NO", meep="meow"
+    )
+
+
+
+@pytest.mark.anyio
+async def test_auto_inject_async_with_scoped_client():
+    mock_client = mock.Mock()
+    mock_client.make_context.return_value = mock.AsyncMock()
+    mock_callback = mock.Mock()
+    callback = alluka.local.auto_inject_async(mock_callback)
+
+    with alluka.local.scope_client(mock_client):
+        result = await callback(555, "320", goodbye="hello")
+
+    assert result is mock_client.make_context.return_value.call_with_async_di.return_value
+    mock_client.make_context.assert_called_once_with()
+    mock_client.make_context.return_value.call_with_async_di.assert_awaited_once_with(mock_callback, 555, "320", goodbye="hello")
+
+
+@pytest.mark.anyio
+async def test_auto_inject_async_with_scoped_context():
+    mock_context = mock.AsyncMock()
+    mock_callback = mock.Mock()
+    callback = alluka.local.auto_inject_async(mock_callback)
+
+    with alluka.local.scope_context(mock_context):
+        result = await callback(555, "320", goodbye="hello")
+
+    assert result is mock_context.call_with_async_di.return_value
+    mock_context.call_with_async_di.assert_awaited_once_with(mock_callback, 555, "320", goodbye="hello")
