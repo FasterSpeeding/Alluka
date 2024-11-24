@@ -222,7 +222,7 @@ def caching_example() -> None:
 def context_scope_example() -> None:
     client = alluka.Client()
 
-    context = alluka.OverridingContext(client).set_type_dependency(TypeA, TypeA())
+    context = alluka.OverridingContext.from_client(client).set_type_dependency(TypeA, TypeA())
 
     with alluka.local.scope_context(context):
         alluka.local.call_with_di(bar_callback)
