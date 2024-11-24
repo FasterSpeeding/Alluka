@@ -53,9 +53,10 @@ __all__ = [
 
 import contextlib
 import contextvars
-import functools
 import enum
+import functools
 import typing
+
 import typing_extensions
 
 from . import _client  # pyright: ignore[reportPrivateUsage]
@@ -268,14 +269,12 @@ def get_client(*, default: _DefaultT | _NoValue = _NO_VALUE) -> abc.Client | _De
 
 @typing.overload
 @typing_extensions.deprecated("Use get_client or get_context")
-def get() -> abc.Client:
-    ...
+def get() -> abc.Client: ...
 
 
 @typing.overload
 @typing_extensions.deprecated("Use get_client or get_context")
-def get(*, default: _DefaultT) -> abc.Client | _DefaultT:
-    ...
+def get(*, default: _DefaultT) -> abc.Client | _DefaultT: ...
 
 
 @typing_extensions.deprecated("Use get_client or get_context")
