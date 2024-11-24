@@ -128,6 +128,7 @@ def test_scope_context():
 
     assert alluka.local.get_context(default=None) is None
 
+
 def test_scope_context_when_not_passed():
     client = alluka.Client()
 
@@ -182,7 +183,10 @@ def test_get_when_context_set():
 
 
 def test_get_when_not_set():
-    with pytest.raises(RuntimeError, match="No Alluka client set for the current scope"), pytest.warns(DeprecationWarning):
+    with (
+        pytest.raises(RuntimeError, match="No Alluka client set for the current scope"),
+        pytest.warns(DeprecationWarning),
+    ):
         alluka.local.get()  # pyright: ignore[reportDeprecated]
 
 
@@ -212,6 +216,7 @@ def test_get_context_when_when_not_set_and_default():
 
     assert result is mock_default
 
+
 def test_get_context_when_from_client():
     mock_context = mock.Mock()
 
@@ -227,9 +232,11 @@ def test_get_context_when_from_client_falls_back_to_client():
 
     mock_client.make_context.assert_called_once_with()
 
+
 def test_get_context_when_when_from_client_and_not_set_and_cannot_fall_back_to_client():
     with pytest.raises(RuntimeError, match="Alluka context not set for the current scope"):
         assert alluka.local.get_context()
+
 
 def test_get_context_when_when_from_client_and_not_set_and_cannot_fall_back_to_client_and_default():
     mock_default = mock.Mock()
@@ -248,7 +255,9 @@ def test_call_with_di_with_scoped_client():
 
     assert result is mock_client.make_context.return_value.call_with_di.return_value
     mock_client.make_context.assert_called_once_with()
-    mock_client.make_context.return_value.call_with_di.assert_called_once_with(mock_callback, 123, 321, 123, 333, hello="Ok", bye="meow")
+    mock_client.make_context.return_value.call_with_di.assert_called_once_with(
+        mock_callback, 123, 321, 123, 333, hello="Ok", bye="meow"
+    )
 
 
 def test_call_with_di_with_scoped_context():
@@ -265,7 +274,7 @@ def test_call_with_di_with_scoped_context():
 @pytest.mark.anyio
 async def test_call_with_async_di_with_scoped_client():
     mock_client = mock.Mock()
-    mock_client.make_context.return_value=mock.AsyncMock()
+    mock_client.make_context.return_value = mock.AsyncMock()
     mock_callback = mock.Mock()
 
     with alluka.local.scope_client(mock_client):
@@ -273,7 +282,9 @@ async def test_call_with_async_di_with_scoped_client():
 
     assert result is mock_client.make_context.return_value.call_with_async_di.return_value
     mock_client.make_context.assert_called_once_with()
-    mock_client.make_context.return_value.call_with_async_di.assert_awaited_once_with(mock_callback, 69, 320, hello="goodbye")
+    mock_client.make_context.return_value.call_with_async_di.assert_awaited_once_with(
+        mock_callback, 69, 320, hello="goodbye"
+    )
 
 
 @pytest.mark.anyio
@@ -312,10 +323,7 @@ def test_auto_inject_with_scoped_context():
         result = callback(444, "321", 555, "asd", sneaky="NO", meep="meow")
 
     assert result is mock_context.call_with_di.return_value
-    mock_context.call_with_di.assert_called_once_with(
-        mock_callback, 444, "321", 555, "asd", sneaky="NO", meep="meow"
-    )
-
+    mock_context.call_with_di.assert_called_once_with(mock_callback, 444, "321", 555, "asd", sneaky="NO", meep="meow")
 
 
 @pytest.mark.anyio
@@ -330,7 +338,9 @@ async def test_auto_inject_async_with_scoped_client():
 
     assert result is mock_client.make_context.return_value.call_with_async_di.return_value
     mock_client.make_context.assert_called_once_with()
-    mock_client.make_context.return_value.call_with_async_di.assert_awaited_once_with(mock_callback, 555, "320", goodbye="hello")
+    mock_client.make_context.return_value.call_with_async_di.assert_awaited_once_with(
+        mock_callback, 555, "320", goodbye="hello"
+    )
 
 
 @pytest.mark.anyio
