@@ -147,7 +147,7 @@ will prevent the callback from being used in a sync context).
 
 ## Local client
 
-Alluka provides a system in [alluka.local][] which lets you associate an Alluka client and context
+Alluka provides a system in [alluka.local][] which lets you associate an Alluka client or context
 with the local scope. This can make dependency injection easier for application code as it avoids
 the need to lug around an injection client or context.
 
@@ -162,15 +162,15 @@ While child async tasks and futures will inherit the local client/context, child
 
 Either [alluka.local.initialize][] or [alluka.local.scope_client][] needs to be called to
 declare a client within the current scope before the other functionality in [alluka.local][]
-can be used. These can be passed a client to declare but default to creating a new client.
+can be used. These can be passed a client to declare but defaults to creating a new client.
 
-These clients are then configured like normal clients and [alluka.local.get][] can then be
-used to get the set client for the current scope.
+The client is then configured like normal and [alluka.local.get_client][] can be used to get
+the set client for the current scope.
 
 [scope_context][alluka.local.scope_context] can be used to set the Injection context for a
 scope and will also set the client the context is associated with as the local client. This
 will be prioritised over [alluka.local.scope_client][] and `initialize` when making calls to
-the local call with DI functions.
+the local call with DI functions. [alluka.local.get_context][] returns the set context.
 
 [scope_client][alluka.local.scope_client]/[scope_context][alluka.local.scope_context] are
 recommended over `initialize` as these avoid declaring the client/context globally.
@@ -188,12 +188,13 @@ function with the dependency injection client that's set for the current scope.
 
 [alluka.local.auto_inject][], [alluka.local.auto_inject_async][] act a little different to
 the similar client methods: instead of binding a callback to a specific client to
-enable automatic dependency injection, these will get the local client when the
-auto-injecting callback is called and use this for dependency injection.
+enable automatic dependency injection, these will get the local client/context for
+dependency injection when the auto-injecting callback is called.
 
 As such `auto_inject` and `auto_inject_async` can be used to make an auto-injecting callback
-before a local client has been set but any calls to the returned auto-injecting callbacks
-will only work within a scope where `initialise` or `scope_client` is in effect.
+before a local client/context has been set but any calls to the returned auto-injecting
+callbacks will only work within a scope where `initialise` or `scope_client` or `scope_context`
+is in effect.
 
 ## Custom injection contexts
 
