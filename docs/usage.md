@@ -147,14 +147,14 @@ will prevent the callback from being used in a sync context).
 
 # Local client
 
-Alluka provides a system in [alluka.local][] which lets you associate an Alluka client with the local
-scope. This can make dependency injection easier for application code as it avoids the need to
-lug around an injection client or context.
+Alluka provides a system in [alluka.local][] which lets you associate an Alluka client and context
+with the local scope. This can make dependency injection easier for application code as it avoids
+the need to lug around an injection client or context.
 
 The local "scope" will either be the current thread, an async event loop (e.g. asyncio event loop),
 an async task, or an async future.
 
-While child async tasks and futures will inherit the local client, child threads will not.
+While child async tasks and futures will inherit the local client/context, child threads will not.
 
 ```py
 --8<-- "./docs_src/usage.py:144:150"
@@ -167,7 +167,13 @@ can be used. These can be passed a client to declare but default to creating a n
 These clients are then configured like normal clients and [alluka.local.get][] can then be
 used to get the set client for the current scope.
 
-`scope_client` is recommended over `initialize` as it avoids declaring the client globally.
+[scope_context][alluka.local.scope_context] can be used to set the Injection context for a
+scope and will also set the client the context is associated with as the local client. This
+will be prioritised over [alluka.local.scope_client][] and `initialize` when making calls to
+the local call with DI functions.
+
+[scope_client][alluka.local.scope_client]/[scope_context][alluka.local.scope_context] are
+recommended over `initialize` as these avoid declaring the client/context globally.
 
 ```py
 --8<-- "./docs_src/usage.py:130:137"
