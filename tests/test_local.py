@@ -132,13 +132,12 @@ def test_scope_context():
 def test_scope_context_when_not_passed():
     client = alluka.Client()
 
-    with alluka.local.scope_client(client):
-        with alluka.local.scope_context() as set_context:
-            assert set_context.injection_client is client
+    with alluka.local.scope_client(client), alluka.local.scope_context() as set_context:
+        assert set_context.injection_client is client
 
 
 def test_scope_context_when_not_passed_and_no_scoped_client():
-    with pytest.raises(RuntimeError, match="No Alluka client set for the current scope"):
+    with pytest.raises(RuntimeError, match="No Alluka client set for the current scope"):  # noqa: PT012, SIM117
         with alluka.local.scope_context():
             ...
 
