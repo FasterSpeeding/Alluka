@@ -34,7 +34,6 @@ __all__: list[str] = ["Index"]
 
 import importlib.metadata
 import logging
-import sys
 import threading
 import typing
 import weakref
@@ -65,7 +64,7 @@ class Index:
     This is used by the manager to parse plugin configuration and initialise types.
     """
 
-    __slots__ = ("_descriptors", "_config_index", "_lock", "_metadata_scanned", "_name_index", "_type_index")
+    __slots__ = ("_descriptors", "_config_index", "_name_index", "_type_index")
 
     def __init__(self) -> None:
         """Initialise an Index."""
@@ -76,22 +75,9 @@ class Index:
             alluka.CallbackSig[typing.Any], dict[str, _types.InjectedTuple]
         ] = weakref.WeakKeyDictionary()
         self._config_index: dict[str, type[_config.PluginConfig]] = {}
-        self._lock = threading.Lock()
-        self._metadata_scanned = False
         self._name_index: dict[str, _config.TypeConfig[typing.Any]] = {}
         self._type_index: dict[type[typing.Any], _config.TypeConfig[typing.Any]] = {}
         self._scan_libraries()
-
-    def __enter__(self) -> None:
-        self._lock.__enter__()
-
-    def __exit__(
-        self,
-        exc_cls: type[BaseException] | None,
-        exc: BaseException | None,
-        traceback_value: types.TracebackType | None,
-    ) -> None:
-        return self._lock.__exit__(exc_cls, exc, traceback_value)
 
     def register_config(self, config_cls: type[_config.PluginConfig], /) -> None:
         """Register a plugin configuration class.
@@ -230,17 +216,7 @@ class Index:
 
     def _scan_libraries(self) -> None:
         """Load config classes from installed libraries based on their entry points."""
-        if self._metadata_scanned:
-            return
-
-        self._metadata_scanned = True
-        if sys.version_info >= (3, 10):
-            entry_points = importlib.metadata.entry_points(group=_ENTRY_POINT_GROUP_NAME)
-
-        else:
-            entry_points = importlib.metadata.entry_points().get(_ENTRY_POINT_GROUP_NAME) or []
-
-        for entry_point in entry_points:
+        for entry_point in importlib.metadata.entry_points(group=_ENTRY_POINT_GROUP_NAME):
             value = entry_point.load()
             if not isinstance(value, type):
                 pass
