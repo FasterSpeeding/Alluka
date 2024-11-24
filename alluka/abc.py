@@ -56,12 +56,12 @@ _DefaultT = typing.TypeVar("_DefaultT")
 _SyncCallbackT = typing.TypeVar("_SyncCallbackT", bound=collections.Callable[..., typing.Any])
 
 
-class _NoDefaultEnum(enum.Enum):
+class _NoValueEnum(enum.Enum):
     VALUE = object()
 
 
-_NO_VALUE: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
-_NoValueOr = _T | typing.Literal[_NoDefaultEnum.VALUE]
+_NO_VALUE: typing.Literal[_NoValueEnum.VALUE] = _NoValueEnum.VALUE
+_NoValue = typing.Literal[_NoValueEnum.VALUE]
 
 
 CallbackSig = collections.Callable[..., _CoroT[_T] | _T]
@@ -553,7 +553,7 @@ class Context(abc.ABC):
     def get_cached_result(self, callback: CallbackSig[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
     def get_cached_result(
-        self, callback: CallbackSig[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+        self, callback: CallbackSig[_T], /, *, default: _DefaultT | _NoValue = _NO_VALUE
     ) -> _T | _DefaultT:
         """Get the cached result of a callback.
 

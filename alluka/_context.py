@@ -53,12 +53,12 @@ _T = typing.TypeVar("_T")
 _DefaultT = typing.TypeVar("_DefaultT")
 
 
-class _NoDefaultEnum(enum.Enum):
+class _NoValueEnum(enum.Enum):
     VALUE = object()
 
 
-_NO_VALUE: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
-_NoValueOr = _T | typing.Literal[_NoDefaultEnum.VALUE]
+_NO_VALUE: typing.Literal[_NoValueEnum.VALUE] = _NoValueEnum.VALUE
+_NoValue = typing.Literal[_NoValueEnum.VALUE]
 
 
 class Context(alluka.Context):
@@ -87,7 +87,7 @@ class Context(alluka.Context):
     @typing.overload
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
-    def get_type_dependency(self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE) -> _T | _DefaultT:
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT | _NoValue = _NO_VALUE) -> _T | _DefaultT:
         # <<inherited docstring from alluka.abc.Context>>.
         if type_ is alluka.Context:
             return self  # type: ignore
@@ -127,7 +127,7 @@ class CachingContext(Context):
     def get_cached_result(self, callback: alluka.CallbackSig[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
     def get_cached_result(
-        self, callback: alluka.CallbackSig[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+        self, callback: alluka.CallbackSig[_T], /, *, default: _DefaultT | _NoValue = _NO_VALUE
     ) -> _T | _DefaultT:
         # <<inherited docstring from alluka.abc.Context>>.
         result = self._result_cache.get(callback, default)
@@ -206,7 +206,7 @@ class OverridingContext(alluka.Context):
     def get_cached_result(self, callback: alluka.CallbackSig[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
     def get_cached_result(
-        self, callback: alluka.CallbackSig[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE
+        self, callback: alluka.CallbackSig[_T], /, *, default: _DefaultT | _NoValue = _NO_VALUE
     ) -> _T | _DefaultT:
         value = self._context.get_cached_result(callback, default=default)
 
@@ -224,7 +224,7 @@ class OverridingContext(alluka.Context):
     @typing.overload
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
-    def get_type_dependency(self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE) -> _T | _DefaultT:
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT | _NoValue = _NO_VALUE) -> _T | _DefaultT:
         # <<inherited docstring from alluka.abc.Context>>.
         value = self._overrides.get(type_, default)
         if value is default:
@@ -277,7 +277,7 @@ class BasicContext(CachingContext):
     @typing.overload
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
-    def get_type_dependency(self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE) -> _T | _DefaultT:
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT | _NoValue = _NO_VALUE) -> _T | _DefaultT:
         # <<inherited docstring from alluka.abc.Context>>.
         value = self._special_case_types.get(type_, default)
         if value is default:

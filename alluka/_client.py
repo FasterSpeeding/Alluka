@@ -67,12 +67,12 @@ _SyncCallbackSigT = typing.TypeVar("_SyncCallbackSigT", bound=collections.Callab
 _TypeT = type[_T]
 
 
-class _NoDefaultEnum(enum.Enum):
+class _NoValueEnum(enum.Enum):
     VALUE = object()
 
 
-_NO_VALUE: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
-_NoValueOr = _T | typing.Literal[_NoDefaultEnum.VALUE]
+_NO_VALUE: typing.Literal[_NoValueEnum.VALUE] = _NoValueEnum.VALUE
+_NoValue = typing.Literal[_NoValueEnum.VALUE]
 
 
 @typing.overload
@@ -283,7 +283,7 @@ class Client(alluka.Client):
     @typing.overload
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
-    def get_type_dependency(self, type_: type[_T], /, *, default: _NoValueOr[_DefaultT] = _NO_VALUE) -> _T | _DefaultT:
+    def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT | _NoValue = _NO_VALUE) -> _T | _DefaultT:
         # <<inherited docstring from alluka.abc.Client>>.
         result = self._type_dependencies.get(type_, default)
 
