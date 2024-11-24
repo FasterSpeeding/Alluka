@@ -100,7 +100,7 @@ class Callback:
     def accept(self, visitor: ParameterVisitor, /) -> dict[str, _types.InjectedTuple]:
         return visitor.visit_callback(self)
 
-    def resolve_annotation(self, name: str, /) -> _types.UndefinedOr[typing.Any]:
+    def resolve_annotation(self, name: str, /) -> typing.Any | _types.Undefined:
         if self._signature is None:
             return _types.UNDEFINED
 
@@ -155,7 +155,7 @@ class ParameterVisitor:
     _NODES: list[collections.Callable[[Callback, str], Node]] = [Default, Annotation]
 
     def _parse_type(
-        self, type_: typing.Any, *, default: _types.UndefinedOr[typing.Any] = _types.UNDEFINED
+        self, type_: typing.Any, *, default: typing.Any | _types.Undefined = _types.UNDEFINED
     ) -> _types.InjectedTuple:
         if typing.get_origin(type_) not in _UnionTypes:
             return (_types.InjectedTypes.TYPE, _types.InjectedType(type_, [type_], default=default))
@@ -171,7 +171,7 @@ class ParameterVisitor:
         return (_types.InjectedTypes.TYPE, _types.InjectedType(type_, sub_types, default=default))
 
     def _annotation_to_type(
-        self, value: typing.Any, /, default: _types.UndefinedOr[typing.Any] = _types.UNDEFINED
+        self, value: typing.Any, /, default: typing.Any | _types.Undefined = _types.UNDEFINED
     ) -> _types.InjectedTuple:
         if typing.get_origin(value) is typing.Annotated:
             args = typing.get_args(value)

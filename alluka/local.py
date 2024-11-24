@@ -35,9 +35,9 @@ asynchronous event/task.
 
 !!! note
     This module's functionality will only work if
-    [initialize][alluka.local.initialize] or
-    [scope_client][alluka.local.scope_client] has been called to set the DI
-    client for the local scope.
+    [scope_client][alluka.local.scope_client] or
+    [scope_context][alluka.local.scope_context]
+    has been called to set the DI context for the local scope.
 """
 from __future__ import annotations
 
@@ -54,7 +54,9 @@ __all__ = [
 import contextlib
 import contextvars
 import functools
+import enum
 import typing
+import typing_extensions
 
 from . import _client  # pyright: ignore[reportPrivateUsage]
 from . import abc
@@ -70,17 +72,29 @@ if typing.TYPE_CHECKING:
     _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
 
-_CVAR_NAME: typing.Final[str] = "alluka_injector"
-_injector = contextvars.ContextVar[abc.Client](_CVAR_NAME)
+_CLIENT_CVAR_NAME: typing.Final[str] = "alluka_injector"
+_injector = contextvars.ContextVar[abc.Client](_CLIENT_CVAR_NAME)
+_CONTEXT_CVAR_NAME: typing.Final[str] = "alluka_context"
+_context = contextvars.ContextVar[abc.Context](_CONTEXT_CVAR_NAME)
+
+
+class _NoValueEnum(enum.Enum):
+    VALUE = object()
+
+
+_NO_VALUE: typing.Literal[_NoValueEnum.VALUE] = _NoValueEnum.VALUE
+_NoValue = typing.Literal[_NoValueEnum.VALUE]
 
 
 def initialize(client: abc.Client | None = None, /) -> abc.Client:
-    """Link or initialise an injection client for the current scope.
+    """Link or initialise an injection client and a linked shallow context for
+    the current scope.
 
     This uses [contextvars][] to store the client and therefore will not be
     inherited by child threads.
 
-    [scope_client][alluka.local.scope_client] is recommended over this.
+    [scope_client][alluka.local.scope_client] and
+    [scope_context][alluka.local.scope_context] are recommended over this.
 
     Parameters
     ----------
@@ -96,10 +110,10 @@ def initialize(client: abc.Client | None = None, /) -> abc.Client:
     Raises
     ------
     RuntimeError
-        If the local client is already initialised.
+        If the local client is already set for the current scope.
     """
     if _injector.get(None) is not None:
-        raise RuntimeError("Alluka client already initialised in the current scope")
+        raise RuntimeError("Alluka client already set for the current scope")
 
     client = client or _client.Client()
     _injector.set(client)
@@ -112,10 +126,14 @@ initialise = initialize
 
 @contextlib.contextmanager
 def scope_client(client: abc.Client | None = None, /) -> collections.Generator[abc.Client, None, None]:
-    """Declare a client for the scope within a context manager.
+    """Set the Alluka client for the scope within a context manager.
 
     This uses [contextvars][] to store the client and therefore will not be
     inherited by child threads.
+
+    !!! note
+        The client attached to a context set with
+        [scope_context][alluka.local.scope_context] will take priority.
 
     Examples
     --------
@@ -131,7 +149,7 @@ def scope_client(client: abc.Client | None = None, /) -> collections.Generator[a
     client.set_type_dependency(Type, value)
 
     with alluka.local.scope_client(client):
-        uses_di()
+        uses_local_di()
     ```
 
     Parameters
@@ -154,47 +172,173 @@ def scope_client(client: abc.Client | None = None, /) -> collections.Generator[a
     _injector.reset(token)
 
 
-@typing.overload
-def get() -> abc.Client: ...
+@contextlib.contextmanager
+def scope_context(context: abc.Context | None = None, /) -> collections.Generator[abc.Context, None, None]:
+    """Set the Alluka context for the scope within a context manager.
+
+    This uses [contextvars][] to store the context and therefore will not be
+    inherited by child threads.
+
+    Examples
+    --------
+    ```py
+    context = (
+        alluka.OverridingContext(alluka.local.get_context())
+        .set_type_dependency(TypeA, value_a)
+    )
+
+    with alluka.local.scope_context(context):
+        uses_local_di()
+    ```
+
+    Parameters
+    ----------
+    context
+        The context to set for the context manager's scope.
+
+        If not provided then the in-scope Alluka client is used to generate
+        a new context.
+
+    Returns
+    -------
+    contextlib.AbstractContextManager[alluka.abc.Context]
+        Context manager which returns the scoped Context.
+
+    Raises
+    ------
+    RuntimeError
+        When `context` isn't provided and no Alluka client has been set for the
+        current scope.
+    """
+    if context is None:
+        context = get_client().make_context()
+
+    token = _context.set(context)
+
+    yield context
+
+    _context.reset(token)
 
 
 @typing.overload
-def get(*, default: _DefaultT) -> abc.Client | _DefaultT: ...
+def get_client() -> abc.Client: ...
 
 
-def get(*, default: _DefaultT = ...) -> abc.Client | _DefaultT:
+@typing.overload
+def get_client(*, default: _DefaultT) -> abc.Client | _DefaultT: ...
+
+
+def get_client(*, default: _DefaultT | _NoValue = _NO_VALUE) -> abc.Client | _DefaultT:
     """Get the local client for the current scope.
 
     Parameters
     ----------
     default
-        The value to return if the client is not initialised.
+        The value to return if no client is set for the current scope.
 
         If not provided, a RuntimeError will be raised instead.
 
     Returns
     -------
     alluka.abc.Client | _DefaultT
-        The client for the local scope, or the default value if the client
-        is not initialised.
+        The client for the local scope, or the default value if no client
+        is set for the current scope.
 
     Raises
     ------
     RuntimeError
-        If the client is not initialised and no default value was provided.
+        If no client is present in the current scope and no default value was
+        provided.
     """
+    try:
+        return get_context(from_client=False).injection_client
+
+    except RuntimeError:
+        pass
+
     client = _injector.get(None)
     if client is None:
-        if default is not ...:
-            return default
+        if default is _NO_VALUE:
+            raise RuntimeError("No Alluka client set for the current scope")
 
-        raise RuntimeError("Alluka client not initialised in the current scope")
+        return default
 
     return client
 
 
+@typing.overload
+@typing_extensions.deprecated("Use get_client or get_context")
+def get() -> abc.Client:
+    ...
+
+
+@typing.overload
+@typing_extensions.deprecated("Use get_client or get_context")
+def get(*, default: _DefaultT) -> abc.Client | _DefaultT:
+    ...
+
+
+@typing_extensions.deprecated("Use get_client or get_context")
+def get(*, default: _DefaultT | _NoValue = _NO_VALUE) -> abc.Client | _DefaultT:
+    """Deprecated alias of [get_client][alluka.local.get_client]."""
+    if default is _NO_VALUE:
+        return get_client()
+
+    return get_client(default=default)
+
+
+@typing.overload
+def get_context(*, from_client: bool = True) -> abc.Context: ...
+
+
+@typing.overload
+def get_context(*, default: _DefaultT, from_client: bool = True) -> abc.Context | _DefaultT: ...
+
+
+def get_context(*, default: _DefaultT | _NoValue = _NO_VALUE, from_client: bool = True) -> abc.Context | _DefaultT:
+    """Get the local context for the current scope.
+
+    Parameters
+    ----------
+    default
+        The value to return if no context is set for the current scope.
+
+        If not provided, a RuntimeError will be raised instead.
+    from_client
+        Whether to try to make a context from the in-scope Alluka client
+        when no context is set for the current scope.
+
+    Returns
+    -------
+    alluka.abc.Context | _DefaultT
+        The context for the local scope, or the default value if no context is
+        set for the current context.
+
+    Raises
+    ------
+    RuntimeError
+        If the context is not set for the current context and no default value
+        was provided.
+    """
+    context = _context.get(None)
+    if context is not None:
+        return context
+
+    if from_client:
+        try:
+            return get_client().make_context()
+
+        except RuntimeError:
+            pass
+
+    if default is _NO_VALUE:
+        raise RuntimeError("Alluka context not set for the current scope")
+
+    return default
+
+
 def call_with_di(callback: collections.Callable[..., _T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-    """Use the local client to call a callback with DI.
+    """Use the local context/client to call a callback with DI.
 
     Parameters
     ----------
@@ -210,7 +354,7 @@ def call_with_di(callback: collections.Callable[..., _T], *args: typing.Any, **k
     _T
         The result of the call.
     """
-    return get().call_with_di(callback, *args, **kwargs)
+    return get_context().call_with_di(callback, *args, **kwargs)
 
 
 @typing.overload
@@ -228,7 +372,7 @@ async def call_with_async_di(
 
 
 async def call_with_async_di(callback: abc.CallbackSig[_T], *args: typing.Any, **kwargs: typing.Any) -> _T:
-    """Use the local client to call a callback with async DI.
+    """Use the local context/client to call a callback with async DI.
 
     Parameters
     ----------
@@ -244,7 +388,7 @@ async def call_with_async_di(callback: abc.CallbackSig[_T], *args: typing.Any, *
     _T
         The result of the call.
     """
-    return await get().call_with_async_di(callback, *args, **kwargs)
+    return await get_context().call_with_async_di(callback, *args, **kwargs)
 
 
 def auto_inject_async(callback: collections.Callable[_P, _CoroT[_T]], /) -> collections.Callable[_P, _CoroT[_T]]:
@@ -273,7 +417,7 @@ def auto_inject_async(callback: collections.Callable[_P, _CoroT[_T]], /) -> coll
 
     @functools.wraps(callback)
     async def wrapped_callback(*args: _P.args, **kwargs: _P.kwargs) -> _T:
-        return await get().call_with_async_di(callback, *args, **kwargs)
+        return await get_context().call_with_async_di(callback, *args, **kwargs)
 
     return wrapped_callback
 
@@ -304,6 +448,6 @@ def auto_inject(callback: collections.Callable[_P, _T], /) -> collections.Callab
 
     @functools.wraps(callback)
     def wrapped_callback(*args: _P.args, **kwargs: _P.kwargs) -> _T:
-        return get().call_with_di(callback, *args, **kwargs)
+        return get_context().call_with_di(callback, *args, **kwargs)
 
     return wrapped_callback

@@ -53,7 +53,7 @@ class _UndefinedEnum(enum.Enum):
 
 UNDEFINED = _UndefinedEnum.UNDEFINED
 """Singleton used internally to indicate that a value is undefined."""
-UndefinedOr = _T | typing.Literal[_UndefinedEnum.UNDEFINED]
+Undefined = typing.Literal[_UndefinedEnum.UNDEFINED]
 """Union for a value which may be undefined."""
 
 
@@ -138,7 +138,7 @@ class InjectedType:
         types: collections.Sequence[type[typing.Any]],
         /,
         *,
-        default: UndefinedOr[typing.Any] = UNDEFINED,
+        default: typing.Any | Undefined = UNDEFINED,
     ) -> None:
         """Initialize the type descriptor.
 
