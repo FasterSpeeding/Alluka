@@ -37,7 +37,6 @@ Repository = "https://github.com/FasterSpeeding/Alluka"
 Documentation = "https://alluka.cursed.solutions/"
 Changelog = "https://alluka.cursed.solutions/changelog"
 
-
 [dependency-groups]
 docs = [
     "markdown-include>=0.8",
@@ -102,7 +101,6 @@ exclude_lines = [
     "^\\s*@abc.abstractmethod$",
     "^if typing.TYPE_CHECKING:$"
 ]
-
 
 [tool.ruff.lint]
 select = ["ALL"]
