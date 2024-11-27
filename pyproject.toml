@@ -107,6 +107,7 @@ exclude_lines = [
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+    "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed in ``
     "COM812",  # Trailing comma missing (incompatible with black)
     "FIX002",  # Line contains TODO, consider resolving the issue
     "I001",    # [*] Import block is un-sorted or un-formatted
@@ -117,8 +118,57 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+"docs_src/**/*.py" = [
+    "B008",    # Do not perform function call `` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+    "D100",    # Missing docstring in public module
+    "D101",    # Missing docstring in public class
+    "D102",    # Missing docstring in public method
+    "D103",    # Missing docstring in public function
+    "F841",    # Local variable `` is assigned to but never used
+    "INP001",  # File `` is part of an implicit namespace package. Add an `__init__.py`.
+    "PIE790",  # [*] Unnecessary `...` literal
+    "T201",    # `print` found
+]
 "noxfile.py" = [
-    "F403",    # `from noxfile import *` used; unable to detect undefined name
+    "F403",  # `from noxfile import *` used; unable to detect undefined name
+]
+"tests/**/*.py" = [
+    "D100",    # Missing docstring in public module
+    "D101",    # Missing docstring in public class
+    "D102",    # Missing docstring in public method
+    "D103",    # Missing docstring in public function
+    "D104",    # Missing docstring in public package
+    "PLR2004", # Magic value used in comparison, consider replacing `` with a constant variable
+    "SLF001",  # Private member accessed: `_injector`
+]
+"tests/test__client.py" = [
+    "B008",    # Do not perform function call `` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+]
+"tests/test_async_callback_di_future_annotations.py" = [
+    "B008",    # Do not perform function call `` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+    "FBT001",  # Boolean-typed positional argument in function definition
+    "PGH003",  # Use specific rule codes when ignoring type issues
+    "PLW0603", # Using the global statement to update `` is discouraged
+    "UP007",   # [*] Use `X | Y` for type annotations
+]
+"tests/test_async_callback_di.py" = [
+    "B008",    # Do not perform function call `` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+    "FBT001",  # Boolean-typed positional argument in function definition
+    "PGH003",  # Use specific rule codes when ignoring type issues
+    "UP007",   # [*] Use `X | Y` for type annotations
+]
+"tests/test_callback_di_future_annotations.py" = [
+    "B008",     # Do not perform function call `` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+    "FBT001",   # Boolean-typed positional argument in function definition
+    "PGH003",   # Use specific rule codes when ignoring type issues
+    "PLW0603",  # Using the global statement to update `` is discouraged
+    "UP007",    # [*] Use `X | Y` for type annotations
+]
+"tests/test_callback_di.py" = [
+    "B008",    # Do not perform function call `` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+    "FBT001",  # Boolean-typed positional argument in function definition
+    "PGH003",  # Use specific rule codes when ignoring type issues
+    "UP007",   # [*] Use `X | Y` for type annotations
 ]
 
 [tool.ruff.lint.mccabe]

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -63,7 +62,6 @@ from . import _client  # pyright: ignore[reportPrivateUsage]
 from . import abc
 
 if typing.TYPE_CHECKING:
-    import typing
     from collections import abc as collections
 
     _DefaultT = typing.TypeVar("_DefaultT")
@@ -113,7 +111,8 @@ def initialize(client: abc.Client | None = None, /) -> abc.Client:
         If the local client is already set for the current scope.
     """
     if _injector.get(None) is not None:
-        raise RuntimeError("Alluka client already set for the current scope")
+        error_message = "Alluka client already set for the current scope"
+        raise RuntimeError(error_message)
 
     client = client or _client.Client()
     _injector.set(client)
@@ -259,7 +258,8 @@ def get_client(*, default: _DefaultT | _NoValue = _NO_VALUE) -> abc.Client | _De
     client = _injector.get(None)
     if client is None:
         if default is _NO_VALUE:
-            raise RuntimeError("No Alluka client set for the current scope")
+            error_message = "No Alluka client set for the current scope"
+            raise RuntimeError(error_message)
 
         return default
 
@@ -278,7 +278,7 @@ def get(*, default: _DefaultT) -> abc.Client | _DefaultT: ...
 
 @typing_extensions.deprecated("Use get_client or get_context")
 def get(*, default: _DefaultT | _NoValue = _NO_VALUE) -> abc.Client | _DefaultT:
-    """Deprecated alias of [get_client][alluka.local.get_client]."""
+    """Deprecated alias of [get_client][alluka.local.get_client]."""  # noqa: D401
     if default is _NO_VALUE:
         return get_client()
 
@@ -330,7 +330,8 @@ def get_context(*, default: _DefaultT | _NoValue = _NO_VALUE, from_client: bool 
             pass
 
     if default is _NO_VALUE:
-        raise RuntimeError("Alluka context not set for the current scope")
+        error_message = "Alluka context not set for the current scope"
+        raise RuntimeError(error_message)
 
     return default
 

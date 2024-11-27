@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -62,7 +61,7 @@ class Annotation(Node):
 
     __slots__ = ("_callback", "_name", "_raw_annotation")
 
-    def __init__(self, callback: Callback, name: str, /):
+    def __init__(self, callback: Callback, name: str, /) -> None:
         self._callback = callback
         self._name = name
         self._raw_annotation = callback.parameters[name].annotation
@@ -152,7 +151,7 @@ class ParameterVisitor:
 
     __slots__ = ()
 
-    _NODES: list[collections.Callable[[Callback, str], Node]] = [Default, Annotation]
+    _NODES: tuple[collections.Callable[[Callback, str], Node]] = (Default, Annotation)
 
     def _parse_type(
         self, type_: typing.Any, *, default: typing.Any | _types.Undefined = _types.UNDEFINED
@@ -218,7 +217,8 @@ class ParameterVisitor:
                     continue
 
                 if value.kind is value.POSITIONAL_ONLY:
-                    raise ValueError("Injected positional only arguments are not supported")
+                    error_message = "Injected positional only arguments are not supported"
+                    raise ValueError(error_message)
 
                 results[name] = result
                 break
@@ -237,6 +237,7 @@ class ParameterVisitor:
             return self._parse_type(descriptor.type)
 
         if (annotation := value.callback.resolve_annotation(value.name)) is _types.UNDEFINED:
-            raise ValueError(f"Could not resolve type for parameter {value.name!r} with no annotation")
+            error_message = f"Could not resolve type for parameter {value.name!r} with no annotation"
+            raise ValueError(error_message)
 
         return self._annotation_to_type(annotation)

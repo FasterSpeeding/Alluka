@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -73,7 +72,7 @@ class InjectedCallback:
         self.callback = callback
 
     def resolve(self, ctx: alluka.Context) -> typing.Any:
-        """Synchronously resolve the callback.
+        """Resolve the callback synchronously.
 
         !!! warning
             Unlike [InjectedCallback.resolve_async][], this method will block the
@@ -176,9 +175,8 @@ class InjectedType:
         if self.default is not UNDEFINED:
             return self.default
 
-        raise _errors.MissingDependencyError(
-            f"Couldn't resolve injected type(s) {self.repr_type} to actual value", self.repr_type
-        ) from None
+        error_message = f"Couldn't resolve injected type(s) {self.repr_type} to actual value"
+        raise _errors.MissingDependencyError(error_message, self.repr_type) from None
 
 
 class InjectedTypes(int, enum.Enum):
@@ -198,10 +196,10 @@ class InjectedTypes(int, enum.Enum):
     """
 
 
-InjectedTuple = typing.Union[
-    tuple[typing.Literal[InjectedTypes.CALLBACK], InjectedCallback],
-    tuple[typing.Literal[InjectedTypes.TYPE], InjectedType],
-]
+InjectedTuple = (
+    tuple[typing.Literal[InjectedTypes.CALLBACK], InjectedCallback]
+    | tuple[typing.Literal[InjectedTypes.TYPE], InjectedType]
+)
 """Type of the tuple used to describe an injected value."""
 
 _TypeT = type[_T]
@@ -221,7 +219,7 @@ class InjectedDescriptor(typing.Generic[_T]):
     If this is `None` then this is a type dependency.
     """
 
-    type: _TypeT[_T] | None  # noqa: VNE003
+    type: _TypeT[_T] | None
     """The type to use to resolve the parameter's value.
 
     If both this and `callback` are `None`, then this is a type dependency
@@ -263,15 +261,15 @@ class InjectedDescriptor(typing.Generic[_T]):
             If both `callback` and `type` are provided.
         """
         if callback is not None and type is not None:
-            raise ValueError("Only one of `callback` or `type` can be specified")
+            error_message = "Only one of `callback` or `type` can be specified"
+            raise ValueError(error_message)
 
         self.callback = callback
         self.type = type
 
-    def __getattr__(self, __name: str) -> typing.NoReturn:
-        raise AttributeError(
-            "Tried accessing a parameter that was not injected yet. Did you forget to inject dependencies?"
-        )
+    def __getattr__(self, name: str, /) -> typing.NoReturn:
+        error_message = "Tried accessing a parameter that was not injected yet. Did you forget to inject dependencies?"
+        raise AttributeError(error_message)
 
 
 Injected = typing.Annotated[_T, InjectedTypes.TYPE]

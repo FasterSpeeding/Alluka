@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -38,7 +37,7 @@ import alluka
 import alluka.local
 
 
-def test_initialize():
+def test_initialize() -> None:
     alluka.local.initialize()
 
     assert isinstance(alluka.local.get_client(), alluka.Client)
@@ -49,7 +48,7 @@ def test_initialize():
     )
 
 
-def test_initialize_when_passed_through():
+def test_initialize_when_passed_through() -> None:
     mock_client = mock.Mock()
     alluka.local.initialize(mock_client)
 
@@ -61,19 +60,19 @@ def test_initialize_when_passed_through():
     )
 
 
-def test_initialize_when_already_set():
+def test_initialize_when_already_set() -> None:
     with alluka.local.scope_client():  # noqa: SIM117
         with pytest.raises(RuntimeError, match="Alluka client already set for the current scope"):
             alluka.local.initialize()
 
 
-def test_initialize_when_passed_through_and_already_set():
+def test_initialize_when_passed_through_and_already_set() -> None:
     with alluka.local.scope_client():  # noqa: SIM117
         with pytest.raises(RuntimeError, match="Alluka client already set for the current scope"):
             alluka.local.initialize(mock.Mock())
 
 
-def test_scope_client():
+def test_scope_client() -> None:
     assert alluka.local.get_client(default=None) is None
 
     with alluka.local.scope_client() as client:
@@ -90,7 +89,7 @@ def test_scope_client():
     assert alluka.local.get_client(default=None) is None
 
 
-def test_scope_client_when_passed_through():
+def test_scope_client_when_passed_through() -> None:
     mock_client = mock.Mock()
     mock_other_client = mock.Mock()
 
@@ -110,7 +109,7 @@ def test_scope_client_when_passed_through():
     assert alluka.local.get_client(default=None) is None
 
 
-def test_scope_context():
+def test_scope_context() -> None:
     assert alluka.local.get_context(default=None) is None
     mock_context_1 = mock.Mock()
     mock_context_2 = mock.Mock()
@@ -129,59 +128,59 @@ def test_scope_context():
     assert alluka.local.get_context(default=None) is None
 
 
-def test_scope_context_when_not_passed():
+def test_scope_context_when_not_passed() -> None:
     client = alluka.Client()
 
     with alluka.local.scope_client(client), alluka.local.scope_context() as set_context:
         assert set_context.injection_client is client
 
 
-def test_scope_context_when_not_passed_and_no_scoped_client():
-    with pytest.raises(RuntimeError, match="No Alluka client set for the current scope"):  # noqa: PT012, SIM117
+def test_scope_context_when_not_passed_and_no_scoped_client() -> None:
+    with pytest.raises(RuntimeError, match="No Alluka client set for the current scope"):  # noqa: SIM117
         with alluka.local.scope_context():
             ...
 
 
-def test_get_client():
+def test_get_client() -> None:
     mock_client = mock.Mock()
 
     with alluka.local.scope_client(mock_client):
         assert alluka.local.get_client() is mock_client
 
 
-def test_get_client_when_context_set():
+def test_get_client_when_context_set() -> None:
     mock_context = mock.Mock()
 
     with alluka.local.scope_context(mock_context):
         assert alluka.local.get_client() is mock_context.injection_client
 
 
-def test_get_client_when_not_set():
+def test_get_client_when_not_set() -> None:
     with pytest.raises(RuntimeError, match="No Alluka client set for the current scope"):
         alluka.local.get_client()
 
 
-def test_get_client_when_not_set_and_default():
+def test_get_client_when_not_set_and_default() -> None:
     result = alluka.local.get_client(default=None)
 
     assert result is None
 
 
-def test_get():
+def test_get() -> None:
     mock_client = mock.Mock()
 
     with alluka.local.scope_client(mock_client), pytest.warns(DeprecationWarning):
         assert alluka.local.get() is mock_client  # pyright: ignore[reportDeprecated]
 
 
-def test_get_when_context_set():
+def test_get_when_context_set() -> None:
     mock_context = mock.Mock()
 
     with alluka.local.scope_context(mock_context), pytest.warns(DeprecationWarning):
         assert alluka.local.get() is mock_context.injection_client  # pyright: ignore[reportDeprecated]
 
 
-def test_get_when_not_set():
+def test_get_when_not_set() -> None:
     with (
         pytest.raises(RuntimeError, match="No Alluka client set for the current scope"),
         pytest.warns(DeprecationWarning),
@@ -189,26 +188,26 @@ def test_get_when_not_set():
         alluka.local.get()  # pyright: ignore[reportDeprecated]
 
 
-def test_get_when_not_set_and_default():
+def test_get_when_not_set_and_default() -> None:
     with pytest.warns(DeprecationWarning):
         result = alluka.local.get(default=None)  # pyright: ignore[reportDeprecated]
 
     assert result is None
 
 
-def test_get_context():
+def test_get_context() -> None:
     mock_context = mock.Mock()
 
     with alluka.local.scope_context(mock_context):
         assert alluka.local.get_context(from_client=False) is mock_context
 
 
-def test_get_context_when_when_not_set():
+def test_get_context_when_when_not_set() -> None:
     with pytest.raises(RuntimeError, match="Alluka context not set for the current scope"):
         alluka.local.get_context()
 
 
-def test_get_context_when_when_not_set_and_default():
+def test_get_context_when_when_not_set_and_default() -> None:
     mock_default = mock.Mock()
 
     result = alluka.local.get_context(default=mock_default)
@@ -216,14 +215,14 @@ def test_get_context_when_when_not_set_and_default():
     assert result is mock_default
 
 
-def test_get_context_when_from_client():
+def test_get_context_when_from_client() -> None:
     mock_context = mock.Mock()
 
     with alluka.local.scope_context(mock_context):
         assert alluka.local.get_context(from_client=False) is mock_context
 
 
-def test_get_context_when_from_client_falls_back_to_client():
+def test_get_context_when_from_client_falls_back_to_client() -> None:
     mock_client = mock.Mock()
 
     with alluka.local.scope_client(mock_client):
@@ -232,12 +231,12 @@ def test_get_context_when_from_client_falls_back_to_client():
     mock_client.make_context.assert_called_once_with()
 
 
-def test_get_context_when_when_from_client_and_not_set_and_cannot_fall_back_to_client():
+def test_get_context_when_when_from_client_and_not_set_and_cannot_fall_back_to_client() -> None:
     with pytest.raises(RuntimeError, match="Alluka context not set for the current scope"):
         assert alluka.local.get_context()
 
 
-def test_get_context_when_when_from_client_and_not_set_and_cannot_fall_back_to_client_and_default():
+def test_get_context_when_when_from_client_and_not_set_and_cannot_fall_back_to_client_and_default() -> None:
     mock_default = mock.Mock()
 
     result = alluka.local.get_context(default=mock_default)
@@ -245,7 +244,7 @@ def test_get_context_when_when_from_client_and_not_set_and_cannot_fall_back_to_c
     assert result is mock_default
 
 
-def test_call_with_di_with_scoped_client():
+def test_call_with_di_with_scoped_client() -> None:
     mock_client = mock.Mock()
     mock_callback = mock.Mock()
 
@@ -259,7 +258,7 @@ def test_call_with_di_with_scoped_client():
     )
 
 
-def test_call_with_di_with_scoped_context():
+def test_call_with_di_with_scoped_context() -> None:
     mock_context = mock.Mock()
     mock_callback = mock.Mock()
 
@@ -271,7 +270,7 @@ def test_call_with_di_with_scoped_context():
 
 
 @pytest.mark.anyio
-async def test_call_with_async_di_with_scoped_client():
+async def test_call_with_async_di_with_scoped_client() -> None:
     mock_client = mock.Mock()
     mock_client.make_context.return_value = mock.AsyncMock()
     mock_callback = mock.Mock()
@@ -287,7 +286,7 @@ async def test_call_with_async_di_with_scoped_client():
 
 
 @pytest.mark.anyio
-async def test_call_with_async_di_with_scoped_context():
+async def test_call_with_async_di_with_scoped_context() -> None:
     mock_context = mock.AsyncMock()
     mock_callback = mock.Mock()
 
@@ -298,7 +297,7 @@ async def test_call_with_async_di_with_scoped_context():
     mock_context.call_with_async_di.assert_awaited_once_with(mock_callback, 69, 321, hello="goodbye")
 
 
-def test_auto_inject_with_scoped_client():
+def test_auto_inject_with_scoped_client() -> None:
     mock_client = mock.Mock()
     mock_callback = mock.Mock()
     callback = alluka.local.auto_inject(mock_callback)
@@ -313,7 +312,7 @@ def test_auto_inject_with_scoped_client():
     )
 
 
-def test_auto_inject_with_scoped_context():
+def test_auto_inject_with_scoped_context() -> None:
     mock_context = mock.Mock()
     mock_callback = mock.Mock()
     callback = alluka.local.auto_inject(mock_callback)
@@ -326,7 +325,7 @@ def test_auto_inject_with_scoped_context():
 
 
 @pytest.mark.anyio
-async def test_auto_inject_async_with_scoped_client():
+async def test_auto_inject_async_with_scoped_client() -> None:
     mock_client = mock.Mock()
     mock_client.make_context.return_value = mock.AsyncMock()
     mock_callback = mock.Mock()
@@ -343,7 +342,7 @@ async def test_auto_inject_async_with_scoped_client():
 
 
 @pytest.mark.anyio
-async def test_auto_inject_async_with_scoped_context():
+async def test_auto_inject_async_with_scoped_context() -> None:
     mock_context = mock.AsyncMock()
     mock_callback = mock.Mock()
     callback = alluka.local.auto_inject_async(mock_callback)

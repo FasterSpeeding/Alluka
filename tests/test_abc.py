@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -110,7 +109,7 @@ class MockClient(alluka.abc.Client):
 
 
 class TestClient:
-    def test_auto_inject(self):
+    def test_auto_inject(self) -> None:
         client = MockClient()
         client.call_with_di = mock.Mock()
         mock_callback = mock.Mock()
@@ -123,7 +122,7 @@ class TestClient:
         assert result is client.call_with_di.return_value
 
     @pytest.mark.anyio
-    async def test_auto_inject_async(self):
+    async def test_auto_inject_async(self) -> None:
         client = MockClient()
         client.call_with_async_di = mock.AsyncMock()
         mock_callback = mock.AsyncMock()
@@ -135,7 +134,7 @@ class TestClient:
         client.call_with_async_di.assert_awaited_once_with(mock_callback, "555", 12312, kill="the fuckers")
         assert result is client.call_with_async_di.return_value
 
-    def test_call_with_di(self):
+    def test_call_with_di(self) -> None:
         client = MockClient()
         client.make_context = mock.Mock()
         mock_callback = mock.Mock()
@@ -147,7 +146,7 @@ class TestClient:
         client.make_context.return_value.call_with_di.assert_called_once_with(mock_callback, 333, "lll", meep="boop")
 
     @pytest.mark.anyio
-    async def test_call_with_async_di(self):
+    async def test_call_with_async_di(self) -> None:
         client = MockClient()
         client.make_context = mock.Mock()
         client.make_context.return_value.call_with_async_di = mock.AsyncMock()
@@ -178,18 +177,18 @@ class MockContext(alluka.abc.Context):
 
 
 class TestContext:
-    def test_cache_result(self):
+    def test_cache_result(self) -> None:
         mock_callback = mock.Mock()
         ctx = MockContext()
         ctx.cache_result(mock_callback, mock.Mock())
 
-    def test_get_cached_result(self):
+    def test_get_cached_result(self) -> None:
         ctx = alluka.Context(alluka.Client())
 
         with pytest.raises(KeyError):
             ctx.get_cached_result(mock.Mock())
 
-    def test_get_cached_result_when_defaulting(self):
+    def test_get_cached_result_when_defaulting(self) -> None:
         ctx = alluka.Context(alluka.Client())
         default = mock.Mock()
 

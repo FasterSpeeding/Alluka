@@ -13,14 +13,14 @@ There are two styles for declaring a function's injected dependencies in Alluka:
 #### Default descriptors
 
 ```py
---8<-- "./docs_src/usage.py:32:36"
+--8<-- "./docs_src/usage.py:31:35"
 ```
 
 Assigning the result of [alluka.inject][] to a parameter's default will declare it as requiring an
 injected type or callback.
 
 ```py
---8<-- "./docs_src/usage.py:41:41"
+--8<-- "./docs_src/usage.py:40:40"
 
 ```
 
@@ -38,7 +38,7 @@ inferred from the parameter's annotation.
 for a function.
 
 ```py
---8<-- "./docs_src/usage.py:45:48"
+--8<-- "./docs_src/usage.py:44:47"
 ```
 
 Where passing the default descriptors returned by [alluka.inject][] to [typing.Annotated][] lets
@@ -46,7 +46,7 @@ you declare the type or callback dependency for an argument without effecting no
 function (by leaving these parameters required).
 
 ```py
---8<-- "./docs_src/usage.py:52:52"
+--8<-- "./docs_src/usage.py:51:51"
 
 ```
 
@@ -60,7 +60,7 @@ dependency.
 ### Calling functions with dependency injection
 
 ```py
---8<-- "./docs_src/usage.py:57:69"
+--8<-- "./docs_src/usage.py:56:68"
 
 ```
 
@@ -73,7 +73,7 @@ with the function will be passed through to the function with the injected value
     await `call_with_async_di` to get the result of the call.
 
 ```py
---8<-- "./docs_src/usage.py:75:87"
+--8<-- "./docs_src/usage.py:74:86"
 ```
 
 [Client.call_with_di][alluka.abc.Client.call_with_di] can be used to execute a function with
@@ -83,7 +83,7 @@ functions may be used and any async callback dependencies will lead to [alluka.S
 being raised.
 
 ```py
---8<-- "./docs_src/usage.py:95:96"
+--8<-- "./docs_src/usage.py:94:95"
 ```
 
 Alternatively, [Context.call_with_di][alluka.abc.Context.call_with_di] and
@@ -91,7 +91,7 @@ Alternatively, [Context.call_with_di][alluka.abc.Context.call_with_di] and
 with dependency injection while preserving the current injection context.
 
 ```py
---8<-- "./docs_src/usage.py:100:101"
+--8<-- "./docs_src/usage.py:99:100"
 ```
 
 <!-- TODO: revisit behaviour for when an async function with no async deps is passed to call_with_di--->
@@ -99,7 +99,7 @@ with dependency injection while preserving the current injection context.
 ### Automatic dependency injection
 
 ```py
---8<-- "./docs_src/usage.py:164:169"
+--8<-- "./docs_src/usage.py:163:168"
 ```
 
 [Client.auto_inject][alluka.abc.Client.auto_inject_async] and
@@ -108,7 +108,7 @@ a specific dependency injection client to enable implicit dependency injection w
 to call `call_with_(async_)_di` every time the callback is called.
 
 ```py
---8<-- "./docs_src/usage.py:173:178"
+--8<-- "./docs_src/usage.py:172:177"
 ```
 
 [Client.auto_inject][alluka.abc.Client.auto_inject] comes with similar limitations to
@@ -122,7 +122,7 @@ creates will fail if any of the callback dependencies are asynchronous.
 ### Adding type dependencies
 
 ```py
---8<-- "./docs_src/usage.py:114:118"
+--8<-- "./docs_src/usage.py:113:117"
 ```
 
 For a type dependency to work, the linked client has to have an implementation loaded for each type.
@@ -133,7 +133,7 @@ you'll be using in [alluka.inject][] with initialised implementations of them.
 ### Overriding callback dependencies
 
 ```py
---8<-- "./docs_src/usage.py:126:126"
+--8<-- "./docs_src/usage.py:125:125"
 ```
 
 While callback dependencies can work on their own without being explicitly declared on the client
@@ -157,7 +157,7 @@ an async task, or an async future.
 While child async tasks and futures will inherit the local client/context, child threads will not.
 
 ```py
---8<-- "./docs_src/usage.py:144:150"
+--8<-- "./docs_src/usage.py:143:149"
 ```
 
 Either [alluka.local.initialize][] or [alluka.local.scope_client][] needs to be called to
@@ -168,7 +168,7 @@ The client is then configured like normal and [alluka.local.get_client][] can be
 the set client for the current scope.
 
 ```py
---8<-- "./docs_src/usage.py:223:228"
+--8<-- "./docs_src/usage.py:222:227"
 ```
 
 [scope_context][alluka.local.scope_context] can be used to set the Injection context for a
@@ -180,14 +180,14 @@ with DI functions. [alluka.local.get_context][] returns the set context.
 recommended over `initialize` as these avoid declaring the client/context globally.
 
 ```py
---8<-- "./docs_src/usage.py:130:137"
+--8<-- "./docs_src/usage.py:129:136"
 ```
 
 [alluka.local.call_with_async_di][], [alluka.local.call_with_di][] can be used to call a
 function with the dependency injection client that's set for the current scope.
 
 ```py
---8<-- "./docs_src/usage.py:154:160"
+--8<-- "./docs_src/usage.py:153:159"
 ```
 
 [alluka.local.auto_inject][], and [alluka.local.auto_inject_async][] act a little
@@ -206,7 +206,7 @@ Under the hood Alluka builds a [alluka.abc.Context][] for each call to a `call_w
 method.
 
 ```py
---8<-- "./docs_src/usage.py:182:182"
+--8<-- "./docs_src/usage.py:181:181"
 ```
 
 [alluka.Client.set_make_context][] can be used to change how the client creates DI contexts
@@ -221,7 +221,7 @@ dependency injection call.
 result of callback dependencies.
 
 ```py
---8<-- "./docs_src/usage.py:201:219"
+--8<-- "./docs_src/usage.py:200:218"
 ```
 
 This example will result in the following output where `state` is only injected once per
@@ -240,14 +240,14 @@ those calls.
 ### Context-specific type dependencies
 
 ```py
---8<-- "./docs_src/usage.py:186:189"
+--8<-- "./docs_src/usage.py:185:188"
 ```
 
 [alluka.OverridingContext][] to add context specific type dependency overrides to an existing
 DI context.
 
 ```py
---8<-- "./docs_src/usage.py:193:197"
+--8<-- "./docs_src/usage.py:192:196"
 ```
 
 [alluka.OverridingContext.from_client][] lets you create a context with type dependency

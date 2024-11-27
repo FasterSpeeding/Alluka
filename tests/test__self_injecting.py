@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -40,7 +39,7 @@ import alluka
 
 class TestAsyncSelfInjecting:
     @pytest.mark.anyio
-    async def test_call_dunder_method(self):
+    async def test_call_dunder_method(self) -> None:
         mock_callback = mock.Mock()
         mock_client = mock.AsyncMock()
 
@@ -52,7 +51,7 @@ class TestAsyncSelfInjecting:
         assert result is mock_client.call_with_async_di.return_value
         mock_client.call_with_async_di.assert_awaited_once_with(mock_callback)
 
-    def test_callback_property(self):
+    def test_callback_property(self) -> None:
         mock_callback = mock.Mock()
 
         with pytest.warns(DeprecationWarning):
@@ -62,7 +61,7 @@ class TestAsyncSelfInjecting:
 
 
 class TestSelfInjecting:
-    def test_call_dunder_method(self):
+    def test_call_dunder_method(self) -> None:
         mock_callback = mock.Mock()
         mock_client = mock.Mock()
 
@@ -74,7 +73,7 @@ class TestSelfInjecting:
         assert result is mock_client.call_with_di.return_value
         mock_client.call_with_di.assert_called_once_with(mock_callback)
 
-    def test_callback_property(self):
+    def test_callback_property(self) -> None:
         mock_callback = mock.Mock()
 
         with pytest.warns(DeprecationWarning):
