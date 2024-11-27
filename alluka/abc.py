@@ -558,7 +558,7 @@ class Context(abc.ABC):
         callback: CallbackSig[_T],  # noqa: ARG002  # Unused method argument:
         /,
         *,
-        default: _DefaultT | _NoValue = _NO_VALUE
+        default: _DefaultT | _NoValue = _NO_VALUE,
     ) -> _T | _DefaultT:
         """Get the cached result of a callback.
 
