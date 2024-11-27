@@ -37,7 +37,6 @@ Repository = "https://github.com/FasterSpeeding/Alluka"
 Documentation = "https://alluka.cursed.solutions/"
 Changelog = "https://alluka.cursed.solutions/changelog"
 
-
 [dependency-groups]
 docs = [
     "markdown-include>=0.8",
