@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -42,14 +41,14 @@ import pytest
 import alluka
 
 
-def test_inject():
+def test_inject() -> None:
     descriptor = alluka.inject()
 
     assert descriptor.type is None
     assert descriptor.callback is None
 
 
-def test_inject_when_type():
+def test_inject_when_type() -> None:
     mock_type = mock.Mock()
 
     descriptor = alluka.inject(type=mock_type)
@@ -58,7 +57,7 @@ def test_inject_when_type():
     assert descriptor.callback is None
 
 
-def test_inject_when_callback():
+def test_inject_when_callback() -> None:
     mock_callback = mock.Mock()
 
     descriptor = alluka.inject(callback=mock_callback)
@@ -67,13 +66,13 @@ def test_inject_when_callback():
     assert descriptor.callback is mock_callback
 
 
-def test_inject_when_both_callback_and_type():
+def test_inject_when_both_callback_and_type() -> None:
     with pytest.raises(ValueError, match="Only one of `callback` or `type` can be specified"):
-        alluka.inject(type=mock.Mock(), callback=mock.Mock())  # type: ignore
+        alluka.inject(type=mock.Mock(), callback=mock.Mock())  # type: ignore  # noqa: PGH003
 
 
 class TestClient:
-    def test_make_context(self):
+    def test_make_context(self) -> None:
         client = alluka.Client()
 
         context = client.make_context()
@@ -81,14 +80,14 @@ class TestClient:
         assert isinstance(context, alluka.Context)
         assert context.injection_client is client
 
-    def test_make_context_when_overridden(self):
+    def test_make_context_when_overridden(self) -> None:
         mock_maker = mock.Mock()
         client = alluka.Client().set_make_context(mock_maker)
 
         assert client.make_context() is mock_maker.return_value
         mock_maker.assert_called_once_with(client)
 
-    def test_as_async_self_injecting(self):
+    def test_as_async_self_injecting(self) -> None:
         mock_callback = mock.Mock()
         client = alluka.Client()
 
@@ -99,7 +98,7 @@ class TestClient:
         assert result._callback is mock_callback
         assert result._client is client
 
-    def test_as_self_injecting(self):
+    def test_as_self_injecting(self) -> None:
         mock_callback = mock.Mock()
         client = alluka.Client()
 
@@ -110,7 +109,7 @@ class TestClient:
         assert result._callback is mock_callback
         assert result._client is client
 
-    def test_call_with_di(self):
+    def test_call_with_di(self) -> None:
         class MockType1: ...
 
         class MockType2: ...
@@ -159,7 +158,7 @@ class TestClient:
 
         assert result == "ok"
 
-    def test_call_with_di_when_type_not_found(self):
+    def test_call_with_di_when_type_not_found(self) -> None:
         class MockType: ...
 
         def callback(value: alluka.Injected[MockType]) -> typing.NoReturn:
@@ -170,7 +169,7 @@ class TestClient:
         with pytest.raises(alluka.MissingDependencyError):
             client.call_with_di(callback)
 
-    def test_call_with_di_when_type_not_found_when_async_callback(self):
+    def test_call_with_di_when_type_not_found_when_async_callback(self) -> None:
         async def callback(value: alluka.Injected[int]) -> typing.NoReturn:
             raise NotImplementedError
 
@@ -182,7 +181,7 @@ class TestClient:
             with pytest.raises(alluka.SyncOnlyError):
                 client.call_with_di(callback)
 
-    def test_call_with_di_when_type_not_found_when_async_dependency(self):
+    def test_call_with_di_when_type_not_found_when_async_dependency(self) -> None:
         class MockType: ...
 
         def callback(
@@ -199,7 +198,7 @@ class TestClient:
                 client.call_with_di(callback)
 
     @pytest.mark.anyio
-    async def test_call_with_async_di(self):
+    async def test_call_with_async_di(self) -> None:
         class MockType1: ...
 
         class MockType2: ...
@@ -254,7 +253,7 @@ class TestClient:
         assert result == "ok"
 
     @pytest.mark.anyio
-    async def test_call_with_async_di_when_type_not_found(self):
+    async def test_call_with_async_di_when_type_not_found(self) -> None:
         class MockType: ...
 
         def callback(value: alluka.Injected[MockType]) -> typing.NoReturn:
@@ -265,14 +264,14 @@ class TestClient:
         with pytest.raises(alluka.MissingDependencyError):
             await client.call_with_async_di(callback)
 
-    def test_set_type_dependency_when_not_found(self):
+    def test_set_type_dependency_when_not_found(self) -> None:
         mock_type: typing.Any = mock.Mock()
         client = alluka.Client()
 
         with pytest.raises(KeyError):
             client.get_type_dependency(mock_type)
 
-    def test_get_type_dependency_when_not_found_and_default(self):
+    def test_get_type_dependency_when_not_found_and_default(self) -> None:
         mock_type: typing.Any = mock.Mock()
         default = object()
         client = alluka.Client()
@@ -281,7 +280,7 @@ class TestClient:
 
         assert result is default
 
-    def test_remove_type_dependency(self):
+    def test_remove_type_dependency(self) -> None:
         mock_type: typing.Any = mock.Mock()
         client = alluka.Client()
         client.set_type_dependency(mock_type, mock.Mock())
@@ -293,14 +292,14 @@ class TestClient:
         with pytest.raises(KeyError):
             assert client.get_type_dependency(mock_type)
 
-    def test_remove_type_dependency_when_not_set(self):
+    def test_remove_type_dependency_when_not_set(self) -> None:
         mock_type: typing.Any = mock.Mock()
         client = alluka.Client()
 
         with pytest.raises(KeyError):
             client.remove_type_dependency(mock_type)
 
-    def test_set_callback_override(self):
+    def test_set_callback_override(self) -> None:
         mock_callback = mock.Mock()
         mock_override = mock.Mock()
         client = alluka.Client()
@@ -310,12 +309,12 @@ class TestClient:
         assert result is client
         assert client.get_callback_override(mock_callback) is mock_override
 
-    def test_get_callback_override(self):
+    def test_get_callback_override(self) -> None:
         client = alluka.Client()
 
         assert client.get_callback_override(mock.Mock()) is None
 
-    def test_remove_callback_override(self):
+    def test_remove_callback_override(self) -> None:
         mock_callback = mock.Mock()
         client = alluka.Client()
         client.set_callback_override(mock_callback, mock.Mock())
@@ -325,7 +324,7 @@ class TestClient:
         assert result is client
         assert client.get_callback_override(mock_callback) is None
 
-    def test_remove_callback_override_when_not_set(self):
+    def test_remove_callback_override_when_not_set(self) -> None:
         mock_callback = mock.Mock()
         client = alluka.Client()
 

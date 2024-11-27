@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -105,7 +104,7 @@ class Client(abc.ABC):
         !!! warning "deprecated"
             This is deprecated as of `v0.2.0`, use
             [Client.auto_inject_async][alluka.abc.Client.auto_inject_async].
-        """
+        """  # noqa: D401
 
     @abc.abstractmethod
     @typing_extensions.deprecated("Use .auto_inject")
@@ -117,7 +116,7 @@ class Client(abc.ABC):
         !!! warning "deprecated"
             This is deprecated as of `v0.2.0`, use
             [Client.auto_inject][alluka.abc.Client.auto_inject].
-        """
+        """  # noqa: D401
 
     def auto_inject(self, callback: collections.Callable[_P, _T], /) -> collections.Callable[_P, _T]:
         """Wrap a function to make calls to it always inject dependencies.
@@ -467,7 +466,9 @@ class Context(abc.ABC):
     def injection_client(self) -> Client:
         """Injection client this context is bound to."""
 
-    def cache_result(self, callback: CallbackSig[_T], value: _T, /) -> None:
+    def cache_result(  # noqa: B027  # Empty method in an abstract base class, but has no abstract decorator
+        self, callback: CallbackSig[_T], value: _T, /
+    ) -> None:
         """Cache the result of a callback within the scope of this context.
 
         Whether this does anything or is a noop is implementation detail.
@@ -553,7 +554,11 @@ class Context(abc.ABC):
     def get_cached_result(self, callback: CallbackSig[_T], /, *, default: _DefaultT) -> _T | _DefaultT: ...
 
     def get_cached_result(
-        self, callback: CallbackSig[_T], /, *, default: _DefaultT | _NoValue = _NO_VALUE
+        self,
+        callback: CallbackSig[_T],  # noqa: ARG002  # Unused method argument:
+        /,
+        *,
+        default: _DefaultT | _NoValue = _NO_VALUE,
     ) -> _T | _DefaultT:
         """Get the cached result of a callback.
 

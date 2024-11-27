@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -80,13 +79,11 @@ def inject(*, callback: alluka.CallbackSig[_T]) -> _T: ...
 
 
 @typing.overload
-def inject(*, type: _TypeT[_T]) -> _T:  # noqa: A002
-    ...
+def inject(*, type: _TypeT[_T]) -> _T: ...
 
 
 @typing.overload
-def inject(*, type: typing.Any = None) -> typing.Any:  # noqa: A002
-    ...
+def inject(*, type: typing.Any = None) -> typing.Any: ...
 
 
 def inject(*, callback: alluka.CallbackSig[_T] | None = None, type: typing.Any = None) -> typing.Any:  # noqa: A002
@@ -270,7 +267,7 @@ class Client(alluka.Client):
         if asyncio.iscoroutine(result):
             return typing.cast("_T", await result)
 
-        return typing.cast("_T", result)  # noqa: ASYNC910  # This is ignored for performance's sake.
+        return typing.cast("_T", result)
 
     def set_type_dependency(self, type_: type[_T], value: _T, /) -> Self:
         # <<inherited docstring from alluka.abc.Client>>.
