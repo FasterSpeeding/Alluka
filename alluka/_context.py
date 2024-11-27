@@ -89,7 +89,7 @@ class Context(alluka.Context):
     def get_type_dependency(self, type_: type[_T], /, *, default: _DefaultT | _NoValue = _NO_VALUE) -> _T | _DefaultT:
         # <<inherited docstring from alluka.abc.Context>>.
         if type_ is alluka.Context:
-            return self
+            return self  # type: ignore  # noqa: PGH003
 
         result = self._client.get_type_dependency(type_, default=default)
 

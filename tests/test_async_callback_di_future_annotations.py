@@ -238,7 +238,7 @@ async def test_call_with_async_di_with_type_dependency_inferred_from_missing_typ
         nyaa: str,
         meow: int,
         _: MockType = alluka.inject(),
-        value_1=alluka.inject(),  # noqa: ANN001  # Missing type anno
+        value_1=alluka.inject(),  # type: ignore  # noqa: ANN001  # Missing type anno
     ) -> str:
         raise NotImplementedError
 

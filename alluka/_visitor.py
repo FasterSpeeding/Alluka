@@ -151,7 +151,7 @@ class ParameterVisitor:
 
     __slots__ = ()
 
-    _NODES: tuple[collections.Callable[[Callback, str], Node]] = (Default, Annotation)
+    _NODES: tuple[collections.Callable[[Callback, str], Node], ...] = (Default, Annotation)
 
     def _parse_type(
         self, type_: typing.Any, *, default: typing.Any | _types.Undefined = _types.UNDEFINED

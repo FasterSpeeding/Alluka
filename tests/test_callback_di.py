@@ -78,7 +78,7 @@ def test_call_with_di_when_no_di(context: alluka.Context) -> None:
 
 
 def test_call_with_async_di_with_missing_annotations(context: alluka.Context) -> None:
-    def callback(value_1, value_2) -> str:  # noqa: ANN001  # Missing type anno
+    def callback(value_1, value_2) -> str:  # type: ignore  # type: ignore  # noqa: ANN001  # Missing type anno
         assert value_1 == 543123
         assert value_2 == "sdasd"
         return "meow"
@@ -230,7 +230,7 @@ def test_call_with_di_with_type_dependency_inferred_from_missing_type(context: a
         nyaa: str,
         meow: int,
         _: MockType = alluka.inject(),
-        value_1=alluka.inject(),  # noqa: ANN001  # Missing type anno
+        value_1=alluka.inject(),  # type: ignore  # noqa: ANN001  # Missing type anno
     ) -> str:
         raise NotImplementedError
 
