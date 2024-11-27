@@ -208,7 +208,7 @@ allow_redefinition = true
 default_sessions = [
     "reformat",
     "verify-markup",
-    "flake8",
+    "lint",
     "spell-check",
     "slot-check",
     "type-check",
