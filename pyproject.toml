@@ -102,7 +102,6 @@ exclude_lines = [
     "^if typing.TYPE_CHECKING:$"
 ]
 
-
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
