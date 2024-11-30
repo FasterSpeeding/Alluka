@@ -269,3 +269,6 @@ filterwarnings = [
 strict-imports = true
 require-superclass = true
 require-subclass = true
+
+[tool.uv]
+reinstall-package = ["alluka"]
