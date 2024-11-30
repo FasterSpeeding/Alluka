@@ -68,7 +68,7 @@ def test_inject_when_callback() -> None:
 
 def test_inject_when_both_callback_and_type() -> None:
     with pytest.raises(ValueError, match="Only one of `callback` or `type` can be specified"):
-        alluka.inject(type=mock.Mock(), callback=mock.Mock())  # type: ignore  # noqa: PGH003
+        alluka.inject(type=mock.Mock(), callback=mock.Mock())  # type: ignore 
 
 
 class TestClient:
