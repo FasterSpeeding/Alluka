@@ -132,7 +132,6 @@ default_sessions = [
     "test",
     "verify-types",
 ]
-extra_test_installs = ["."]
 mypy_allowed_to_fail = true
 mypy_targets = ["alluka"]
 project_name = "alluka"
