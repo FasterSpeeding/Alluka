@@ -196,6 +196,7 @@ ignore = [
     "COM812",  # Trailing comma missing (incompatible with black)
     "FIX002",  # Line contains TODO, consider resolving the issue
     "I001",    # [*] Import block is un-sorted or un-formatted
+    "PGH003",  # Use specific rule codes when ignoring type issues
     "S101",    # Use of `assert` detected
     "SIM108",  # Use ternary operator `` instead of `if`-`else`-block
     "TD002",   # Missing author in TODO; try: `# TODO(<author_name>): ...` or `# TODO @<author_name>: ...`
@@ -224,7 +225,6 @@ ignore = [
     "D103",    # Missing docstring in public function
     "D104",    # Missing docstring in public package
     "FBT001",  # Boolean-typed positional argument in function definition
-    "PGH003",  # Use specific rule codes when ignoring type issues
     "PLR2004", # Magic value used in comparison, consider replacing `` with a constant variable
     "SLF001",  # Private member accessed: ``
 ]
