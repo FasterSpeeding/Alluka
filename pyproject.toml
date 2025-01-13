@@ -204,6 +204,9 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+"alluka/abc.py" = [
+    "A005",  # Module `abc` shadows a Python standard-library module
+]
 "docs_src/**/*.py" = [
     "B008",    # Do not perform function call `` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
     "D100",    # Missing docstring in public module
