@@ -1,5 +1,20 @@
 # Usage
 
+Before we go into the specifics on how to use Alluka, it should be noted that under Alluka's
+dependency injection system there are two base types of injected dependencies:
+
+* Callback dependencies:
+    These are called (with DI) every time the function they're attached to is executed with the
+    result of each call being passed through to the relevant field.
+
+    !!! note
+        These support DI recursively, allowing an injected callback to request callback and type
+        dependencies itself.
+
+* Type dependencies:
+    A field will be associated with a specific type and during each DI call the linked injection
+    client will be used to get an implementation of this type to pass through to the field.
+
 ## Function injection
 
 This form of dependency injection works by injecting values for keyword arguments during callback
