@@ -95,7 +95,7 @@ async def test_call_with_async_di_prioritises_defaults_over_annotations(context:
     mock_callback = mock.AsyncMock()
 
     async def dependency(
-        result: typing.Annotated[float, alluka.inject(type=123)] = alluka.inject(callback=mock_callback)
+        result: typing.Annotated[float, alluka.inject(type=123)] = alluka.inject(callback=mock_callback),
     ) -> str:
         assert result is mock_callback.return_value
         return "sexual catgirls"
