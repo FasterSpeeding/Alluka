@@ -50,6 +50,7 @@ from . import _self_injecting  # pyright: ignore[reportPrivateUsage]
 from . import _types  # pyright: ignore[reportPrivateUsage]
 from . import _visitor
 from . import abc as alluka
+from .managed import _index
 
 if typing.TYPE_CHECKING:
     from typing import Self
@@ -165,7 +166,7 @@ class Client(alluka.Client):
         self._descriptors: weakref.WeakKeyDictionary[
             alluka.CallbackSig[typing.Any], dict[str, _types.InjectedTuple]
         ] = weakref.WeakKeyDictionary()
-        self._introspect_annotations = introspect_annotations
+        self._introspect_annotations = introspect_annotations  # TODO: deprecate
         static_context = _context.Context(self)
         self._make_context: collections.Callable[[Self], alluka.Context] = lambda _: static_context
         self._type_dependencies: dict[type[typing.Any], typing.Any] = {alluka.Client: self, Client: self}
@@ -177,7 +178,11 @@ class Client(alluka.Client):
         except KeyError:
             pass
 
-        # TODO: introspect_annotations=self._introspect_annotations
+        descriptors = _index.GLOBAL_INDEX.get_descriptors(callback)
+        if descriptors is not None:
+            self._descriptors[callback] = descriptors
+            return descriptors
+
         descriptors = self._descriptors[callback] = _visitor.Callback(callback).accept(_visitor.ParameterVisitor())
         return descriptors
 
