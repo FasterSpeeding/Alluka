@@ -12,5 +12,3 @@ on:
 jobs:
   lint:
     uses: FasterSpeeding/Piped/.github/workflows/lint.yml@f20a1d60900d648fb6f1e4e95460288920c4f17f
-    with:
-      sessions: "verify-markup spell-check lint slot-check"

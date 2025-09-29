@@ -45,12 +45,6 @@ docs = [
     "mkdocs-material>=8.5.11",
     "mkdocs-minify-plugin>=0.6.4",
 ]
-lint = [
-    "codespell>=2.2.2",
-    "pre-commit-hooks>=4.4",
-    "slotscheck>=0.16.1",
-    "ruff",
-]
 tests = [
     "pytest>=7",
     "pytest-cov>=4",
@@ -63,9 +57,6 @@ tests = [
     "trio>=0.22, <1",
 ]
 type-checking = [
-    "mypy>=0.991",
-    "nox",
-    "pyright>=1.1.285",
     {include-group = "tests"},
 ]
 
@@ -111,22 +102,6 @@ warn_redundant_casts = false
 
 # compatibility with pyright
 allow_redefinition = true
-
-[tool.piped]
-default_sessions = [
-    "reformat",
-    "verify-markup",
-    "lint",
-    "spell-check",
-    "slot-check",
-    "type-check",
-    "test",
-    "verify-types",
-]
-mypy_allowed_to_fail = true
-mypy_targets = ["alluka"]
-project_name = "alluka"
-top_level_targets = ["./alluka", "./docs_src", "./noxfile.py", "./tests"]
 
 [tool.pycln]
 exclude = "docs_src"
