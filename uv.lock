@@ -28,6 +28,7 @@ tests = [
     { name = "trio" },
 ]
 type-checking = [
+    { name = "alluka" },
     { name = "anyio" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -58,6 +59,7 @@ tests = [
     { name = "trio", specifier = ">=0.22,<1" },
 ]
 type-checking = [
+    { name = "alluka", editable = "." },
     { name = "anyio", specifier = ">=3.6.2" },
     { name = "pytest", specifier = ">=7" },
     { name = "pytest-cov", specifier = ">=4" },

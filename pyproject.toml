@@ -58,6 +58,7 @@ tests = [
 ]
 type-checking = [
     {include-group = "tests"},
+    "alluka",
 ]
 
 [tool.black]
@@ -229,3 +230,11 @@ require-subclass = true
 
 [tool.uv]
 reinstall-package = ["alluka"]
+
+[tool.uv.workspace]
+members = [
+    ".",
+]
+
+[tool.uv.sources]
+alluka = { workspace = true }
