@@ -46,6 +46,7 @@ docs = [
     "mkdocs-minify-plugin>=0.6.4",
 ]
 tests = [
+    "alluka",
     "pytest>=7",
     "pytest-cov>=4",
     "pytest-sugar>=0.9.6",
@@ -57,8 +58,8 @@ tests = [
     "trio>=0.22, <1",
 ]
 type-checking = [
-    {include-group = "tests"},
     "alluka",
+    {include-group = "tests"},
 ]
 
 [tool.black]
@@ -232,9 +233,7 @@ require-subclass = true
 reinstall-package = ["alluka"]
 
 [tool.uv.workspace]
-members = [
-    ".",
-]
+members = ["."]
 
 [tool.uv.sources]
 alluka = { workspace = true }
