@@ -14,5 +14,5 @@ jobs:
       contents: write
       pull-requests: write
 
-    uses: FasterSpeeding/Piped/.github/workflows/pr-docs.yml@0af587d7dd3dbda851dca9b36704a8913ce9b410
+    uses: FasterSpeeding/Piped/.github/workflows/pr-docs.yml@f20a1d60900d648fb6f1e4e95460288920c4f17f
     secrets: inherit

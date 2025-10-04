@@ -1,0 +1,36 @@
+[tools]
+# Languages
+node = "24"
+python = "3"
+# CLI tools
+# Black has to be installed from PyPi to support their ARM fallback to pure-python.
+"pipx:black" = "25.9.0"
+"pipx:codespell" = "2.4.1"
+"pipx:flit" = "3.12.0"
+"pipx:isort" = "6.0.1"
+"pipx:mypy" = "1.18.2"
+"pipx:pre-commit-hooks" = "6.0.0"
+"pipx:pycln" = "2.5.0"
+"npm:pyright" = "1.1.405"
+"npm:renovate" = "41.131.9"
+ruff = "0.13.2"
+"pipx:slotscheck" = "0.19.1"
+"pipx:sort-all" = "1.3.0"
+uv = "0.8"
+just = "1.43.0"
+
+[env]
+PYTHON_PROJECT_NAME = "alluka"
+
+[settings]
+activate_aggressive = true
+experimental = true
+gpg_verify = true
+lockfile = true
+not_found_auto_install = false
+paranoid = true
+plugin_autoupdate_last_check_duration = "0"
+go_skip_checksum = true
+
+[settings.python]
+uv_venv_auto = false
